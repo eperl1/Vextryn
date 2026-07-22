@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/ethan/Vextryn_Air/build/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

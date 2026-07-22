@@ -1,0 +1,1 @@
+qemu-system-x86_64 -cdrom /home/ethan/Vextryn_Air/vextryn-air.iso -drive file=/home/ethan/Vextryn_Air/vextryn-data.img,format=raw,index=1,media=disk -m 512M -smp 2 -machine q35 -cpu qemu64 -vga std -display none -serial file:/tmp/vextryn-serial.log -qmp unix:/tmp/vextryn-qmp.sock,server=on,wait=off -no-reboot

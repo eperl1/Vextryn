@@ -1,0 +1,1 @@
+qemu-system-x86_64 -cdrom /home/ethan/Vextryn_Air/vextryn-air.iso -m 512M -machine pc -cpu qemu64 -vga std -display none -serial file:/tmp/vextryn-serial.log -qmp unix:/tmp/vextryn-qmp.sock,server=on,wait=off -no-reboot -drive if=none,id=vxdata,file=/home/ethan/Vextryn_Air/vextryn-data.img,format=raw -device ide-hd,drive=vxdata,bus=ide.0,unit=1

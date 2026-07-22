@@ -1,0 +1,55 @@
+34:        bool launcher_open;
+36:        int mouse_x;
+37:        int mouse_y;
+83:    static void mouse_wait(uint8_t type) {
+89:    static void mouse_write(uint8_t data) {
+90:        mouse_wait(1);
+92:        mouse_wait(1);
+94:        mouse_wait(0);
+98:    static void mouse_init(void) {
+99:        mouse_wait(1);
+101:        mouse_wait(1);
+103:        mouse_wait(0);
+105:        mouse_wait(1);
+107:        mouse_wait(1);
+109:        mouse_write(0xF6);
+110:        mouse_write(0xF4);
+210:                    g_state.mouse_x += rdx / 4;
+211:                    g_state.mouse_y -= rdy / 4;
+212:                    if (g_state.mouse_x < 0) g_state.mouse_x = 0;
+213:                    if (g_state.mouse_y < 0) g_state.mouse_y = 0;
+214:                    if (g_state.mouse_x > (int)W - 1) g_state.mouse_x = W - 1;
+215:                    if (g_state.mouse_y > (int)H - 1) g_state.mouse_y = H - 1;
+225:                                g_state.windows[i].x = g_state.mouse_x - g_state.windows[i].drag_offset_x;
+226:                                g_state.windows[i].y = g_state.mouse_y - g_state.windows[i].drag_offset_y;
+242:                        uint32_t mx = g_state.mouse_x;
+243:                        uint32_t my = g_state.mouse_y;
+247:                            g_state.launcher_open = !g_state.launcher_open;
+251:                        else if (g_state.launcher_open) {
+262:                                        g_state.launcher_open = false;
+267:                                g_state.launcher_open = false;
+318:                        g_state.launcher_open = false;
+394:    static void draw_app_icon(uint32_t x, uint32_t y, int app_index, bool hover) {
+467:        bool close_hover = (g_state.mouse_x >= w.x + w.w - 24 && g_state.mouse_x <= w.x + w.w - 4 && 
+468:                            g_state.mouse_y >= w.y + 4 && g_state.mouse_y <= w.y + 24);
+488:                    bool hover = (g_state.mouse_x >= (int)cx && g_state.mouse_x <= (int)(cx + bw) && 
+489:                                  g_state.mouse_y >= (int)cy && g_state.mouse_y <= (int)(cy + bh));
+599:            draw_app_terminal(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+601:            draw_app_file_manager(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+603:            draw_app_settings(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+605:            draw_app_browser(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+607:            draw_app_media_player(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+609:            draw_app_image_viewer(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+611:            draw_app_calendar(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+643:        bool launcher_hover = (g_state.mouse_x >= (int)lx && g_state.mouse_x <= (int)lx + 40 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 40);
+645:        vxair_fb_fill_rect(lx, ly, 40, 40, launcher_hover ? 0xFF00F0FF : 0xFF1E293B);
+646:        vxair_fb_fill_rect(lx + 1, ly + 1, 38, 38, g_state.launcher_open ? 0xFF0F172A : 0xFF020617);
+684:        if (g_state.launcher_open) {
+694:                bool item_hover = (g_state.mouse_x >= (int)item_x && g_state.mouse_x <= (int)item_x + 210 && 
+695:                                   g_state.mouse_y >= (int)item_y && g_state.mouse_y <= (int)item_y + 36);
+699:                draw_app_icon(item_x + 8, item_y + 2, i, item_hover);
+707:        uint32_t ptr_x = g_state.mouse_x, ptr_y = g_state.mouse_y;
+723:        g_state.mouse_x = W / 2;
+724:        g_state.mouse_y = H / 2;
+725:        g_state.launcher_open = false;
+740:        mouse_init();

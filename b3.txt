@@ -1,0 +1,125 @@
+gui/desktop/vxair_desktop.cpp:43:        vxair_input_event_t event;
+gui/desktop/vxair_desktop.cpp:44:        while (vxair_input_poll_event(&event)) {
+gui/desktop/vxair_desktop.cpp:52:                if (event.data.key.keycode == 0x01) { // ESC key to exit
+gui/desktop/vxair_desktop.cpp:60:            win->draw(font_);
+gui/compositor/vxair_vxcomp.cpp:11:#include "times_font.h"
+gui/compositor/vxair_vxcomp.cpp:72:        bool shift_down;
+gui/compositor/vxair_vxcomp.cpp:114:    static void draw_abstract_char(int x, int y, char c, uint32_t color);
+gui/compositor/vxair_vxcomp.cpp:128:    #include "font8x8.h"
+gui/compositor/vxair_vxcomp.cpp:233:    static char scancode_to_ascii(uint8_t scancode, bool shift) {
+gui/compositor/vxair_vxcomp.cpp:234:        if (scancode == 0x1E) return shift ? 'A' : 'a';
+gui/compositor/vxair_vxcomp.cpp:235:        if (scancode == 0x30) return shift ? 'B' : 'b';
+gui/compositor/vxair_vxcomp.cpp:236:        if (scancode == 0x2E) return shift ? 'C' : 'c';
+gui/compositor/vxair_vxcomp.cpp:237:        if (scancode == 0x20) return shift ? 'D' : 'd';
+gui/compositor/vxair_vxcomp.cpp:238:        if (scancode == 0x12) return shift ? 'E' : 'e';
+gui/compositor/vxair_vxcomp.cpp:239:        if (scancode == 0x21) return shift ? 'F' : 'f';
+gui/compositor/vxair_vxcomp.cpp:240:        if (scancode == 0x22) return shift ? 'G' : 'g';
+gui/compositor/vxair_vxcomp.cpp:241:        if (scancode == 0x23) return shift ? 'H' : 'h';
+gui/compositor/vxair_vxcomp.cpp:242:        if (scancode == 0x17) return shift ? 'I' : 'i';
+gui/compositor/vxair_vxcomp.cpp:243:        if (scancode == 0x24) return shift ? 'J' : 'j';
+gui/compositor/vxair_vxcomp.cpp:244:        if (scancode == 0x25) return shift ? 'K' : 'k';
+gui/compositor/vxair_vxcomp.cpp:245:        if (scancode == 0x26) return shift ? 'L' : 'l';
+gui/compositor/vxair_vxcomp.cpp:246:        if (scancode == 0x32) return shift ? 'M' : 'm';
+gui/compositor/vxair_vxcomp.cpp:247:        if (scancode == 0x31) return shift ? 'N' : 'n';
+gui/compositor/vxair_vxcomp.cpp:248:        if (scancode == 0x18) return shift ? 'O' : 'o';
+gui/compositor/vxair_vxcomp.cpp:249:        if (scancode == 0x19) return shift ? 'P' : 'p';
+gui/compositor/vxair_vxcomp.cpp:250:        if (scancode == 0x10) return shift ? 'Q' : 'q';
+gui/compositor/vxair_vxcomp.cpp:251:        if (scancode == 0x13) return shift ? 'R' : 'r';
+gui/compositor/vxair_vxcomp.cpp:252:        if (scancode == 0x1F) return shift ? 'S' : 's';
+gui/compositor/vxair_vxcomp.cpp:253:        if (scancode == 0x14) return shift ? 'T' : 't';
+gui/compositor/vxair_vxcomp.cpp:254:        if (scancode == 0x16) return shift ? 'U' : 'u';
+gui/compositor/vxair_vxcomp.cpp:255:        if (scancode == 0x2F) return shift ? 'V' : 'v';
+gui/compositor/vxair_vxcomp.cpp:256:        if (scancode == 0x11) return shift ? 'W' : 'w';
+gui/compositor/vxair_vxcomp.cpp:257:        if (scancode == 0x2D) return shift ? 'X' : 'x';
+gui/compositor/vxair_vxcomp.cpp:258:        if (scancode == 0x15) return shift ? 'Y' : 'y';
+gui/compositor/vxair_vxcomp.cpp:259:        if (scancode == 0x2C) return shift ? 'Z' : 'z';
+gui/compositor/vxair_vxcomp.cpp:260:        if (scancode == 0x02) return shift ? '!' : '1';
+gui/compositor/vxair_vxcomp.cpp:261:        if (scancode == 0x03) return shift ? '@' : '2';
+gui/compositor/vxair_vxcomp.cpp:262:        if (scancode == 0x04) return shift ? '#' : '3';
+gui/compositor/vxair_vxcomp.cpp:263:        if (scancode == 0x05) return shift ? '$' : '4';
+gui/compositor/vxair_vxcomp.cpp:264:        if (scancode == 0x06) return shift ? '%' : '5';
+gui/compositor/vxair_vxcomp.cpp:265:        if (scancode == 0x07) return shift ? '^' : '6';
+gui/compositor/vxair_vxcomp.cpp:266:        if (scancode == 0x08) return shift ? '&' : '7';
+gui/compositor/vxair_vxcomp.cpp:267:        if (scancode == 0x09) return shift ? '*' : '8';
+gui/compositor/vxair_vxcomp.cpp:268:        if (scancode == 0x0A) return shift ? '(' : '9';
+gui/compositor/vxair_vxcomp.cpp:269:        if (scancode == 0x0B) return shift ? ')' : '0';
+gui/compositor/vxair_vxcomp.cpp:270:        if (scancode == 0x39) return ' ';
+gui/compositor/vxair_vxcomp.cpp:271:        if (scancode == 0x1C) return '\n';
+gui/compositor/vxair_vxcomp.cpp:272:        if (scancode == 0x0E) return '\b';
+gui/compositor/vxair_vxcomp.cpp:273:        if (scancode == 0x01) return 27; // Esc
+gui/compositor/vxair_vxcomp.cpp:274:        if (scancode == 0x0C) return shift ? '_' : '-';
+gui/compositor/vxair_vxcomp.cpp:275:        if (scancode == 0x0D) return shift ? '+' : '=';
+gui/compositor/vxair_vxcomp.cpp:276:        if (scancode == 0x1A) return shift ? '{' : '[';
+gui/compositor/vxair_vxcomp.cpp:277:        if (scancode == 0x1B) return shift ? '}' : ']';
+gui/compositor/vxair_vxcomp.cpp:278:        if (scancode == 0x27) return shift ? ':' : ';';
+gui/compositor/vxair_vxcomp.cpp:279:        if (scancode == 0x28) return shift ? '"' : '\'';
+gui/compositor/vxair_vxcomp.cpp:280:        if (scancode == 0x29) return shift ? '~' : '`';
+gui/compositor/vxair_vxcomp.cpp:281:        if (scancode == 0x2B) return shift ? '|' : '\\';
+gui/compositor/vxair_vxcomp.cpp:282:        if (scancode == 0x33) return shift ? '<' : ',';
+gui/compositor/vxair_vxcomp.cpp:283:        if (scancode == 0x34) return shift ? '>' : '.';
+gui/compositor/vxair_vxcomp.cpp:284:        if (scancode == 0x35) return shift ? '?' : '/';
+gui/compositor/vxair_vxcomp.cpp:285:        if (scancode == 0x4A) return '-'; // Numpad -
+gui/compositor/vxair_vxcomp.cpp:286:        if (scancode == 0x4E) return '+'; // Numpad +
+gui/compositor/vxair_vxcomp.cpp:287:        if (scancode == 0x37) return '*'; // Numpad * (or print screen)
+gui/compositor/vxair_vxcomp.cpp:288:        if (scancode == 0x47) return '7'; // Numpad 7
+gui/compositor/vxair_vxcomp.cpp:289:        if (scancode == 0x48) return '8'; // Numpad 8
+gui/compositor/vxair_vxcomp.cpp:290:        if (scancode == 0x49) return '9'; // Numpad 9
+gui/compositor/vxair_vxcomp.cpp:291:        if (scancode == 0x4B) return '4'; // Numpad 4
+gui/compositor/vxair_vxcomp.cpp:292:        if (scancode == 0x4C) return '5'; // Numpad 5
+gui/compositor/vxair_vxcomp.cpp:293:        if (scancode == 0x4D) return '6'; // Numpad 6
+gui/compositor/vxair_vxcomp.cpp:294:        if (scancode == 0x4F) return '1'; // Numpad 1
+gui/compositor/vxair_vxcomp.cpp:295:        if (scancode == 0x50) return '2'; // Numpad 2
+gui/compositor/vxair_vxcomp.cpp:296:        if (scancode == 0x51) return '3'; // Numpad 3
+gui/compositor/vxair_vxcomp.cpp:297:        if (scancode == 0x52) return '0'; // Numpad 0
+gui/compositor/vxair_vxcomp.cpp:298:        if (scancode == 0x53) return '.'; // Numpad .
+gui/compositor/vxair_vxcomp.cpp:491:                if (data == 0x2A || data == 0x36) g_state.shift_down = true;
+gui/compositor/vxair_vxcomp.cpp:492:                else if (data == 0xAA || data == 0xB6) g_state.shift_down = false;
+gui/compositor/vxair_vxcomp.cpp:494:                    char c = scancode_to_ascii(data, g_state.shift_down);
+gui/compositor/vxair_vxcomp.cpp:671:    static void draw_abstract_char(int x, int y, char c, uint32_t color) {
+gui/compositor/vxair_vxcomp.cpp:675:            uint8_t row = times_font[index][i];
+gui/compositor/vxair_vxcomp.cpp:690:                // Apply a simple brightness modifier on hover if we want, or just draw
+gui/compositor/vxair_vxcomp.cpp:815:                    draw_abstract_char(cur_x, cur_y, g_state.notes[i], 0xFF405060);
+gui/compositor/vxair_vxcomp.cpp:829:            draw_abstract_char(w.x + 30, w.y + 70, 'R', 0xFFF8FAFC);
+gui/compositor/vxair_vxcomp.cpp:830:            draw_abstract_char(w.x + 42, w.y + 70, 'A', 0xFFF8FAFC);
+gui/compositor/vxair_vxcomp.cpp:831:            draw_abstract_char(w.x + 54, w.y + 70, 'M', 0xFFF8FAFC);
+gui/compositor/vxair_vxcomp.cpp:835:            draw_abstract_char(w.x + 30, w.y + 140, 'C', 0xFFF8FAFC);
+gui/compositor/vxair_vxcomp.cpp:836:            draw_abstract_char(w.x + 42, w.y + 140, 'P', 0xFFF8FAFC);
+gui/compositor/vxair_vxcomp.cpp:837:            draw_abstract_char(w.x + 54, w.y + 140, 'U', 0xFFF8FAFC);
+gui/compositor/vxair_vxcomp.cpp:922:            draw_abstract_char(tx_base + 4 + i * 10, ty + 6, dt[i], 0xFFFFFFFF);
+gui/compositor/vxair_vxcomp.cpp:951:                    draw_abstract_char(64 + j*10, item_y + 12, app_names[i][j], 0xFFF8FAFC);
+gui/compositor/font8x8.h:6:static const uint8_t font8x8[256][8] = {
+gui/compositor/times_font.h:4:const uint8_t times_font[256][16] = {
+gui/vxui/vxair_font.cpp:1:#include "vxair_font.hpp"
+gui/vxui/vxair_font.cpp:6:// Simple 8x8 font.
+gui/vxui/vxair_font.cpp:7:const uint8_t FontRenderer::s_builtin_font[256][8] = {
+gui/vxui/vxair_font.cpp:17:bool FontRenderer::load_font(const std::string& path) {
+gui/vxui/vxair_font.cpp:36:        // Render 8x8 glyph (using an outline box as placeholder)
+gui/vxui/vxair_vxui.cpp:10:void Button::draw(uint32_t* buffer, int buf_w, int buf_h, FontRenderer& font) {
+gui/vxui/vxair_vxui.cpp:28:    font.render_text(label_, text_x, text_y, text_color, buffer, buf_w, buf_h);
+gui/vxui/vxair_vxui.cpp:42:void Label::draw(uint32_t* buffer, int buf_w, int buf_h, FontRenderer& font) {
+gui/vxui/vxair_vxui.cpp:43:    font.render_text(text_, x_, y_, 0xFFFFFFFF, buffer, buf_w, buf_h);
+gui/vxui/vxair_vxui.cpp:55:void UIWindow::draw(FontRenderer& font) {
+gui/vxui/vxair_vxui.cpp:71:    font.render_text(title_, 4, 6, 0xFFFFFFFF, buf, w, h);
+gui/vxui/vxair_vxui.cpp:75:        widget->draw(buf, w, h, font);
+drivers/input/vxair_input.h:18:} vxair_input_event_type_t;
+drivers/input/vxair_input.h:24:    vxair_input_event_type_t type;
+drivers/input/vxair_input.h:27:            uint32_t keycode;
+drivers/input/vxair_input.h:39:} vxair_input_event_t;
+drivers/input/vxair_input.h:51:bool vxair_input_poll_event(vxair_input_event_t* event);
+drivers/input/vxair_input.h:57:void vxair_input_push_event(const vxair_input_event_t* event);
+drivers/input/vxair_input.c:7:static vxair_input_event_t g_event_queue[EVENT_QUEUE_SIZE];
+drivers/input/vxair_input.c:17:bool vxair_input_poll_event(vxair_input_event_t* event) {
+drivers/input/vxair_input.c:30:void vxair_input_push_event(const vxair_input_event_t* event) {
+drivers/gpu/vxair_gop.c:153: * @brief Draw a character using 8x16 bitmap font
+drivers/gpu/vxair_gop.c:155:static const uint8_t font8x16[128][16] = {
+drivers/gpu/vxair_gop.c:156:    // Basic ASCII font data
+drivers/gpu/vxair_gop.c:171:void vxair_font_draw_char(uint32_t x,
+drivers/gpu/vxair_gop.c:182:        uint8_t bits = font8x16[idx][row];
+drivers/gpu/vxair_gop.c:194:void vxair_font_draw_string(uint32_t x,
+drivers/gpu/vxair_gop.c:205:            vxair_font_draw_char(
+drivers/gpu/vxair_gop.c:258:    vxair_font_draw_string(10, 10,
+drivers/gpu/vxair_gop.h:20:void vxair_font_draw_char(uint32_t x, uint32_t y,
+drivers/gpu/vxair_gop.h:23:void vxair_font_draw_string(uint32_t x, uint32_t y,
+kernel/hal/hal_pm.c:108:    // Try keyboard controller reset
+kernel/hal/hal_pm.c:111:    // Clear keyboard buffer
+kernel/hal/hal_pm.h:21: * @brief Reboot the system using keyboard controller or ACPI

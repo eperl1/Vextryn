@@ -1,0 +1,30 @@
+set timeout=3
+set default=0
+
+# Set video mode for framebuffer
+set gfxmode=1024x768x32
+set gfxpayload=keep
+insmod all_video
+insmod gfxterm
+terminal_output gfxterm
+
+menuentry "Vextryn Air" {
+    insmod all_video
+    set gfxpayload=keep
+    multiboot2 /vextryn/kernel.elf
+    module2 /vextryn/initrd.cpio.gz initrd
+    boot
+}
+
+menuentry "Vextryn Air (VGA text fallback)" {
+    set gfxpayload=text
+    multiboot2 /vextryn/kernel.elf vga_text
+    module2 /vextryn/initrd.cpio.gz initrd
+    boot
+}
+
+menuentry "Vextryn Air (Debug - Serial only)" {
+    multiboot2 /vextryn/kernel.elf debug
+    module2 /vextryn/initrd.cpio.gz initrd
+    boot
+}

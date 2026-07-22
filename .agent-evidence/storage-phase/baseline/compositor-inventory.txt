@@ -1,0 +1,67 @@
+38:        bool launcher_open;
+40:        int mouse_x;
+41:        int mouse_y;
+48:        RamFile ram_files[10];
+51:        int mouse_sensitivity_level; // 1 to 5
+54:        bool compact_taskbar;
+111:    #include "apps/app_settings.hpp"
+124:    static void mouse_wait(uint8_t type) {
+130:    static void mouse_write(uint8_t data) {
+131:        mouse_wait(1);
+133:        mouse_wait(1);
+135:        mouse_wait(0);
+139:    static void mouse_init(void) {
+140:        mouse_wait(1);
+142:        mouse_wait(1);
+144:        mouse_wait(0);
+146:        mouse_wait(1);
+148:        mouse_wait(1);
+150:        mouse_write(0xF6);
+151:        mouse_write(0xF4);
+281:                    int lvl = g_state.mouse_sensitivity_level;
+286:                        g_state.exact_x_fp = g_state.mouse_x << 8;
+287:                        g_state.exact_y_fp = g_state.mouse_y << 8;
+294:                    g_state.mouse_x = g_state.exact_x_fp >> 8;
+295:                    g_state.mouse_y = g_state.exact_y_fp >> 8;
+297:                    if (g_state.mouse_x < 0) { g_state.mouse_x = 0; g_state.exact_x_fp = 0; }
+298:                    if (g_state.mouse_y < 0) { g_state.mouse_y = 0; g_state.exact_y_fp = 0; }
+299:                    if (g_state.mouse_x > (int)W - 1) { g_state.mouse_x = W - 1; g_state.exact_x_fp = (W - 1) << 8; }
+300:                    if (g_state.mouse_y > (int)H - 1) { g_state.mouse_y = H - 1; g_state.exact_y_fp = (H - 1) << 8; }
+310:                                g_state.windows[i].x = g_state.mouse_x - g_state.windows[i].drag_offset_x;
+311:                                g_state.windows[i].y = g_state.mouse_y - g_state.windows[i].drag_offset_y;
+326:                        uint32_t tb_h = g_state.compact_taskbar ? 40 : 56;
+328:                        uint32_t mx = g_state.mouse_x;
+329:                        uint32_t my = g_state.mouse_y;
+333:                            g_state.launcher_open = !g_state.launcher_open;
+337:                        else if (g_state.launcher_open) {
+347:                                        g_state.launcher_open = false;
+352:                                g_state.launcher_open = false;
+417:                        g_state.launcher_open = false;
+429:                                    RamFile& rf = g_state.ram_files[g_state.file_selected_idx];
+601:    static void draw_app_icon(uint32_t x, uint32_t y, int app_index, bool hover) {
+648:        bool close_hover = (g_state.mouse_x >= w.x + w.w - 20 && g_state.mouse_x <= w.x + w.w - 4 && 
+649:                            g_state.mouse_y >= w.y + 4 && g_state.mouse_y <= w.y + 20);
+669:                    bool hover = (g_state.mouse_x >= (int)cx && g_state.mouse_x <= (int)(cx + bw) && 
+670:                                  g_state.mouse_y >= (int)cy && g_state.mouse_y <= (int)(cy + bh));
+774:            draw_app_terminal(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+776:            draw_app_snake(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+778:            draw_app_file_manager(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+780:            draw_app_settings(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+807:        uint32_t tb_h = g_state.compact_taskbar ? 40 : 56;
+813:        bool launcher_hover = (g_state.mouse_x >= (int)lx && g_state.mouse_x <= (int)lx + 32 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 32);
+815:        vxair_fb_fill_rect(lx, ly, 32, 32, launcher_hover ? g_state.accent_color : 0xFF1E293B);
+816:        vxair_fb_fill_rect(lx + 1, ly + 1, 30, 30, g_state.launcher_open ? 0xFF0F172A : 0xFF020617);
+823:                bool hover = (g_state.mouse_x >= (int)tx_base && g_state.mouse_x <= (int)tx_base + 32 && 
+824:                              g_state.mouse_y >= (int)tb_y + 4 && g_state.mouse_y <= (int)tb_y + 36);
+872:        if (g_state.launcher_open) {
+885:                bool hover = (g_state.mouse_x >= 20 && g_state.mouse_x <= 200 && g_state.mouse_y >= (int)item_y && g_state.mouse_y <= (int)item_y + 30);
+893:        uint32_t ptr_x = g_state.mouse_x, ptr_y = g_state.mouse_y;
+909:        g_state.launcher_open = false;
+911:        g_state.mouse_x = W / 2;
+912:        g_state.mouse_y = H / 2;
+915:        g_state.mouse_sensitivity_level = 7;
+916:        g_state.compact_taskbar = true;
+936:            g_state.ram_files[i].in_use = false;
+937:            g_state.ram_files[i].content_len = 0;
+938:            g_state.ram_files[i].name[0] = 0;
+949:        mouse_init();

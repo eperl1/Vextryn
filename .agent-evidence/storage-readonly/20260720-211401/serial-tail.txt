@@ -1,0 +1,49 @@
+[INFO] Welcome to Vextryn Air OS Kernel (x86_64)!
+[INFO] PMM: Initializing...
+[INFO] VMM: Initializing...
+[INFO] KHeap: Initializing Slab Allocator...
+[INFO] GOP: Framebuffer address 0xfd000000, size 3145728
+[INFO] GOP: Framebuffer mapped successfully
+[INFO] GOP: Clearing front buffer...
+[INFO] GOP: Init complete
+[INFO] IDT: Initializing...
+[INFO] APIC: Initializing...
+[INFO] APIC: initialized at base 0xfee00000
+[INFO] Syscall: Initializing MSRs for SYSCALL/SYSRET...
+[INFO] Scheduler: Initializing O(1) Scheduler...
+[INFO] IPC: Initializing message queues...
+[INFO] Kernel Core initialized successfully.
+[INFO] VFS: root mounted
+[INFO] INITRD: loaded 3 files
+[INFO] NET: eth0 configured with IP 10.0.2.15
+[INFO] INIT: PID 1 started
+[INFO] GUI: compositor started at 60fps
+[INFO] COMP MARK 1: compositor entry
+[INFO] COMP MARK 2: after compositor state initialization
+[INFO] COMP STORAGE SAFE: initialization continued
+[INFO] COMP MARK 3: immediately before first desktop render
+[INFO] COMP MARK 4: immediately after first desktop render
+[INFO] COMP MARK 5: immediately after first framebuffer flip/present
+[INFO] COMP MARK 6: first loop iteration reached
+[INFO] COMPOSITOR FRAME 60
+[INFO] COMPOSITOR FRAME 120
+[INFO] COMPOSITOR FRAME 180
+[INFO] COMPOSITOR FRAME 240
+[INFO] COMPOSITOR FRAME 300
+[INFO] COMPOSITOR FRAME 360
+[INFO] COMPOSITOR FRAME 420
+[INFO] COMPOSITOR FRAME 480
+[INFO] COMPOSITOR FRAME 540
+[INFO] COMPOSITOR FRAME 600
+[INFO] COMPOSITOR FRAME 660
+[INFO] COMPOSITOR FRAME 720
+[INFO] COMPOSITOR FRAME 780
+[INFO] COMPOSITOR FRAME 840
+[INFO] COMPOSITOR FRAME 900
+[INFO] COMPOSITOR FRAME 960
+[INFO] COMPOSITOR FRAME 1020
+[INFO] COMPOSITOR FRAME 1080
+[INFO] COMPOSITOR FRAME 1140
+[INFO] COMPOSITOR FRAME 1200
+[INFO] COMPOSITOR FRAME 1260
+[INFO] COMPOSITOR FRAME 1320

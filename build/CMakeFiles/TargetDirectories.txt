@@ -1,0 +1,6 @@
+/home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir
+/home/ethan/Vextryn_Air/build/CMakeFiles/vxair_libc.dir
+/home/ethan/Vextryn_Air/build/CMakeFiles/init.elf.dir
+/home/ethan/Vextryn_Air/build/CMakeFiles/shell.elf.dir
+/home/ethan/Vextryn_Air/build/CMakeFiles/edit_cache.dir
+/home/ethan/Vextryn_Air/build/CMakeFiles/rebuild_cache.dir

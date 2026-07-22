@@ -1,0 +1,3 @@
+{"error": {"class": "CommandNotFound", "desc": "Capabilities negotiation is already complete, command ignored"}}
+{"return": {}}
+{"timestamp": {"seconds": 1784645348, "microseconds": 139495}, "event": "SHUTDOWN", "data": {"guest": false, "reason": "host-qmp-quit"}}

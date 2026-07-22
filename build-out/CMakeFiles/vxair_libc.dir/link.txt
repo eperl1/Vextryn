@@ -1,0 +1,2 @@
+/usr/bin/ar qc lib/libvxair_libc.a CMakeFiles/vxair_libc.dir/userspace/libc/src/vxair_dynlink.c.o CMakeFiles/vxair_libc.dir/userspace/libc/src/vxair_libc.c.o
+/usr/bin/ranlib lib/libvxair_libc.a

@@ -1,0 +1,25 @@
+--- .agent-evidence/boot-repair/grub.cfg.before-initrd-fix	2026-07-20 20:52:36.915823901 -0400
++++ iso_root/boot/grub/grub.cfg	2026-07-20 20:52:42.755487581 -0400
+@@ -12,19 +12,19 @@
+     insmod all_video
+     set gfxpayload=keep
+     multiboot2 /vextryn/kernel.elf
+-    module2 /vextryn/initrd.cpio.gz initrd
++    # module2 /vextryn/initrd.cpio.gz initrd
+     boot
+ }
+ 
+ menuentry "Vextryn Air (VGA text fallback)" {
+     set gfxpayload=text
+     multiboot2 /vextryn/kernel.elf vga_text
+-    module2 /vextryn/initrd.cpio.gz initrd
++    # module2 /vextryn/initrd.cpio.gz initrd
+     boot
+ }
+ 
+ menuentry "Vextryn Air (Debug - Serial only)" {
+     multiboot2 /vextryn/kernel.elf debug
+-    module2 /vextryn/initrd.cpio.gz initrd
++    # module2 /vextryn/initrd.cpio.gz initrd
+     boot
+ }

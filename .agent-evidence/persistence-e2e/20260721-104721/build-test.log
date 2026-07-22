@@ -1,0 +1,5 @@
+[  4%] Built target vxair_libc
+[  5%] Linking CXX executable bin/vextryn_air.elf
+[ 14%] Built target shell.elf
+[ 14%] Built target init.elf
+[100%] Built target vextryn_air.elf

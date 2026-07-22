@@ -1,0 +1,3 @@
+{"return": {}}
+{"return": {}}
+{"error": {"class": "CommandNotFound", "desc": "Expecting capabilities negotiation with 'qmp_capabilities'"}}

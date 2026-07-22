@@ -1,0 +1,7 @@
+gui/compositor/vxair_vxcomp.cpp:22:        VX_APP_BROWSER
+gui/compositor/vxair_vxcomp.cpp:421:                                VxAppId app_ids[8] = {VX_APP_CALCULATOR, VX_APP_NOTES, VX_APP_SYSMON, VX_APP_FILES, VX_APP_SETTINGS, VX_APP_TERMINAL, VX_APP_SNAKE, VX_APP_BROWSER};
+gui/compositor/vxair_vxcomp.cpp:500:                            if (app == VX_APP_BROWSER) {
+gui/compositor/vxair_vxcomp.cpp:501:                                browser_handle_key(c);
+gui/compositor/vxair_vxcomp.cpp:846:        } else if (w.app == VX_APP_BROWSER) {
+gui/compositor/vxair_vxcomp.cpp:847:            draw_app_browser(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+gui/compositor/vxair_vxcomp.cpp:1012:        g_state.windows[7] = {false, VX_APP_BROWSER, 80, 80, 640, 480, false, 0, 0, false};
