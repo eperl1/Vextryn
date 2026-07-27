@@ -31,6 +31,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/ethan/Vextryn_Air/drivers/gpu/vxair_gop.c" "CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/gpu/vxair_gpu_fb.c" "CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gpu_fb.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gpu_fb.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/input/vxair_input.c" "CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o.d"
+  "/home/ethan/Vextryn_Air/drivers/net/e1000.c" "CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o.d"
+  "/home/ethan/Vextryn_Air/drivers/net/virtio_net.c" "CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/storage/ahci.c" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/storage/nvme.c" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/wireless/ax200.c" "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o.d"

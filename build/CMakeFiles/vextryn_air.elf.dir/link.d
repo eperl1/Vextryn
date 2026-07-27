@@ -9,6 +9,8 @@ bin/vextryn_air.elf: \
   CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gpu_fb.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o \
+  CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o \
+  CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o \
@@ -81,6 +83,10 @@ CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o:
 CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gpu_fb.c.o:
 
 CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o:
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o:
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o:
 
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o:
 

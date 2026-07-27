@@ -4,4 +4,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o: \
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint-gcc.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h \
- /home/ethan/Vextryn_Air/kernel/hal/hal_pci.h
+ /home/ethan/Vextryn_Air/kernel/hal/hal_pci.h \
+ /home/ethan/Vextryn_Air/kernel/hal/hal_acpi.h \
+ /home/ethan/Vextryn_Air/kernel/hal/../core/include/vxair_vmm.h \
+ /home/ethan/Vextryn_Air/kernel/hal/../core/include/vxair_types.h

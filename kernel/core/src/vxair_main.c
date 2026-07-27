@@ -37,10 +37,15 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
 
     vxair_log_info("Kernel Core initialized successfully.");
 
+    // Real networking initialization
+    extern void vxair_net_init(void);
+    extern void vxair_net_test(void);
+    vxair_net_init();
+    vxair_net_test();
+    
     // Simulate VFS and Initrd loading
     vxair_log_info("VFS: root mounted");
     vxair_log_info("INITRD: loaded 3 files");
-    vxair_log_info("NET: eth0 configured with IP 10.0.2.15");
     vxair_log_info("INIT: PID 1 started");
     
     vxair_log_info("GUI: compositor started at 60fps");

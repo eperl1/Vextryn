@@ -31,6 +31,15 @@ void vxair_udp_init(void);
 void vxair_udp_receive(void *packet, uint16_t len);
 
 /**
+ * @brief Bind a UDP local port to receive packets.
+ * @param local_port Local port (network byte order).
+ * @param cb Callback function for received packets.
+ * @return 0 on success, -1 if no free socket slots.
+ */
+int vxair_udp_bind(uint16_t local_port,
+                   void (*cb)(const uint8_t *data, uint16_t len, uint32_t src_ip, uint16_t src_port));
+
+/**
  * @brief Send UDP packet.
  * @param dest_addr Destination IP address.
  * @param dest_port Destination port.

@@ -62,16 +62,30 @@ static void print_dec(int64_t num) {
     print_string(&buf[i + 1]);
 }
 
+// Skip leading '0' and '2' format flags like %02x -> just use x
+// Returns the actual format character after skipping flags
+static char skip_format_flags(const char **fmt) {
+    while (**fmt == '0' || **fmt == '1' || **fmt == '2' || **fmt == '3' ||
+           **fmt == '4' || **fmt == '5' || **fmt == '6' || **fmt == '7' ||
+           **fmt == '8' || **fmt == '9' || **fmt == '+' || **fmt == '-' ||
+           **fmt == ' ' || **fmt == '#' || **fmt == 'l' || **fmt == 'h' ||
+           **fmt == 'z' || **fmt == 't' || **fmt == 'j')
+        (*fmt)++;
+    return **fmt;
+}
+
 static void vxair_log_internal(const char* level, const char* fmt, va_list args) {
     print_string("["); print_string(level); print_string("] ");
     while (*fmt) {
         if (*fmt == '%') {
             fmt++;
-            if (*fmt == 's') print_string(va_arg(args, char*));
-            else if (*fmt == 'd') print_dec(va_arg(args, int));
-            else if (*fmt == 'x') print_hex(va_arg(args, uint64_t));
-            else if (*fmt == 'p') print_hex((uint64_t)va_arg(args, void*));
-            else if (*fmt == '%') write_serial('%');
+            char c = skip_format_flags(&fmt);
+            if (c == 's') print_string(va_arg(args, char*));
+            else if (c == 'd' || c == 'i') print_dec(va_arg(args, int));
+            else if (c == 'u') print_dec(va_arg(args, unsigned int));
+            else if (c == 'x' || c == 'X') print_hex(va_arg(args, uint64_t));
+            else if (c == 'p') print_hex((uint64_t)va_arg(args, void*));
+            else if (c == '%') write_serial('%');
         } else {
             write_serial(*fmt);
         }

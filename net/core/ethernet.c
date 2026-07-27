@@ -1,11 +1,12 @@
 #include "ethernet.h"
+#include "../../drivers/net/e1000.h"
 #include <string.h>
 
 /**
  * @brief Initialize Ethernet layer.
  */
 void vxair_eth_init(void) {
-    /* Set up Ethernet drivers, MAC address configuration, etc. */
+    /* Ethernet init is handled by virtio-net driver init */
 }
 
 /**
@@ -19,12 +20,18 @@ void vxair_eth_receive(void *frame, uint16_t len) {
     }
     vxair_eth_header_t *hdr = (vxair_eth_header_t *)frame;
     
-    /* Demux based on ethertype */
-    /* 0x0800 = IPv4, 0x0806 = ARP, 0x86DD = IPv6 */
-    if (hdr->ethertype == 0x0800) {
-        /* Pass to IP layer */
-    } else if (hdr->ethertype == 0x0806) {
+    /* Demux based on ethertype (network byte order) */
+    /* 0x0800 = IPv4, 0x0806 = ARP */
+    if (hdr->ethertype == 0x0008) { /* 0x0800 in net byte order = hosts byteswapped */
+        /* Pass to IP layer (payload after Ethernet header) */
+        extern void vxair_ip_receive(void *packet, uint16_t len);
+        vxair_ip_receive((uint8_t *)frame + sizeof(vxair_eth_header_t),
+                         len - sizeof(vxair_eth_header_t));
+    } else if (hdr->ethertype == 0x0608) { /* 0x0806 in net byte order */
         /* Pass to ARP layer */
+        extern void vxair_arp_process_packet(void *packet, uint16_t len);
+        vxair_arp_process_packet((uint8_t *)frame + sizeof(vxair_eth_header_t),
+                                 len - sizeof(vxair_eth_header_t));
     }
 }
 
@@ -37,7 +44,17 @@ void vxair_eth_receive(void *frame, uint16_t len) {
  * @return 0 on success.
  */
 int vxair_eth_send(void *dest_mac, uint16_t ethertype, void *payload, uint16_t len) {
-    if (!dest_mac || !payload) return -1;
-    /* Allocate buffer, construct Ethernet frame, send out via network interface */
-    return 0;
+    if (!dest_mac || !payload || !g_e1000.found) return -1;
+    
+    uint16_t frame_len = sizeof(vxair_eth_header_t) + len;
+    if (frame_len > E1000_BUFFER_SIZE) return -1;
+    
+    uint8_t frame[E1000_BUFFER_SIZE];
+    vxair_eth_header_t *hdr = (vxair_eth_header_t *)frame;
+    
+    memcpy(hdr->dest_mac, dest_mac, 6);
+    memcpy(hdr->src_mac, g_e1000.mac_addr, 6);
+    hdr->ethertype = ethertype; /* Already in network byte order */    memcpy(frame + sizeof(vxair_eth_header_t), payload, len);
+
+    return vxair_e1000_send(frame, frame_len);
 }

@@ -67,9 +67,9 @@ extern "C" {
         bool file_delete_confirm;
         bool file_rename_mode;
 
-        char notes[1024];
-        int notes_length;
         bool shift_down;
+        bool e0_prefix;
+        bool ctrl_down;
 
         int calc_accumulator;
         int calc_pending_value;
@@ -162,6 +162,8 @@ extern "C" {
     #include "apps/app_terminal.hpp"
     #include "apps/app_snake.hpp"
     #include "apps/app_browser.hpp"
+    #include "apps/app_notes.hpp"
+    #include "apps/app_calculator.hpp"
 
 
     static void mouse_wait(uint8_t type) {
@@ -230,7 +232,7 @@ extern "C" {
         }
     }
 
-    static char scancode_to_ascii(uint8_t scancode, bool shift) {
+    static char scancode_to_ascii(uint8_t scancode, bool shift, bool e0 = false) {
         if (scancode == 0x1E) return shift ? 'A' : 'a';
         if (scancode == 0x30) return shift ? 'B' : 'b';
         if (scancode == 0x2E) return shift ? 'C' : 'c';
@@ -285,13 +287,13 @@ extern "C" {
         if (scancode == 0x4A) return '-'; // Numpad -
         if (scancode == 0x4E) return '+'; // Numpad +
         if (scancode == 0x37) return '*'; // Numpad * (or print screen)
-        if (scancode == 0x47) return '7'; // Numpad 7
+        if (scancode == 0x47) return e0 ? (shift ? 22 : 21) : '7'; // Home / Shift+Home / Numpad 7
         if (scancode == 0x48) return 0;   // Up arrow
         if (scancode == 0x49) return '9'; // Numpad 9
-        if (scancode == 0x4B) return 17;  // Left arrow (DC1)
+        if (scancode == 0x4B) return shift ? 19 : 17;  // Left arrow (DC1) / Shift+Left (DC3)
         if (scancode == 0x4C) return '5'; // Numpad 5
-        if (scancode == 0x4D) return 18;  // Right arrow (DC2)
-        if (scancode == 0x4F) return '1'; // Numpad 1
+        if (scancode == 0x4D) return shift ? 20 : 18;  // Right arrow (DC2) / Shift+Right (DC4)
+        if (scancode == 0x4F) return e0 ? (shift ? 24 : 23) : '1'; // End / Shift+End / Numpad 1
         if (scancode == 0x50) return 0;   // Down arrow
         if (scancode == 0x51) return '3'; // Numpad 3
         if (scancode == 0x52) return '0'; // Numpad 0
@@ -488,122 +490,54 @@ extern "C" {
                 }
             } else {
                 // Keyboard
-                if (data == 0x2A || data == 0x36) g_state.shift_down = true;
-                else if (data == 0xAA || data == 0xB6) g_state.shift_down = false;
-                else if ((data & 0x80) == 0) {
-                    char c = scancode_to_ascii(data, g_state.shift_down);
+                if (data == 0xE0) {
+                    g_state.e0_prefix = true;
+                    continue;
+                }
+                bool was_e0 = g_state.e0_prefix;
+                g_state.e0_prefix = false;
+
+                if (data == 0x2A || data == 0x36) {
+                    g_state.shift_down = true;
+                } else if (data == 0xAA || data == 0xB6) {
+                    if (!was_e0) {
+                        g_state.shift_down = false;
+                    }
+                } else if (data == 0x1D) {
+                    g_state.ctrl_down = true;
+                } else if (data == 0x9D) {
+                    g_state.ctrl_down = false;
+                } else if ((data & 0x80) == 0) {
+                    char c = scancode_to_ascii(data, g_state.shift_down, was_e0);
+                    // Ctrl+A → code 25 (select_all in VxTextInput::handle_key)
+                    if (g_state.ctrl_down && (c == 'a' || c == 'A')) c = 25;
+                    // Ctrl+C/X/V → clipboard codes (26/28/29)
+                    if (g_state.ctrl_down && c == 'c') c = 26;
+                    if (g_state.ctrl_down && c == 'x') c = 28;
+                    if (g_state.ctrl_down && c == 'v') c = 29;
+                    // Escape closes the launcher OR clears the Calculator (when
+                    // Calculator is focused). Both are handled per-app below to
+                    // avoid a global side-effect; the launcher-close stays.
                     if (c == 27) {
                         g_state.launcher_open = false;
+                        // If Calculator is focused, Escape also clears it.
+                        if (g_state.focused_window != -1 &&
+                            g_state.windows[g_state.focused_window].app == VX_APP_CALCULATOR) {
+                            calc_clear();
+                        }
                     } else if (c != 0) {
                         if (g_state.focused_window != -1) {
                             VxAppId app = g_state.windows[g_state.focused_window].app;
                             if (app == VX_APP_BROWSER) {
                                 browser_handle_key(c);
                             } else if (app == VX_APP_NOTES) {
-                                if (c == '\b') {
-                                    if (g_state.notes_length > 0) g_state.notes_length--;
-                                } else if (g_state.notes_length < 1023) {
-                                    g_state.notes[g_state.notes_length++] = c;
-                                }
+                                notes_handle_key(c);
                             } else if (app == VX_APP_FILES) {
-                                if (g_state.file_selected_idx >= 0 && g_state.file_selected_idx < 10) {
-                                    RamFile& rf = g_state.ram_files[g_state.file_selected_idx];
-                                    if (rf.in_use) {
-                                        if (g_state.file_rename_mode) {
-                                            int len = 0; while (rf.name[len] != 0 && len < 15) len++;
-                                            if (c == '\b') { if (len > 0) rf.name[len-1] = 0; }
-                                            else if (c != '\n' && len < 15) { rf.name[len] = c; rf.name[len+1] = 0; }
-                                            save_files_to_disk();
-                                        } else if (g_state.file_preview_open) {
-                                            if (c == '\b') {
-                                                if (rf.content_len > 0) rf.content_len--;
-                                            } else if (rf.content_len < 511) {
-                                                rf.content[rf.content_len++] = c;
-                                            }
-                                            save_files_to_disk();
-                                        }
-                                    }
-                                }
+                                file_handle_key(c);
                             } else if (app == VX_APP_CALCULATOR) {
-                                if (c >= '0' && c <= '9') {
-                                    if (g_state.calc_replace_display || g_state.calc_error) {
-                                        g_state.calc_accumulator = c - '0';
-                                        g_state.calc_replace_display = false;
-                                        g_state.calc_error = false;
-                                    } else {
-                                        if (g_state.calc_accumulator < 10000000) {
-                                            g_state.calc_accumulator = g_state.calc_accumulator * 10 + (c - '0');
-                                        }
-                                    }
-                                } else if (c == '+' || c == '-' || c == '*' || c == '/') {
-                                    if (g_state.calc_operator) {
-                                        if (g_state.calc_operator == '+') g_state.calc_pending_value += g_state.calc_accumulator;
-                                        else if (g_state.calc_operator == '-') g_state.calc_pending_value -= g_state.calc_accumulator;
-                                        else if (g_state.calc_operator == '*') g_state.calc_pending_value *= g_state.calc_accumulator;
-                                        else if (g_state.calc_operator == '/') {
-                                            if (g_state.calc_accumulator == 0) g_state.calc_error = true;
-                                            else g_state.calc_pending_value /= g_state.calc_accumulator;
-                                        }
-                                    } else {
-                                        g_state.calc_pending_value = g_state.calc_accumulator;
-                                    }
-                                    g_state.calc_accumulator = g_state.calc_pending_value; // Display intermediate result
-                                    g_state.calc_operator = c;
-                                    g_state.calc_replace_display = true;
-                                } else if (c == '=' || c == '\n') {
-                                    if (g_state.calc_operator == '+') g_state.calc_accumulator = g_state.calc_pending_value + g_state.calc_accumulator;
-                                    else if (g_state.calc_operator == '-') g_state.calc_accumulator = g_state.calc_pending_value - g_state.calc_accumulator;
-                                    else if (g_state.calc_operator == '*') g_state.calc_accumulator = g_state.calc_pending_value * g_state.calc_accumulator;
-                                    else if (g_state.calc_operator == '/') {
-                                        if (g_state.calc_accumulator == 0) g_state.calc_error = true;
-                                        else g_state.calc_accumulator = g_state.calc_pending_value / g_state.calc_accumulator;
-                                    }
-                                    g_state.calc_pending_value = 0;
-                                    g_state.calc_operator = 0;
-                                    g_state.calc_replace_display = true;
-                                } else if (c == '\b') {
-                                    g_state.calc_accumulator /= 10;
-                                }
+                                calc_handle_key(c);
                             } else if (app == VX_APP_TERMINAL) {
-                                if (c == '\b') {
-                                    if (g_state.term_len > 0) {
-                                        g_state.term_len--;
-                                        g_state.term_buffer[g_state.term_len] = 0;
-                                    }
-                                } else if (c == '\n') {
-                                    // Handle command
-                                    g_state.term_buffer[g_state.term_len] = 0;
-                                    if (g_state.term_len > 0) {
-                                        if (g_state.term_buffer[0] == 'h') {
-                                            const char* msg = "cmds: help, clear, whoami, version, date";
-                                            for(int i=0; msg[i]&&i<511; i++) g_state.term_output[i] = msg[i];
-                                            g_state.term_out_len = 40;
-                                        } else if (g_state.term_buffer[0] == 'c') {
-                                            g_state.term_out_len = 0;
-                                        } else if (g_state.term_buffer[0] == 'w') {
-                                            const char* msg = "vxair-root";
-                                            for(int i=0; msg[i]; i++) g_state.term_output[i] = msg[i];
-                                            g_state.term_out_len = 10;
-                                        } else if (g_state.term_buffer[0] == 'v') {
-                                            const char* msg = "VextrynAir OS v0.1";
-                                            for(int i=0; msg[i]; i++) g_state.term_output[i] = msg[i];
-                                            g_state.term_out_len = 18;
-                                        } else if (g_state.term_buffer[0] == 'd') {
-                                            const char* msg = "Mon Jul 20 2026";
-                                            for(int i=0; msg[i]; i++) g_state.term_output[i] = msg[i];
-                                            g_state.term_out_len = 15;
-                                        } else {
-                                            const char* msg = "cmd not found";
-                                            for(int i=0; msg[i]; i++) g_state.term_output[i] = msg[i];
-                                            g_state.term_out_len = 13;
-                                        }
-                                    }
-                                    g_state.term_len = 0;
-                                    g_state.term_buffer[0] = 0;
-                                } else if (g_state.term_len < 63) {
-                                    g_state.term_buffer[g_state.term_len++] = c;
-                                    g_state.term_buffer[g_state.term_len] = 0;
-                                }
+                                terminal_handle_key(c);
                             } else if (app == VX_APP_SNAKE) {
                                 if (c == 'w' || c == 'W') g_state.snake_dir = 0;
                                 else if (c == 's' || c == 'S') g_state.snake_dir = 1;
@@ -715,114 +649,9 @@ extern "C" {
         vxair_fb_fill_rect(w.x + w.w - 20, w.y + 4, 16, 16, close_hover ? 0xFFEF4444 : 0xFF991B1B);
 
         if (w.app == VX_APP_CALCULATOR) {
-            vxair_fb_fill_rect(w.x + 20, w.y + 40, w.w - 40, 50, 0xFFE8F0F4); // Display
-            
-            if (g_state.calc_error) {
-                vxair_fb_fill_rect(w.x + 30, w.y + 55, 15, 20, 0xFFE05050);
-            } else {
-                draw_number(w.x + 30, w.y + 55, g_state.calc_accumulator, 0xFF304050);
-            }
-
-            uint32_t bx = w.x + 20;
-            uint32_t by = w.y + 110;
-            uint32_t bw = (w.w - 50) / 4;
-            uint32_t bh = 60;
-            for (int r=0; r<4; r++) {
-                for (int c=0; c<4; c++) {
-                    uint32_t cx = bx + c*(bw + 10);
-                    uint32_t cy = by + r*(bh + 10);
-                    bool hover = (g_state.mouse_x >= (int)cx && g_state.mouse_x <= (int)(cx + bw) && 
-                                  g_state.mouse_y >= (int)cy && g_state.mouse_y <= (int)(cy + bh));
-                    vxair_fb_fill_rect(cx, cy, bw, bh, hover ? 0xFFEAF1F5 : 0xFFF0F5F8);
-                    
-                    char key = 0;
-                    if (r==0) { if(c<3) key='7'+c; else key='/'; }
-                    else if (r==1) { if(c<3) key='4'+c; else key='*'; }
-                    else if (r==2) { if(c<3) key='1'+c; else key='-'; }
-                    else if (r==3) { if(c==0) key='C'; else if(c==1) key='0'; else if(c==2) key='='; else key='+'; }
-                    
-                    if (clicked && hover) {
-                        if (key >= '0' && key <= '9') {
-                            if (g_state.calc_replace_display) {
-                                g_state.calc_accumulator = key - '0';
-                                g_state.calc_replace_display = false;
-                                g_state.calc_error = false;
-                            } else {
-                                g_state.calc_accumulator = g_state.calc_accumulator * 10 + (key - '0');
-                            }
-                        } else if (key == 'C') {
-                            g_state.calc_accumulator = 0;
-                            g_state.calc_pending_value = 0;
-                            g_state.calc_operator = 0;
-                            g_state.calc_error = false;
-                        } else if (key == '+' || key == '-' || key == '*' || key == '/') {
-                            if (g_state.calc_operator) {
-                                if (g_state.calc_operator == '+') g_state.calc_pending_value += g_state.calc_accumulator;
-                                else if (g_state.calc_operator == '-') g_state.calc_pending_value -= g_state.calc_accumulator;
-                                else if (g_state.calc_operator == '*') g_state.calc_pending_value *= g_state.calc_accumulator;
-                                else if (g_state.calc_operator == '/') {
-                                    if (g_state.calc_accumulator == 0) g_state.calc_error = true;
-                                    else g_state.calc_pending_value /= g_state.calc_accumulator;
-                                }
-                            } else {
-                                g_state.calc_pending_value = g_state.calc_accumulator;
-                            }
-                            g_state.calc_accumulator = 0;
-                            g_state.calc_operator = key;
-                            g_state.calc_replace_display = true;
-                        } else if (key == '=') {
-                            if (g_state.calc_operator == '+') g_state.calc_accumulator = g_state.calc_pending_value + g_state.calc_accumulator;
-                            else if (g_state.calc_operator == '-') g_state.calc_accumulator = g_state.calc_pending_value - g_state.calc_accumulator;
-                            else if (g_state.calc_operator == '*') g_state.calc_accumulator = g_state.calc_pending_value * g_state.calc_accumulator;
-                            else if (g_state.calc_operator == '/') {
-                                if (g_state.calc_accumulator == 0) g_state.calc_error = true;
-                                else g_state.calc_accumulator = g_state.calc_pending_value / g_state.calc_accumulator;
-                            }
-                            g_state.calc_pending_value = 0;
-                            g_state.calc_operator = 0;
-                            g_state.calc_replace_display = true;
-                        }
-                    }
-
-                    if (key >= '0' && key <= '9') {
-                        draw_digit(cx + bw/2 - 6, cy + bh/2 - 11, key - '0', 0xFF607080);
-                    } else if (key == '-') {
-                        draw_segment(cx + bw/2 - 6, cy + bh/2 - 1, 12, true, 0xFF607080);
-                    } else if (key == '=') {
-                        draw_segment(cx + bw/2 - 6, cy + bh/2 - 4, 12, true, 0xFF607080);
-                        draw_segment(cx + bw/2 - 6, cy + bh/2 + 2, 12, true, 0xFF607080);
-                    } else if (key == '+') {
-                        draw_segment(cx + bw/2 - 6, cy + bh/2 - 1, 12, true, 0xFF607080);
-                        draw_segment(cx + bw/2 - 1, cy + bh/2 - 6, 10, false, 0xFF607080);
-                    } else {
-                        // Just a placeholder dot for ops
-                        vxair_fb_fill_rect(cx + bw/2 - 2, cy + bh/2 - 2, 4, 4, 0xFF607080);
-                    }
-                }
-            }
+            draw_app_calculator(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         } else if (w.app == VX_APP_NOTES) {
-            vxair_fb_fill_rect(w.x + 30, w.y + 28, 2, w.h - 30, 0xFFFFD0D0); // Margin
-            for (int i=0; i<13; i++) {
-                vxair_fb_fill_rect(w.x + 2, w.y + 60 + i*28, w.w - 4, 1, 0xFFE0E8ED);
-            }
-            int cur_x = w.x + 40;
-            int cur_y = w.y + 40;
-            for (int i=0; i<g_state.notes_length; i++) {
-                if (g_state.notes[i] == '\n') {
-                    cur_x = w.x + 40;
-                    cur_y += 28;
-                } else {
-                    draw_abstract_char(cur_x, cur_y, g_state.notes[i], 0xFF405060);
-                    cur_x += 12;
-                    if (cur_x > w.x + w.w - 20) {
-                        cur_x = w.x + 40;
-                        cur_y += 28;
-                    }
-                }
-            }
-            if (w.focused && (g_frame % 60 < 30)) {
-                vxair_fb_fill_rect(cur_x, cur_y, 2, 14, 0xFF405060);
-            }
+            draw_app_notes(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         } else if (w.app == VX_APP_SYSMON) {
             vxair_fb_fill_rect(w.x + 30, w.y + 40, w.w - 60, 20, 0xFF0F172A);
             vxair_fb_fill_rect(w.x + 30, w.y + 40, (w.w - 60) * 45 / 100, 20, 0xFF3B82F6);
@@ -982,7 +811,6 @@ extern "C" {
         g_state.file_selected_idx = -1;
         g_state.file_preview_open = false;
         g_state.file_rename_mode = false;
-        g_state.notes_length = 0;
         
         g_state.accent_color = 0xFF06B6D4;
         g_state.term_buffer[0] = 0;

@@ -29,6 +29,21 @@ typedef struct __attribute__((packed)) {
 void vxair_arp_init(void);
 
 /**
+ * @brief Look up a MAC address for an IP in the ARP table.
+ * @param ip IP address to look up (host byte order).
+ * @param out_mac Output buffer for the MAC address (6 bytes).
+ * @return 0 on success, -1 if not found.
+ */
+int vxair_arp_lookup(uint32_t ip, uint8_t *out_mac);
+
+/**
+ * @brief Send an ARP request for the given IP.
+ * @param target_ip Target IP address (network byte order).
+ * @return 0 on success, -1 on failure.
+ */
+int vxair_arp_request(uint32_t target_ip);
+
+/**
  * @brief Handle ARP request/reply.
  * @param packet Pointer to the ARP packet.
  * @param len Length of the packet.

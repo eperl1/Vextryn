@@ -3,11 +3,20 @@
 #include <stdint.h>
 
 // Documented single-browser limitation: static state means only one browser instance can run correctly.
+#include "../vxair_textinput.hpp"
 static char url_buffer[128] = {0};
 static int url_len = 0;
-static int caret_pos = 0;
+static VxTextInput url_input = { url_buffer, &url_len, 128, 0, 0 };
+static int& caret_pos = url_input.caret_pos;
+static int& selection_anchor = url_input.selection_anchor;
+static uint64_t last_click_frame = 1000000;
 static int current_page = 0; // 0=about:home, 1=about:blank, 2=network not implemented
 static bool url_focused = false;
+
+static inline bool sel_active() { return url_input.sel_active(); }
+static inline int sel_min() { return url_input.sel_min(); }
+static inline int sel_max() { return url_input.sel_max(); }
+static inline void delete_selection() { url_input.delete_selection(); }
 
 struct BrowserHistoryEntry {
     int page;
@@ -38,6 +47,7 @@ static void navigate_to(int page) {
     }
     current_page = page;
     caret_pos = url_len;
+    selection_anchor = caret_pos;
 }
 
 static void restore_history_idx() {
@@ -45,26 +55,22 @@ static void restore_history_idx() {
     url_len = browser_history[history_idx].url_len;
     for(int i=0; i<128; i++) url_buffer[i] = browser_history[history_idx].url[i];
     caret_pos = url_len;
+    selection_anchor = caret_pos;
 }
 
 static void browser_handle_key(char c) {
+    // Clipboard codes (26=copy, 28=cut, 29=paste) from Ctrl+C/X/V
+    if (c == 26) { vx_copy(url_input); return; }
+    if (c == 28) { vx_cut(url_input); return; }
+    if (c == 29) { vx_paste(url_input); return; }
     if (c == 27) {
         url_focused = false;
+        selection_anchor = caret_pos;
     } else if (url_focused) {
-        if (c == 17) {
-            if (caret_pos > 0) caret_pos--;
-        } else if (c == 18) {
-            if (caret_pos < url_len) caret_pos++;
-        } else if (c == '\b') {
-            if (caret_pos > 0) {
-                for (int i = caret_pos - 1; i < url_len - 1; i++) {
-                    url_buffer[i] = url_buffer[i + 1];
-                }
-                url_len--;
-                caret_pos--;
-                url_buffer[url_len] = 0;
-            }
+        if (url_input.handle_key(c)) {
+            // handled by shared text-input module
         } else if (c == '\n') {
+            selection_anchor = caret_pos;
             auto check = [](const char* target, int len) {
                 if (url_len != len) return false;
                 for(int k=0; k<len; k++) if(url_buffer[k] != target[k]) return false;
@@ -76,18 +82,6 @@ static void browser_handle_key(char c) {
             else if (check("about:help", 10)) navigate_to(4);
             else navigate_to(2);
             url_focused = false;
-        } else {
-            if (c >= 32 && c <= 126) {
-                if (url_len < 127) {
-                    for (int i = url_len; i > caret_pos; i--) {
-                        url_buffer[i] = url_buffer[i - 1];
-                    }
-                    url_buffer[caret_pos] = c;
-                    url_len++;
-                    caret_pos++;
-                    url_buffer[url_len] = 0;
-                }
-            }
         }
     }
 }
@@ -170,10 +164,19 @@ void draw_app_browser(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, boo
         if (clicked) {
             url_focused = addr_hover;
             if (addr_hover) {
-                int clicked_char = (mouse_x - text_x + 4) / 8;
-                if (clicked_char < 0) clicked_char = 0;
-                if (clicked_char > url_len) clicked_char = url_len;
-                caret_pos = clicked_char;
+                if (last_click_frame != 1000000 && frame >= last_click_frame && frame - last_click_frame < 25) {
+                    url_input.select_all();
+                    last_click_frame = 1000000;
+                } else {
+                    int clicked_char = (mouse_x - text_x + 4) / 8;
+                    if (clicked_char < 0) clicked_char = 0;
+                    if (clicked_char > url_len) clicked_char = url_len;
+                    caret_pos = clicked_char;
+                    selection_anchor = caret_pos;
+                    last_click_frame = frame;
+                }
+            } else {
+                selection_anchor = caret_pos;
             }
         }
         fill(addr_x, btn_y, addr_w, btn_h, addr_hover ? 0xFF1E2229 : 0xFF21252B);
@@ -181,10 +184,31 @@ void draw_app_browser(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, boo
         fill(addr_x + 8, btn_y + 10, 8, 8, 0xFF98C379);
         // Address text
         int text_y = btn_y + 6;
+        if (sel_active()) {
+            int s = sel_min();
+            int e = sel_max();
+            if (s < 0) s = 0;
+            if (e > url_len) e = url_len;
+            if (e > s) {
+                fill(text_x + s * 8, btn_y + 4, (e - s) * 8, btn_h - 8, 0xFF3E4451);
+            }
+        }
         for (int i = 0; i < url_len; i++) {
             draw_abstract_char(text_x + i * 8, text_y, url_buffer[i], 0xFFABB2BF);
         }
-        if (w.focused && url_focused && (frame % 60 < 30)) {
+        // ── Mouse-drag selection ───────────────────────────────────────
+        // When left button is held (not a fresh click) and the address bar
+        // is focused, update caret_pos to follow the mouse while keeping
+        // selection_anchor fixed at the original click position.
+        if (url_focused && g_state.previous_left_down && !clicked &&
+            mouse_y >= btn_y && mouse_y <= btn_y + btn_h) {
+            int drag_char = (mouse_x - text_x + 4) / 8;
+            if (drag_char < 0) drag_char = 0;
+            if (drag_char > url_len) drag_char = url_len;
+            caret_pos = drag_char;
+        }
+
+        if (w.focused && url_focused && (frame % 60 < 30) && !sel_active()) {
             fill(text_x + caret_pos * 8, text_y, 2, 16, 0xFFABB2BF);
         }
     }

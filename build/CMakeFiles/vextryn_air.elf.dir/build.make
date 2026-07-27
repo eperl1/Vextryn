@@ -196,10 +196,38 @@ CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.s"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ethan/Vextryn_Air/drivers/input/vxair_input.c -o CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.s
 
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o: /home/ethan/Vextryn_Air/drivers/net/e1000.c
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o -MF CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o.d -o CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o -c /home/ethan/Vextryn_Air/drivers/net/e1000.c
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/ethan/Vextryn_Air/drivers/net/e1000.c > CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.i
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ethan/Vextryn_Air/drivers/net/e1000.c -o CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.s
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
+CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o: /home/ethan/Vextryn_Air/drivers/net/virtio_net.c
+CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o -MF CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o.d -o CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o -c /home/ethan/Vextryn_Air/drivers/net/virtio_net.c
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing C source to CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.i"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -E /home/ethan/Vextryn_Air/drivers/net/virtio_net.c > CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.i
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling C source to assembly CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.s"
+	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -S /home/ethan/Vextryn_Air/drivers/net/virtio_net.c -o CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.s
+
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o: /home/ethan/Vextryn_Air/drivers/storage/ahci.c
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o -MF CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o.d -o CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o -c /home/ethan/Vextryn_Air/drivers/storage/ahci.c
 
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.i: cmake_force
@@ -213,7 +241,7 @@ CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o: /home/ethan/Vextryn_Air/drivers/storage/nvme.c
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o -MF CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o.d -o CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o -c /home/ethan/Vextryn_Air/drivers/storage/nvme.c
 
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.i: cmake_force
@@ -227,7 +255,7 @@ CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o: /home/ethan/Vextryn_Air/drivers/wireless/ax200.c
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o -MF CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o.d -o CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o -c /home/ethan/Vextryn_Air/drivers/wireless/ax200.c
 
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.i: cmake_force
@@ -241,7 +269,7 @@ CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o: /home/ethan/Vextryn_Air/drivers/wireless/rtl8852.c
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o -MF CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o.d -o CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o -c /home/ethan/Vextryn_Air/drivers/wireless/rtl8852.c
 
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.i: cmake_force
@@ -255,7 +283,7 @@ CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o: /home/ethan/Vextryn_Air/fs/ext2.c
 CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o -MF CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o.d -o CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o -c /home/ethan/Vextryn_Air/fs/ext2.c
 
 CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.i: cmake_force
@@ -269,7 +297,7 @@ CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o: /home/ethan/Vextryn_Air/fs/fat32.c
 CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o -MF CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o.d -o CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.o -c /home/ethan/Vextryn_Air/fs/fat32.c
 
 CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.i: cmake_force
@@ -283,7 +311,7 @@ CMakeFiles/vextryn_air.elf.dir/fs/fat32.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o: /home/ethan/Vextryn_Air/fs/ramdisk.c
 CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o -MF CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o.d -o CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.o -c /home/ethan/Vextryn_Air/fs/ramdisk.c
 
 CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.i: cmake_force
@@ -297,7 +325,7 @@ CMakeFiles/vextryn_air.elf.dir/fs/ramdisk.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o: /home/ethan/Vextryn_Air/fs/vfs.c
 CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o -MF CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o.d -o CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o -c /home/ethan/Vextryn_Air/fs/vfs.c
 
 CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.i: cmake_force
@@ -311,7 +339,7 @@ CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o: /home/ethan/Vextryn_Air/fs/vxairfs.c
 CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o -MF CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o.d -o CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o -c /home/ethan/Vextryn_Air/fs/vxairfs.c
 
 CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.i: cmake_force
@@ -325,7 +353,7 @@ CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o: /home/ethan/Vextryn_Air/kernel/core/src/kstring.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/kstring.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.i: cmake_force
@@ -339,7 +367,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/kstring.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_apic.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_20) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_apic.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.i: cmake_force
@@ -353,13 +381,13 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_context_switch.asm
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_21) "Building ASM_NASM object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building ASM_NASM object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o"
 	/usr/bin/nasm $(ASM_NASM_DEFINES) $(ASM_NASM_INCLUDES) -f elf64 $(ASM_NASM_FLAGS) -MD CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o.d -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o /home/ethan/Vextryn_Air/kernel/core/src/vxair_context_switch.asm
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_idt.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_22) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_idt.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.i: cmake_force
@@ -373,13 +401,13 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_idt_asm.asm
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_23) "Building ASM_NASM object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building ASM_NASM object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o"
 	/usr/bin/nasm $(ASM_NASM_DEFINES) $(ASM_NASM_INCLUDES) -f elf64 $(ASM_NASM_FLAGS) -MD CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o.d -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt_asm.asm.o /home/ethan/Vextryn_Air/kernel/core/src/vxair_idt_asm.asm
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_ipc.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_24) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_ipc.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.i: cmake_force
@@ -393,7 +421,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_kheap.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_25) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_kheap.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.i: cmake_force
@@ -407,7 +435,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_log.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_26) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_log.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.i: cmake_force
@@ -421,7 +449,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_log.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_main.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_27) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_main.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.i: cmake_force
@@ -435,7 +463,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_pmm.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_28) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_pmm.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.i: cmake_force
@@ -449,7 +477,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_pmm.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_sched.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_29) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_sched.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.i: cmake_force
@@ -463,7 +491,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_sched.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_syscall.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_30) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_syscall.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.i: cmake_force
@@ -477,13 +505,13 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_syscall_entry.asm
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_31) "Building ASM_NASM object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building ASM_NASM object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o"
 	/usr/bin/nasm $(ASM_NASM_DEFINES) $(ASM_NASM_INCLUDES) -f elf64 $(ASM_NASM_FLAGS) -MD CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o.d -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall_entry.asm.o /home/ethan/Vextryn_Air/kernel/core/src/vxair_syscall_entry.asm
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o: /home/ethan/Vextryn_Air/kernel/core/src/vxair_vmm.c
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_32) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.o -c /home/ethan/Vextryn_Air/kernel/core/src/vxair_vmm.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.i: cmake_force
@@ -497,7 +525,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_vmm.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o: /home/ethan/Vextryn_Air/kernel/hal/hal_acpi.c
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_33) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.o -c /home/ethan/Vextryn_Air/kernel/hal/hal_acpi.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.i: cmake_force
@@ -511,7 +539,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_acpi.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o: /home/ethan/Vextryn_Air/kernel/hal/hal_dma.c
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_34) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.o -c /home/ethan/Vextryn_Air/kernel/hal/hal_dma.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.i: cmake_force
@@ -525,7 +553,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dma.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o: /home/ethan/Vextryn_Air/kernel/hal/hal_dtb.c
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_35) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o -c /home/ethan/Vextryn_Air/kernel/hal/hal_dtb.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.i: cmake_force
@@ -539,7 +567,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o: /home/ethan/Vextryn_Air/kernel/hal/hal_pci.c
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_36) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o -c /home/ethan/Vextryn_Air/kernel/hal/hal_pci.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.i: cmake_force
@@ -553,7 +581,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o: /home/ethan/Vextryn_Air/kernel/hal/hal_pm.c
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_37) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.o -c /home/ethan/Vextryn_Air/kernel/hal/hal_pm.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.i: cmake_force
@@ -567,7 +595,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pm.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o: /home/ethan/Vextryn_Air/kernel/hal/hal_timer.c
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_38) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o -MF CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o.d -o CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o -c /home/ethan/Vextryn_Air/kernel/hal/hal_timer.c
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.i: cmake_force
@@ -581,7 +609,7 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o: /home/ethan/Vextryn_Air/net/bluetooth/gatt.c
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_39) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.o -c /home/ethan/Vextryn_Air/net/bluetooth/gatt.c
 
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.i: cmake_force
@@ -595,7 +623,7 @@ CMakeFiles/vextryn_air.elf.dir/net/bluetooth/gatt.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o: /home/ethan/Vextryn_Air/net/bluetooth/hci.c
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_40) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.o -c /home/ethan/Vextryn_Air/net/bluetooth/hci.c
 
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.i: cmake_force
@@ -609,7 +637,7 @@ CMakeFiles/vextryn_air.elf.dir/net/bluetooth/hci.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o: /home/ethan/Vextryn_Air/net/bluetooth/l2cap.c
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_41) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.o -c /home/ethan/Vextryn_Air/net/bluetooth/l2cap.c
 
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.i: cmake_force
@@ -623,7 +651,7 @@ CMakeFiles/vextryn_air.elf.dir/net/bluetooth/l2cap.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o: /home/ethan/Vextryn_Air/net/bluetooth/vxair_ble_gatt.c
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_42) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.o -c /home/ethan/Vextryn_Air/net/bluetooth/vxair_ble_gatt.c
 
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.i: cmake_force
@@ -637,7 +665,7 @@ CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_ble_gatt.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o: /home/ethan/Vextryn_Air/net/bluetooth/vxair_bt_profiles.c
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_43) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building C object CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.o -c /home/ethan/Vextryn_Air/net/bluetooth/vxair_bt_profiles.c
 
 CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.i: cmake_force
@@ -651,7 +679,7 @@ CMakeFiles/vextryn_air.elf.dir/net/bluetooth/vxair_bt_profiles.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o: /home/ethan/Vextryn_Air/net/core/arp.c
 CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_44) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.o -c /home/ethan/Vextryn_Air/net/core/arp.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.i: cmake_force
@@ -665,7 +693,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/arp.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o: /home/ethan/Vextryn_Air/net/core/ethernet.c
 CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_45) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.o -c /home/ethan/Vextryn_Air/net/core/ethernet.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.i: cmake_force
@@ -679,7 +707,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/ethernet.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o: /home/ethan/Vextryn_Air/net/core/icmp.c
 CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_46) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.o -c /home/ethan/Vextryn_Air/net/core/icmp.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.i: cmake_force
@@ -693,7 +721,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/icmp.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o: /home/ethan/Vextryn_Air/net/core/ip.c
 CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_47) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.o -c /home/ethan/Vextryn_Air/net/core/ip.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.i: cmake_force
@@ -707,7 +735,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/ip.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o: /home/ethan/Vextryn_Air/net/core/loopback.c
 CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_48) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o -c /home/ethan/Vextryn_Air/net/core/loopback.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.i: cmake_force
@@ -721,7 +749,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o: /home/ethan/Vextryn_Air/net/core/ndp.c
 CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_49) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.o -c /home/ethan/Vextryn_Air/net/core/ndp.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.i: cmake_force
@@ -735,7 +763,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/ndp.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o: /home/ethan/Vextryn_Air/net/core/net_core.c
 CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_50) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o -c /home/ethan/Vextryn_Air/net/core/net_core.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.i: cmake_force
@@ -749,7 +777,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o: /home/ethan/Vextryn_Air/net/core/netfilter.c
 CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_51) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.o -c /home/ethan/Vextryn_Air/net/core/netfilter.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.i: cmake_force
@@ -763,7 +791,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/netfilter.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o: /home/ethan/Vextryn_Air/net/core/socket.c
 CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_52) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building C object CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.o -c /home/ethan/Vextryn_Air/net/core/socket.c
 
 CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.i: cmake_force
@@ -777,7 +805,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/socket.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o: /home/ethan/Vextryn_Air/net/tcp/tcp.c
 CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_53) "Building C object CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building C object CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.o -c /home/ethan/Vextryn_Air/net/tcp/tcp.c
 
 CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.i: cmake_force
@@ -791,7 +819,7 @@ CMakeFiles/vextryn_air.elf.dir/net/tcp/tcp.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o: /home/ethan/Vextryn_Air/net/tls/tls.c
 CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_54) "Building C object CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Building C object CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o -c /home/ethan/Vextryn_Air/net/tls/tls.c
 
 CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.i: cmake_force
@@ -805,7 +833,7 @@ CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o: /home/ethan/Vextryn_Air/net/udp/udp.c
 CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_55) "Building C object CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Building C object CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.o -c /home/ethan/Vextryn_Air/net/udp/udp.c
 
 CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.i: cmake_force
@@ -819,7 +847,7 @@ CMakeFiles/vextryn_air.elf.dir/net/udp/udp.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o: /home/ethan/Vextryn_Air/net/wifi/dhcp.c
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_56) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.o -c /home/ethan/Vextryn_Air/net/wifi/dhcp.c
 
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.i: cmake_force
@@ -833,7 +861,7 @@ CMakeFiles/vextryn_air.elf.dir/net/wifi/dhcp.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o: /home/ethan/Vextryn_Air/net/wifi/dns.c
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_57) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.o -c /home/ethan/Vextryn_Air/net/wifi/dns.c
 
 CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.i: cmake_force
@@ -847,7 +875,7 @@ CMakeFiles/vextryn_air.elf.dir/net/wifi/dns.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o: /home/ethan/Vextryn_Air/net/wifi/mac80211.c
 CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_58) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.o -c /home/ethan/Vextryn_Air/net/wifi/mac80211.c
 
 CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.i: cmake_force
@@ -861,7 +889,7 @@ CMakeFiles/vextryn_air.elf.dir/net/wifi/mac80211.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o: /home/ethan/Vextryn_Air/net/wifi/vxair_80211_mac.c
 CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_59) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.o -c /home/ethan/Vextryn_Air/net/wifi/vxair_80211_mac.c
 
 CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.i: cmake_force
@@ -875,7 +903,7 @@ CMakeFiles/vextryn_air.elf.dir/net/wifi/vxair_80211_mac.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o: /home/ethan/Vextryn_Air/net/wifi/wpa3_sae.c
 CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_60) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Building C object CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o"
 	/usr/bin/cc $(C_DEFINES) $(C_INCLUDES) $(C_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o -MF CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o.d -o CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.o -c /home/ethan/Vextryn_Air/net/wifi/wpa3_sae.c
 
 CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.i: cmake_force
@@ -889,7 +917,7 @@ CMakeFiles/vextryn_air.elf.dir/net/wifi/wpa3_sae.c.s: cmake_force
 CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: CMakeFiles/vextryn_air.elf.dir/flags.make
 CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: /home/ethan/Vextryn_Air/gui/compositor/vxair_vxcomp.cpp
 CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_61) "Building CXX object CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_63) "Building CXX object CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o -MF CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o.d -o CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o -c /home/ethan/Vextryn_Air/gui/compositor/vxair_vxcomp.cpp
 
 CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.i: cmake_force
@@ -911,6 +939,8 @@ vextryn_air_elf_OBJECTS = \
 "CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o" \
 "CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gpu_fb.c.o" \
 "CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o" \
+"CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o" \
+"CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o" \
 "CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o" \
 "CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o" \
 "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o" \
@@ -976,6 +1006,8 @@ bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/bus/bus_xhci.c.o
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gpu_fb.c.o
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o
+bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o
+bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o
@@ -1031,7 +1063,7 @@ bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/build.make
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/compiler_depend.ts
 bin/vextryn_air.elf: CMakeFiles/vextryn_air.elf.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_62) "Linking CXX executable bin/vextryn_air.elf"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/ethan/Vextryn_Air/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_64) "Linking CXX executable bin/vextryn_air.elf"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/vextryn_air.elf.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

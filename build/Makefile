@@ -352,6 +352,54 @@ drivers/input/vxair_input.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.s
 .PHONY : drivers/input/vxair_input.c.s
 
+drivers/net/e1000.o: drivers/net/e1000.c.o
+.PHONY : drivers/net/e1000.o
+
+# target to build an object file
+drivers/net/e1000.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o
+.PHONY : drivers/net/e1000.c.o
+
+drivers/net/e1000.i: drivers/net/e1000.c.i
+.PHONY : drivers/net/e1000.i
+
+# target to preprocess a source file
+drivers/net/e1000.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.i
+.PHONY : drivers/net/e1000.c.i
+
+drivers/net/e1000.s: drivers/net/e1000.c.s
+.PHONY : drivers/net/e1000.s
+
+# target to generate assembly for a file
+drivers/net/e1000.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.s
+.PHONY : drivers/net/e1000.c.s
+
+drivers/net/virtio_net.o: drivers/net/virtio_net.c.o
+.PHONY : drivers/net/virtio_net.o
+
+# target to build an object file
+drivers/net/virtio_net.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o
+.PHONY : drivers/net/virtio_net.c.o
+
+drivers/net/virtio_net.i: drivers/net/virtio_net.c.i
+.PHONY : drivers/net/virtio_net.i
+
+# target to preprocess a source file
+drivers/net/virtio_net.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.i
+.PHONY : drivers/net/virtio_net.c.i
+
+drivers/net/virtio_net.s: drivers/net/virtio_net.c.s
+.PHONY : drivers/net/virtio_net.s
+
+# target to generate assembly for a file
+drivers/net/virtio_net.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.s
+.PHONY : drivers/net/virtio_net.c.s
+
 drivers/storage/ahci.o: drivers/storage/ahci.c.o
 .PHONY : drivers/storage/ahci.o
 
@@ -1710,6 +1758,12 @@ help:
 	@echo "... drivers/input/vxair_input.o"
 	@echo "... drivers/input/vxair_input.i"
 	@echo "... drivers/input/vxair_input.s"
+	@echo "... drivers/net/e1000.o"
+	@echo "... drivers/net/e1000.i"
+	@echo "... drivers/net/e1000.s"
+	@echo "... drivers/net/virtio_net.o"
+	@echo "... drivers/net/virtio_net.i"
+	@echo "... drivers/net/virtio_net.s"
 	@echo "... drivers/storage/ahci.o"
 	@echo "... drivers/storage/ahci.i"
 	@echo "... drivers/storage/ahci.s"

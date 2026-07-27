@@ -45,6 +45,12 @@ void vxair_hal_pci_write_config(uint8_t bus, uint8_t slot, uint8_t func, uint8_t
  */
 bool vxair_hal_pci_device_exists(uint8_t bus, uint8_t slot, uint8_t func);
 
+// PCIe MMCONFIG (extended PCI config space) helpers.
+// Initialized by parsing the ACPI MCFG table.
+bool vxair_hal_pci_mmconfig_init(void);
+void vxair_hal_pci_write_config_mmconfig(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint32_t value);
+uint32_t vxair_hal_pci_read_config_mmconfig(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
+
 #ifdef __cplusplus
 }
 #endif
