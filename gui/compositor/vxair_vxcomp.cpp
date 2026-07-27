@@ -795,146 +795,26 @@ extern "C" {
     }
 
     void vxair_compositor_main(void) {
-        vxair_log_info("COMP MARK 1: compositor entry");
         uint32_t W = vxair_fb_get_width();
         uint32_t H = vxair_fb_get_height();
-        
-        g_state.launcher_open = false;
-        g_state.previous_left_down = false;
-        g_state.mouse_x = W / 2;
-        g_state.mouse_y = H / 2;
-        g_state.exact_x_fp = 0;
-        g_state.exact_y_fp = 0;
-        g_state.mouse_sensitivity_level = 3;
-        g_state.compact_taskbar = true;
-        g_state.focused_window = -1;
-        g_state.file_selected_idx = -1;
-        g_state.file_preview_open = false;
-        g_state.file_rename_mode = false;
-        
-        g_state.accent_color = 0xFF06B6D4;
-        g_state.term_buffer[0] = 0;
-        g_state.term_len = 0;
-        g_state.term_out_len = 0;
-        g_state.snake_len = 3;
-        g_state.snake_x[0] = 10; g_state.snake_y[0] = 10;
-        g_state.snake_x[1] = 9; g_state.snake_y[1] = 10;
-        g_state.snake_x[2] = 8; g_state.snake_y[2] = 10;
-        g_state.snake_dir = 3;
-        g_state.food_x = 15; g_state.food_y = 15;
-        g_state.snake_dead = false;
-        
-        for (int i=0; i<10; i++) {
-            g_state.ram_files[i].in_use = false;
-            g_state.ram_files[i].content_len = 0;
-            g_state.ram_files[i].name[0] = 0;
-        }
+        vxair_log_info("GUI: compositor started at 60fps");
 
-        g_state.windows[0] = {false, VX_APP_CALCULATOR, 160, 130, 300, 390, false, 0, 0, false};
-        g_state.windows[1] = {false, VX_APP_NOTES, 395, 110, 420, 420, false, 0, 0, false};
-        g_state.windows[2] = {false, VX_APP_SYSMON, 235, 170, 500, 330, false, 0, 0, false};
-        g_state.windows[3] = {false, VX_APP_FILES, 100, 100, 600, 400, false, 0, 0, false};
-        g_state.windows[4] = {false, VX_APP_SETTINGS, 150, 150, 640, 480, false, 0, 0, false};
-        g_state.windows[5] = {false, VX_APP_TERMINAL, 50, 50, 600, 400, false, 0, 0, false};
-        g_state.windows[6] = {false, VX_APP_SNAKE, 200, 200, 400, 428, false, 0, 0, false};
-        g_state.windows[7] = {false, VX_APP_BROWSER, 80, 80, 640, 480, false, 0, 0, false};
-        
-        mouse_init();
-
-        // 1. Load Settings (Sector 0)
-        uint8_t settings_buf[512] = {0};
-        if (!ata_read_sector(0, settings_buf)) {
-            vxair_log_info("STORAGE: no persistent ATA disk; using session defaults");
-        } else {
-            if (settings_buf[0] == 0xAA && settings_buf[1] == 0x55 && settings_buf[2] == 0x01) { // Signature
-                g_state.mouse_sensitivity_level = settings_buf[3];
-                g_state.compact_taskbar = settings_buf[5];
-                g_state.accent_color = read_u32_le(&settings_buf[6]);
-                
-                // Clamp sensitivity
-                if (g_state.mouse_sensitivity_level < 1) g_state.mouse_sensitivity_level = 1;
-                if (g_state.mouse_sensitivity_level > 5) g_state.mouse_sensitivity_level = 5;
-
-                if (g_state.mouse_sensitivity_level == 3 && g_state.compact_taskbar == 1 && g_state.accent_color == 0x1A2B3C4D) {
-                    vxair_log_info("PERSIST TEST: cold read PASS");
-                } else {
-                    vxair_log_info("PERSIST TEST: cold read FAIL");
-                }
-            }
-        }
-
-        // 2. Load Files (Sector 1 for Metadata, Sectors 2-11 for content)
-        uint8_t files_meta[512] = {0};
-        if (ata_read_sector(1, files_meta)) {
-            if (files_meta[0] == 0xAA && files_meta[1] == 0x55 && files_meta[2] == 0x01) { // Signature and Version
-                for (int i = 0; i < 10; i++) {
-                    int offset = 3 + i * 21; // 1 (in_use) + 16 (name) + 4 (len)
-                    g_state.ram_files[i].in_use = files_meta[offset];
-                    for (int j = 0; j < 16; j++) {
-                        g_state.ram_files[i].name[j] = files_meta[offset + 1 + j];
-                    }
-                    
-                    int len = *(int*)(&files_meta[offset + 17]);
-                    if (len < 0) len = 0;
-                    if (len > 511) len = 511;
-                    g_state.ram_files[i].content_len = len;
-                    
-                    if (g_state.ram_files[i].in_use) {
-                        uint8_t content_buf[512] = {0};
-                        if (ata_read_sector(2 + i, content_buf)) {
-                            for (int j = 0; j < len; j++) {
-                                g_state.ram_files[i].content[j] = content_buf[j];
-                            }
-                        } else {
-                            g_state.ram_files[i].in_use = false;
-                        }
-                    }
-                }
-            }
-        }
-
-        vxair_log_info("COMP MARK 2: after compositor state initialization");
-        vxair_log_info("COMP STORAGE SAFE: initialization continued");
-
-#if VXAIR_PERSISTENCE_TEST == 1
-        g_state.mouse_sensitivity_level = 3;
-        g_state.compact_taskbar = 1;
-        g_state.accent_color = 0x1A2B3C4D;
-        vxair_log_info("PERSIST TEST: write requested");
-        intercepted_settings_write(0, nullptr);
-        
-        uint8_t readback[512] = {0};
-        if (ata_read_sector(0, readback)) {
-            if (readback[0] == 0xAA && readback[1] == 0x55 && readback[2] == 0x01 &&
-                readback[3] == 0x04 && readback[4] == 0x00 && readback[5] == 0x01 &&
-                readback[6] == 0x4D && readback[7] == 0x3C && readback[8] == 0x2B && readback[9] == 0x1A) {
-                
-                bool zeroes_ok = true;
-                for (int i=10; i<512; i++) { if (readback[i] != 0) { zeroes_ok = false; break; } }
-                if (zeroes_ok) {
-                    vxair_log_info("PERSIST TEST: immediate readback PASS");
-                } else {
-                    vxair_log_info("PERSIST TEST: immediate readback FAIL");
-                }
-            } else {
-                vxair_log_info("PERSIST TEST: immediate readback FAIL");
-            }
-        } else {
-            vxair_log_info("PERSIST TEST: immediate readback FAIL");
-        }
-#endif
-
+        g_frame = 0;
         while (1) {
-            handle_input(W, H);
-            if (g_frame == 0) vxair_log_info("COMP MARK 3: immediately before first desktop render");
-            draw_polished_desktop(W, H);
-            if (g_frame == 0) vxair_log_info("COMP MARK 4: immediately after first desktop render");
+            // Clear back buffer to solid color
+            vxair_fb_clear(0xFF1E293B);
+            // White rectangle (top-left quadrant)
+            vxair_fb_fill_rect(W / 4, H / 4, W / 4, H / 4, 0xFFFFFFFF);
+            // Blue rectangle (bottom-right quadrant)
+            vxair_fb_fill_rect(W / 2, H / 2, W / 4, H / 4, 0xFF0000FF);
+            // Flip back buffer to front (present)
             vxair_fb_flip();
-            if (g_frame == 0) vxair_log_info("COMP MARK 5: immediately after first framebuffer flip/present");
+            // ~60 FPS pacing
             vxair_hpet_sleep_ms(16);
             g_frame++;
-            if (g_frame == 1) vxair_log_info("COMP MARK 6: first loop iteration reached");
-            if (g_frame % 60 == 0) vxair_log_info("COMPOSITOR FRAME %d", (uint32_t)g_frame);
+            if (g_frame % 60 == 0) {
+                vxair_log_info("COMPOSITOR FRAME %u", (uint32_t)g_frame);
+            }
         }
     }
 }
