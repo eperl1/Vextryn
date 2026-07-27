@@ -14,7 +14,7 @@ def main():
     run(["mkdir", "-p", "build-out"])
     os.chdir("build-out")
     
-    run(["cmake", "..", "-DCMAKE_TOOLCHAIN_FILE=../toolchain/x86_64-vxair-elf.cmake"])
+    run(["cmake", "..", "-DCMAKE_TOOLCHAIN_FILE=../toolchain/x86_64-elf.cmake"])
     run(["cmake", "--build", ".", "--parallel"])
     
     os.chdir("..")
