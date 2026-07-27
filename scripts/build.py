@@ -3,7 +3,8 @@ import os, subprocess, sys
 
 def run(cmd):
     print(f"Running: {cmd}")
-    if subprocess.call(cmd, shell=True) != 0:
+    # Passing cwd=os.getcwd() ensures the shell respects os.chdir()
+    if subprocess.call(cmd, shell=True, cwd=os.getcwd()) != 0:
         print("Build failed!")
         sys.exit(1)
 
