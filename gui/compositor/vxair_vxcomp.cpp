@@ -637,16 +637,35 @@ extern "C" {
     }
 
     static void draw_window(VxWindow& w, bool clicked) {
-        // 1px border
-        vxair_fb_fill_rect(w.x - 1, w.y - 1, w.w + 2, w.h + 2, w.focused ? 0xFF00F0FF : 0xFF334155);
+        // Drop shadow (offset dark rects for depth)
+        for (int s = 0; s < 4; s++) {
+            uint32_t a = 60 - s * 15;
+            uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
+            vxair_fb_fill_rect(w.x + s, w.y + w.h + s, w.w, 1, c);
+            vxair_fb_fill_rect(w.x + w.w + s, w.y + s, 1, w.h, c);
+        }
+        // 1px border with accent color
+        vxair_fb_fill_rect(w.x - 1, w.y - 1, w.w + 2, w.h + 2, w.focused ? g_state.accent_color : 0xFF334155);
         vxair_fb_fill_rect(w.x, w.y, w.w, w.h, 0xFF1E293B); // Fill
+        // Gradient title bar
+        for (int tx = 0; tx < w.w; tx++) {
+            uint32_t tc = lerp_color(w.focused ? g_state.accent_color : 0xFF334155, 0xFF0F172A, tx, w.w);
+            vxair_fb_fill_rect(w.x + tx, w.y, 1, 24, tc);
+        }
+        vxair_fb_fill_rect(w.x, w.y + 24, w.w, 1, 0xFF000000);
         
-        vxair_fb_fill_rect(w.x, w.y, w.w, 24, w.focused ? 0xFF00F0FF : 0xFF334155);
-        vxair_fb_fill_rect(w.x, w.y + 1, w.w, 23, 0xFF0F172A);
-        
-        bool close_hover = (g_state.mouse_x >= w.x + w.w - 20 && g_state.mouse_x <= w.x + w.w - 4 && 
-                            g_state.mouse_y >= w.y + 4 && g_state.mouse_y <= w.y + 20);
-        vxair_fb_fill_rect(w.x + w.w - 20, w.y + 4, 16, 16, close_hover ? 0xFFEF4444 : 0xFF991B1B);
+        bool close_hover = (g_state.mouse_x >= w.x + w.w - 24 && g_state.mouse_x <= w.x + w.w - 4 && 
+                            g_state.mouse_y >= w.y + 4 && g_state.mouse_y <= w.y + 24);
+        vxair_fb_fill_rect(w.x + w.w - 24, w.y + 4, 20, 20, close_hover ? 0xFFEF4444 : 0xFF1E293B);
+        vxair_fb_fill_rect(w.x + w.w - 23, w.y + 5, 18, 18, close_hover ? 0xFFDC2626 : 0xFF0F172A);
+        // X mark on hover
+        if (close_hover) {
+            int bx = w.x + w.w - 24, by = w.y + 4;
+            for (int i = 0; i < 10; i++) {
+                vxair_fb_fill_rect(bx + 5 + i, by + 5 + i, 1, 1, 0xFFFFFFFF);
+                vxair_fb_fill_rect(bx + 14 - i, by + 5 + i, 1, 1, 0xFFFFFFFF);
+            }
+        }
 
         if (w.app == VX_APP_CALCULATOR) {
             draw_app_calculator(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
@@ -697,19 +716,53 @@ extern "C" {
             vxair_fb_fill_rect(0, y, W, 1, color);
         }
         
-        for (uint32_t y = 0; y < H; y += 40) vxair_fb_fill_rect(0, y, W, 1, 0xFF1E293B);
-        for (uint32_t x = 0; x < W; x += 40) vxair_fb_fill_rect(x, 0, 1, H, 0xFF1E293B);
+        // Subtle dot pattern (replaces harsh grid lines)
+        for (uint32_t y = 40; y < H - 60; y += 40) {
+            for (uint32_t x = 40; x < W; x += 40) {
+                vxair_fb_fill_rect(x, y, 2, 2, 0xFF162032);
+            }
+        }
+        // Vignette — darken top and bottom edges for depth
+        for (uint32_t i = 0; i < 40; i++) {
+            uint32_t a = (40 - i) * 2;
+            uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
+            vxair_fb_fill_rect(0, i, W, 1, c);
+            vxair_fb_fill_rect(0, H - 1 - i, W, 1, c);
+        }
 
         uint32_t tb_h = g_state.compact_taskbar ? 40 : 56;
         uint32_t tb_y = H - tb_h;
-        vxair_fb_fill_rect(0, tb_y - 1, W, 1, g_state.accent_color);
+        // Shadow above taskbar for depth
+        for (int i = 0; i < 6; i++) {
+            uint32_t a = 50 - i * 8;
+            uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
+            vxair_fb_fill_rect(0, tb_y - 6 + i, W, 1, c);
+        }
+        // Gradient accent line (center-out fade)
+        for (uint32_t x = 0; x < W; x++) {
+            uint32_t dist = x < W/2 ? x : W - x;
+            uint32_t ac = lerp_color(g_state.accent_color, 0xFF0F172A, W/2 - dist, W/2);
+            vxair_fb_fill_rect(x, tb_y - 1, 1, 1, ac);
+        }
         vxair_fb_fill_rect(0, tb_y, W, tb_h, 0xFF020617);
 
         uint32_t lx = 12, ly = tb_y + (tb_h - 32) / 2;
         bool launcher_hover = (g_state.mouse_x >= (int)lx && g_state.mouse_x <= (int)lx + 32 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 32);
         
+        // Hover glow with pulse animation
+        if (launcher_hover) {
+            uint32_t pulse = (g_frame % 60);
+            if (pulse >= 30) pulse = 60 - pulse;
+            uint32_t glow_a = 20 + pulse;
+            uint32_t glow = 0xFF000000 | (glow_a << 16) | (glow_a << 8) | glow_a;
+            vxair_fb_fill_rect(lx - 3, ly - 3, 38, 38, glow);
+        }
         vxair_fb_fill_rect(lx, ly, 32, 32, launcher_hover ? g_state.accent_color : 0xFF1E293B);
         vxair_fb_fill_rect(lx + 1, ly + 1, 30, 30, g_state.launcher_open ? 0xFF0F172A : 0xFF020617);
+        // Three dots launcher icon
+        for (int dx = 0; dx < 3; dx++) {
+            vxair_fb_fill_rect(lx + 8 + dx * 6, ly + 14, 4, 4, launcher_hover ? 0xFFFFFFFF : 0xFF64748B);
+        }
 
         uint32_t tx_base = 60;
         
@@ -718,10 +771,16 @@ extern "C" {
             if (g_state.windows[i].open) {
                 bool hover = (g_state.mouse_x >= (int)tx_base && g_state.mouse_x <= (int)tx_base + 32 && 
                               g_state.mouse_y >= (int)tb_y + 4 && g_state.mouse_y <= (int)tb_y + 36);
-                if (hover) vxair_fb_fill_rect(tx_base, tb_y + (tb_h - 32)/2, 32, 32, 0xFF334155);
+                if (hover) {
+                    vxair_fb_fill_rect(tx_base - 2, tb_y + (tb_h - 32)/2 - 2, 36, 36, 0xFF1E293B);
+                    vxair_fb_fill_rect(tx_base - 1, tb_y + (tb_h - 32)/2 - 1, 34, 34, 0xFF334155);
+                }
                 
                 if (g_state.windows[i].focused) {
-                    vxair_fb_fill_rect(tx_base, tb_y + tb_h - 4, 32, 4, g_state.accent_color);
+                    for (int fx = 0; fx < 32; fx++) {
+                        uint32_t fc = lerp_color(g_state.accent_color, 0xFF0F172A, fx < 16 ? fx : 32 - fx, 16);
+                        vxair_fb_fill_rect(tx_base + fx, tb_y + tb_h - 3, 1, 3, fc);
+                    }
                 }
                 
                 int app_idx = g_state.windows[i].app - 1;
@@ -762,10 +821,23 @@ extern "C" {
             uint32_t menu_w = 200;
             uint32_t menu_h = 8 * 40 + 20; // 7 apps
             uint32_t menu_y = tb_y - menu_h - 8;
-            vxair_fb_fill_rect(12, menu_y, menu_w, menu_h, 0xEE0F172A); // slight transparency
-            vxair_fb_fill_rect(12, menu_y, menu_w, 1, g_state.accent_color);
-            vxair_fb_fill_rect(12, menu_y, 1, menu_h, g_state.accent_color);
-            vxair_fb_fill_rect(12 + menu_w, menu_y, 1, menu_h, g_state.accent_color);
+            // Drop shadow
+            for (int s = 0; s < 6; s++) {
+                uint32_t a = 50 - s * 8;
+                uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
+                vxair_fb_fill_rect(12 + s, menu_y + menu_h + s, menu_w, 1, c);
+                vxair_fb_fill_rect(12 + menu_w + s, menu_y + s, 1, menu_h, c);
+            }
+            // Card background
+            vxair_fb_fill_rect(12, menu_y, menu_w, menu_h, 0xFF0F172A);
+            // Gradient top border
+            for (uint32_t x = 0; x < menu_w; x++) {
+                uint32_t ac = lerp_color(g_state.accent_color, 0xFF0F172A, x, menu_w);
+                vxair_fb_fill_rect(12 + x, menu_y, 1, 2, ac);
+            }
+            // Side borders (subtle)
+            vxair_fb_fill_rect(12, menu_y, 1, menu_h, 0xFF334155);
+            vxair_fb_fill_rect(12 + menu_w - 1, menu_y, 1, menu_h, 0xFF334155);
             
             const char* app_names[8] = {"Calculator", "Notes", "SysMon", "Files", "Settings", "Terminal", "Snake", "Browser"};
             
@@ -783,38 +855,139 @@ extern "C" {
         }
 
         uint32_t ptr_x = g_state.mouse_x, ptr_y = g_state.mouse_y;
-        vxair_fb_fill_rect(ptr_x, ptr_y, 1, 16, 0xFF405060);
-        for (int i = 0; i < 11; i++) vxair_fb_fill_rect(ptr_x + i, ptr_y + i, 1, 1, 0xFF405060);
-        vxair_fb_fill_rect(ptr_x + 1, ptr_y + 11, 3, 1, 0xFF405060);
-        vxair_fb_fill_rect(ptr_x + 4, ptr_y + 11, 1, 5, 0xFF405060);
-        vxair_fb_fill_rect(ptr_x + 7, ptr_y + 9, 1, 5, 0xFF405060);
-        vxair_fb_fill_rect(ptr_x + 5, ptr_y + 15, 2, 1, 0xFF405060);
-        vxair_fb_fill_rect(ptr_x + 8, ptr_y + 10, 2, 1, 0xFF405060);
+        // Shadow (offset by 2px for depth)
+        vxair_fb_fill_rect(ptr_x + 2, ptr_y + 2, 1, 16, 0xFF000000);
+        for (int i = 0; i < 11; i++) vxair_fb_fill_rect(ptr_x + 2 + i, ptr_y + 2 + i, 1, 1, 0xFF000000);
+        vxair_fb_fill_rect(ptr_x + 3, ptr_y + 13, 3, 1, 0xFF000000);
+        vxair_fb_fill_rect(ptr_x + 6, ptr_y + 13, 1, 5, 0xFF000000);
+        vxair_fb_fill_rect(ptr_x + 9, ptr_y + 11, 1, 5, 0xFF000000);
+        // Outline (dark)
+        vxair_fb_fill_rect(ptr_x, ptr_y, 1, 16, 0xFF1E293B);
+        for (int i = 0; i < 11; i++) vxair_fb_fill_rect(ptr_x + i, ptr_y + i, 1, 1, 0xFF1E293B);
+        vxair_fb_fill_rect(ptr_x + 1, ptr_y + 11, 3, 1, 0xFF1E293B);
+        vxair_fb_fill_rect(ptr_x + 4, ptr_y + 11, 1, 5, 0xFF1E293B);
+        vxair_fb_fill_rect(ptr_x + 7, ptr_y + 9, 1, 5, 0xFF1E293B);
+        vxair_fb_fill_rect(ptr_x + 5, ptr_y + 15, 2, 1, 0xFF1E293B);
+        vxair_fb_fill_rect(ptr_x + 8, ptr_y + 10, 2, 1, 0xFF1E293B);
+        // Fill (white)
         for (int i = 1; i < 11; i++) vxair_fb_fill_rect(ptr_x + 1, ptr_y + i, i - 1, 1, 0xFFFFFFFF);
         vxair_fb_fill_rect(ptr_x + 5, ptr_y + 11, 2, 4, 0xFFFFFFFF);
     }
 
     void vxair_compositor_main(void) {
+        vxair_log_info("COMP MARK 1: compositor entry");
         uint32_t W = vxair_fb_get_width();
         uint32_t H = vxair_fb_get_height();
+        
+        // ---- SAFETY FALLBACK: if anything below fails, at least show visible color ----
+        vxair_fb_clear(0xFF1E293B);
+        vxair_fb_fill_rect(W / 4, H / 4, W / 4, H / 4, 0xFFFFFFFF);
+        vxair_fb_fill_rect(W / 2, H / 2, W / 4, H / 4, 0xFF0000FF);
+        vxair_fb_flip();
+
+        g_state.launcher_open = false;
+        g_state.previous_left_down = false;
+        g_state.mouse_x = W / 2;
+        g_state.mouse_y = H / 2;
+        g_state.exact_x_fp = 0;
+        g_state.exact_y_fp = 0;
+        g_state.mouse_sensitivity_level = 3;
+        g_state.compact_taskbar = true;
+        g_state.focused_window = -1;
+        g_state.file_selected_idx = -1;
+        g_state.file_preview_open = false;
+        g_state.file_rename_mode = false;
+        g_state.shift_down = false;
+        g_state.e0_prefix = false;
+        g_state.ctrl_down = false;
+        
+        g_state.accent_color = 0xFF06B6D4;
+        g_state.term_buffer[0] = 0;
+        g_state.term_len = 0;
+        g_state.term_out_len = 0;
+        g_state.snake_len = 3;
+        g_state.snake_x[0] = 10; g_state.snake_y[0] = 10;
+        g_state.snake_x[1] = 9; g_state.snake_y[1] = 10;
+        g_state.snake_x[2] = 8; g_state.snake_y[2] = 10;
+        g_state.snake_dir = 3;
+        g_state.food_x = 15; g_state.food_y = 15;
+        g_state.snake_dead = false;
+        g_state.last_snake_move = 0;
+        
+        for (int i=0; i<10; i++) {
+            g_state.ram_files[i].in_use = false;
+            g_state.ram_files[i].content_len = 0;
+            g_state.ram_files[i].name[0] = 0;
+        }
+
+        g_state.windows[0] = {false, VX_APP_CALCULATOR, 160, 130, 300, 390, false, 0, 0, false};
+        g_state.windows[1] = {false, VX_APP_NOTES, 395, 110, 420, 420, false, 0, 0, false};
+        g_state.windows[2] = {false, VX_APP_SYSMON, 235, 170, 500, 330, false, 0, 0, false};
+        g_state.windows[3] = {false, VX_APP_FILES, 100, 100, 600, 400, false, 0, 0, false};
+        g_state.windows[4] = {false, VX_APP_SETTINGS, 150, 150, 640, 480, false, 0, 0, false};
+        g_state.windows[5] = {false, VX_APP_TERMINAL, 50, 50, 600, 400, false, 0, 0, false};
+        g_state.windows[6] = {false, VX_APP_SNAKE, 200, 200, 400, 428, false, 0, 0, false};
+        g_state.windows[7] = {false, VX_APP_BROWSER, 80, 80, 640, 480, false, 0, 0, false};
+        
+        mouse_init();
+
+        // 1. Load Settings (Sector 0)
+        uint8_t settings_buf[512] = {0};
+        if (!ata_read_sector(0, settings_buf)) {
+            vxair_log_info("STORAGE: no persistent ATA disk; using session defaults");
+        } else {
+            if (settings_buf[0] == 0xAA && settings_buf[1] == 0x55 && settings_buf[2] == 0x01) {
+                g_state.mouse_sensitivity_level = settings_buf[3];
+                g_state.compact_taskbar = settings_buf[5];
+                g_state.accent_color = read_u32_le(&settings_buf[6]);
+                if (g_state.mouse_sensitivity_level < 1) g_state.mouse_sensitivity_level = 1;
+                if (g_state.mouse_sensitivity_level > 5) g_state.mouse_sensitivity_level = 5;
+            }
+        }
+
+        // 2. Load Files (Sector 1 for Metadata, Sectors 2-11 for content)
+        uint8_t files_meta[512] = {0};
+        if (ata_read_sector(1, files_meta)) {
+            if (files_meta[0] == 0xAA && files_meta[1] == 0x55 && files_meta[2] == 0x01) {
+                for (int i = 0; i < 10; i++) {
+                    int offset = 3 + i * 21;
+                    g_state.ram_files[i].in_use = files_meta[offset];
+                    for (int j = 0; j < 16; j++) {
+                        g_state.ram_files[i].name[j] = files_meta[offset + 1 + j];
+                    }
+                    int len = *(int*)(&files_meta[offset + 17]);
+                    if (len < 0) len = 0;
+                    if (len > 511) len = 511;
+                    g_state.ram_files[i].content_len = len;
+                    if (g_state.ram_files[i].in_use) {
+                        uint8_t content_buf[512] = {0};
+                        if (ata_read_sector(2 + i, content_buf)) {
+                            for (int j = 0; j < len; j++) {
+                                g_state.ram_files[i].content[j] = content_buf[j];
+                            }
+                        } else {
+                            g_state.ram_files[i].in_use = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        vxair_log_info("COMP MARK 2: after compositor state initialization");
         vxair_log_info("GUI: compositor started at 60fps");
 
         g_frame = 0;
         while (1) {
-            // Clear back buffer to solid color
-            vxair_fb_clear(0xFF1E293B);
-            // White rectangle (top-left quadrant)
-            vxair_fb_fill_rect(W / 4, H / 4, W / 4, H / 4, 0xFFFFFFFF);
-            // Blue rectangle (bottom-right quadrant)
-            vxair_fb_fill_rect(W / 2, H / 2, W / 4, H / 4, 0xFF0000FF);
-            // Flip back buffer to front (present)
+            handle_input(W, H);
+            if (g_frame == 0) vxair_log_info("COMP MARK 3: immediately before first desktop render");
+            draw_polished_desktop(W, H);
+            if (g_frame == 0) vxair_log_info("COMP MARK 4: immediately after first desktop render");
             vxair_fb_flip();
-            // ~60 FPS pacing
+            if (g_frame == 0) vxair_log_info("COMP MARK 5: immediately after first framebuffer flip/present");
             vxair_hpet_sleep_ms(16);
             g_frame++;
-            if (g_frame % 60 == 0) {
-                vxair_log_info("COMPOSITOR FRAME %u", (uint32_t)g_frame);
-            }
+            if (g_frame == 1) vxair_log_info("COMP MARK 6: first loop iteration reached");
+            if (g_frame % 60 == 0) vxair_log_info("COMPOSITOR FRAME %u", (uint32_t)g_frame);
         }
     }
 }

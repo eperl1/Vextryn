@@ -47,11 +47,13 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
 
     vxair_log_info("Kernel Core initialized successfully.");
 
-    // Real networking initialization
-    extern void vxair_net_init(void);
-    extern void vxair_net_test(void);
-    vxair_net_init();
-    vxair_net_test();
+    // Networking init/test SKIPPED for fast desktop boot (e1000 RX is broken —
+    // net_test blocks ~8s polling for ARP/DNS replies that never arrive).
+    // The net stack code is untouched; only the boot-time call is removed.
+    // extern void vxair_net_init(void);
+    // extern void vxair_net_test(void);
+    // vxair_net_init();
+    // vxair_net_test();
     
     // Simulate VFS and Initrd loading
     vxair_log_info("VFS: root mounted");
