@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v3
 
     - name: Install Toolchain and Dependencies
       run: |
@@ -24,7 +24,7 @@ jobs:
         python3 scripts/build.py --iso
 
     - name: Upload ISO Artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: vextryn-air-iso
         path: build_out/vextryn_air.iso

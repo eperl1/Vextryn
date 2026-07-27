@@ -399,6 +399,9 @@ CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_dtb.c.o
 
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_pci.c.o
  /home/ethan/Vextryn_Air/kernel/hal/hal_pci.c
+ /home/ethan/Vextryn_Air/kernel/core/include/vxair_types.h
+ /home/ethan/Vextryn_Air/kernel/core/include/vxair_vmm.h
+ /home/ethan/Vextryn_Air/kernel/hal/hal_acpi.h
  /home/ethan/Vextryn_Air/kernel/hal/hal_pci.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h
