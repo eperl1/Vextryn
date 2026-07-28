@@ -182,7 +182,7 @@ void draw_app_calculator(VxWindow& w, uint64_t /*frame*/, int mouse_x, int mouse
     } else {
         int digit_spacing = 20;
         int dx = num_x;
-        uint32_t display_col = VxTheme::ACCENT_GLOW; // Soft teal, not neon
+        uint32_t display_col = VxTheme::accent_glow(); // Dynamic accent, not neon
         for (int i = calc_buf_len - 1; i >= 0; i--) {
             char ch = calc_buf[i];
             if (ch >= '0' && ch <= '9') {

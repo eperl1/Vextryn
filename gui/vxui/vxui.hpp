@@ -16,16 +16,6 @@ void draw_abstract_char(int x, int y, char c, uint32_t color);
 void draw_digit(int x, int y, int digit, uint32_t color);
 void draw_segment(int x, int y, int len, bool horiz, uint32_t color);
 
-// ===== Global accent — set by compositor once, used by all components =====
-namespace VxTheme {
-    // Runtime accent — compositor sets this from g_state.accent_color at boot.
-    // Components read it for dynamic theming. Falls back to ACCENT if not set.
-    static uint32_t g_accent = ACCENT;
-
-    inline void set_accent(uint32_t c) { g_accent = c; }
-    inline uint32_t accent() { return g_accent; }
-}
-
 // ===== Rectangle =====
 struct VxRect {
     int x, y, w, h;
@@ -104,9 +94,9 @@ struct VxButton {
             radius = VxTheme::RADIUS_MD;
             break;
         case VX_BTN_OPERATOR:
-            // Operators: sapphire-tinted glass, distinct and premium
-            bg = is_pressed ? VxTheme::ACCENT_SOFT : 0xFF1E2440;
-            text_col = VxTheme::ACCENT_GLOW;
+            // Operators: accent-tinted glass, distinct and premium
+            bg = is_pressed ? VxTheme::accent_soft() : VxTheme::SURFACE_HIGH;
+            text_col = VxTheme::accent_glow();
             radius = VxTheme::RADIUS_LG;
             break;
         case VX_BTN_UTILITY:
@@ -116,14 +106,14 @@ struct VxButton {
             radius = VxTheme::RADIUS_SM;
             break;
         case VX_BTN_ACTION:
-            // Equals: sapphire fill, white text — unmistakably primary
-            bg = is_pressed ? VxTheme::ACCENT_DIM : accent;
+            // Equals: accent fill, white text — unmistakably primary
+            bg = is_pressed ? VxTheme::accent_dim() : accent;
             text_col = VxTheme::TEXT_PRIMARY;
             radius = VxTheme::RADIUS_LG;
             break;
         case VX_BTN_PRIMARY:
-            bg = is_pressed ? VxTheme::ACCENT_DIM : accent;
-            text_col = 0xFF1A1A1F;
+            bg = is_pressed ? VxTheme::accent_dim() : accent;
+            text_col = VxTheme::BASE_DEEP;
             radius = VxTheme::RADIUS_MD;
             break;
         case VX_BTN_DEFAULT:
@@ -144,9 +134,9 @@ struct VxButton {
             bg = VxTheme::OVERLAY;
         }
 
-        // Focus ring — 1px electric blue glow
+        // Focus ring — 1px accent glow
         if (is_focused) {
-            vxair_fb_fill_rect(x - 1, y - 1, w + 2, h + 2, VxTheme::ACCENT);
+            vxair_fb_fill_rect(x - 1, y - 1, w + 2, h + 2, VxTheme::accent());
         }
         // V2 Final: visible outline on EVERY button
         vxair_fb_fill_rect(x, y, w, 1, VxTheme::BORDER_BRIGHT);

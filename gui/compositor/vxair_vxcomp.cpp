@@ -698,14 +698,15 @@ extern "C" {
         }
         }
         // V2 Final: visible outlines on all windows
-        uint32_t border_color = w.focused ? (g_state.high_contrast ? VxTheme::TEXT_PRIMARY : VxTheme::ACCENT) : VxTheme::BORDER_BRIGHT;
+        uint32_t border_color = w.focused ? (g_state.high_contrast ? VxTheme::TEXT_PRIMARY : VxTheme::accent()) : VxTheme::BORDER_BRIGHT;
         vxair_fb_fill_rect(w.x - 1, w.y - 1, w.w + 2, w.h + 2, border_color);
         // Focused: electric blue outer glow
         if (w.focused) {
-            vxair_fb_fill_rect(w.x - 2, w.y - 2, w.w + 4, 1, 0x222D7FF9);
-            vxair_fb_fill_rect(w.x - 2, w.y + w.h + 1, w.w + 4, 1, 0x222D7FF9);
-            vxair_fb_fill_rect(w.x - 2, w.y - 2, 1, w.h + 4, 0x222D7FF9);
-            vxair_fb_fill_rect(w.x + w.w + 1, w.y - 2, 1, w.h + 4, 0x222D7FF9);
+            uint32_t glow = 0x22000000 | (VxTheme::accent() & 0xFFFFFF);
+            vxair_fb_fill_rect(w.x - 2, w.y - 2, w.w + 4, 1, glow);
+            vxair_fb_fill_rect(w.x - 2, w.y + w.h + 1, w.w + 4, 1, glow);
+            vxair_fb_fill_rect(w.x - 2, w.y - 2, 1, w.h + 4, glow);
+            vxair_fb_fill_rect(w.x + w.w + 1, w.y - 2, 1, w.h + 4, glow);
         }
         // Window fill — blue-tinted surface
         vxair_fb_fill_rect(w.x, w.y, w.w, w.h, VxTheme::SURFACE);
@@ -715,18 +716,10 @@ extern "C" {
         vxair_fb_fill_rect(w.x, w.y, 1, w.h, VxTheme::BORDER_STRONG);
         vxair_fb_fill_rect(w.x + w.w - 1, w.y, 1, w.h, VxTheme::BORDER_STRONG);
         
-        // V2 Final Title bar: 38px, bright gradient, electric blue accent
+        // V3 Title bar: flat, neutral, no warm/pink gradient
         int tb_h = VxTheme::TITLE_BAR_H;
-        if (w.focused) {
-            for (int ty = 0; ty < tb_h; ty++) {
-                uint32_t c = lerp_color(VxTheme::SURFACE_HIGH, VxTheme::SURFACE, ty, tb_h);
-                vxair_fb_fill_rect(w.x + 1, w.y + 1 + ty, w.w - 2, 1, c);
-            }
-            // Soft accent line at top (no bright bar)
-            vxair_fb_fill_rect(w.x + 1, w.y + 1, w.w - 2, 1, VxTheme::BORDER_SUBTLE);
-        } else {
-            vxair_fb_fill_rect(w.x + 1, w.y + 1, w.w - 2, tb_h, VxTheme::BASE_DEEP);
-        }
+        uint32_t title_bg = w.focused ? VxTheme::SURFACE : VxTheme::BASE_DEEP;
+        vxair_fb_fill_rect(w.x + 1, w.y + 1, w.w - 2, tb_h, title_bg);
         // Separator under title bar
         vxair_fb_fill_rect(w.x, w.y + tb_h, w.w, 1, VxTheme::BORDER_STRONG);
         
@@ -778,7 +771,7 @@ extern "C" {
             vxair_fb_fill_rect(sm_x, w.y + 59, sm_w, 1, VxTheme::BORDER_STRONG);
             vxair_fb_fill_rect(sm_x, w.y + 40, 1, 20, VxTheme::BORDER_STRONG);
             vxair_fb_fill_rect(sm_x + sm_w - 1, w.y + 40, 1, 20, VxTheme::BORDER_STRONG);
-            vxair_fb_fill_rect(sm_x + 1, w.y + 41, (sm_w - 2) * 45 / 100, 18, VxTheme::ACCENT);
+            vxair_fb_fill_rect(sm_x + 1, w.y + 41, (sm_w - 2) * 45 / 100, 18, VxTheme::accent());
             draw_abstract_char(sm_x, w.y + 70, 'R', VxTheme::TEXT_PRIMARY);
             draw_abstract_char(sm_x + 12, w.y + 70, 'A', VxTheme::TEXT_PRIMARY);
             draw_abstract_char(sm_x + 24, w.y + 70, 'M', VxTheme::TEXT_PRIMARY);
@@ -869,7 +862,7 @@ extern "C" {
         // VAir OS logo on left
         const char* logo = "V Air";
         for (int i = 0; logo[i]; i++) {
-            draw_abstract_char(12 + i * 10, 8, logo[i], VxTheme::ACCENT_GLOW);
+            draw_abstract_char(12 + i * 10, 8, logo[i], VxTheme::accent_glow());
         }
         // Menu items
         const char* menus[5] = {"File", "Edit", "View", "Window", "Help"};
@@ -908,9 +901,9 @@ extern "C" {
             draw_abstract_char(tcx + i * 10, 8, topclock[i], VxTheme::TEXT_PRIMARY);
         }
         // WiFi icon
-        vxair_fb_fill_rect(tcx - 24, 10, 4, 8, VxTheme::ACCENT_GLOW);
-        vxair_fb_fill_rect(tcx - 18, 8, 4, 10, VxTheme::ACCENT_GLOW);
-        vxair_fb_fill_rect(tcx - 12, 6, 4, 12, VxTheme::ACCENT_GLOW);
+        vxair_fb_fill_rect(tcx - 24, 10, 4, 8, VxTheme::accent_glow());
+        vxair_fb_fill_rect(tcx - 18, 8, 4, 10, VxTheme::accent_glow());
+        vxair_fb_fill_rect(tcx - 12, 6, 4, 12, VxTheme::accent_glow());
         // Battery icon
         vxair_fb_fill_rect(tcx - 44, 10, 14, 8, VxTheme::SUCCESS);
         vxair_fb_fill_rect(tcx - 30, 12, 2, 4, VxTheme::SUCCESS);
@@ -925,7 +918,7 @@ extern "C" {
             vxair_fb_fill_rect(0, tb_y - 10 + i, W, 1, c);
         }
         // Electric blue accent line at top of taskbar
-        vxair_fb_fill_rect(0, tb_y, W, 2, VxTheme::ACCENT);
+        vxair_fb_fill_rect(0, tb_y, W, 2, VxTheme::accent());
         // Taskbar background — navy with gradient
         for (uint32_t ty = 0; ty < tb_h - 2; ty++) {
             uint32_t color = lerp_color(VxTheme::BASE_DEEP, VxTheme::BASE_DARK, ty, tb_h);
@@ -944,12 +937,12 @@ extern "C" {
             }
         }
         // Button with sapphire accent when hovered
-        vxair_fb_fill_rect(lx, ly, 36, 36, launcher_hover ? VxTheme::ACCENT_SOFT : VxTheme::SURFACE_HIGH);
-        vxair_fb_fill_rect(lx + 1, ly + 1, 34, 34, g_state.launcher_open ? VxTheme::ACCENT_SOFT : VxTheme::BASE_DEEP);
+        vxair_fb_fill_rect(lx, ly, 36, 36, launcher_hover ? VxTheme::accent_soft() : VxTheme::SURFACE_HIGH);
+        vxair_fb_fill_rect(lx + 1, ly + 1, 34, 34, g_state.launcher_open ? VxTheme::accent_soft() : VxTheme::BASE_DEEP);
         // Four dots in grid — more modern
         for (int dx = 0; dx < 2; dx++) {
             for (int dy = 0; dy < 2; dy++) {
-                uint32_t dc = launcher_hover ? VxTheme::ACCENT_GLOW : VxTheme::TEXT_SECONDARY;
+                uint32_t dc = launcher_hover ? VxTheme::accent_glow() : VxTheme::TEXT_SECONDARY;
                 vxair_fb_fill_rect(lx + 10 + dx * 10, ly + 10 + dy * 10, 6, 6, dc);
             }
         }
@@ -970,7 +963,7 @@ extern "C" {
                 
                 // Active indicator: sapphire bar under icon
                 if (g_state.windows[i].focused) {
-                    vxair_fb_fill_rect(tx_base + 8, tb_y + tb_h - 4, 20, 3, VxTheme::ACCENT);
+                    vxair_fb_fill_rect(tx_base + 8, tb_y + tb_h - 4, 20, 3, VxTheme::accent());
                 }
                 
                 int app_idx = g_state.windows[i].app - 1;
@@ -984,9 +977,8 @@ extern "C" {
         uint32_t ty = tb_y + (tb_h - 28) / 2;
         // V2 System tray — refined icons with glass backgrounds
         vxair_fb_fill_rect(tx_base, ty, 28, 28, VxTheme::SURFACE_HIGH);
-        vxair_fb_fill_rect(tx_base + 1, ty + 1, 26, 26, VxTheme::SURFACE);
-        vxair_fb_fill_rect(tx_base + 8, ty + 14, 4, 8, VxTheme::ACCENT_GLOW);
-        vxair_fb_fill_rect(tx_base + 14, ty + 10, 4, 12, VxTheme::ACCENT_GLOW);
+        vxair_fb_fill_rect(tx_base + 1, ty + 1, 26, 26, VxTheme::SURFACE);            vxair_fb_fill_rect(tx_base + 8, ty + 14, 4, 8, VxTheme::accent_glow());
+            vxair_fb_fill_rect(tx_base + 14, ty + 10, 4, 12, VxTheme::accent_glow());
         
         tx_base += 32;
         vxair_fb_fill_rect(tx_base, ty, 28, 28, VxTheme::SURFACE_HIGH);
@@ -1046,12 +1038,12 @@ extern "C" {
             VxPanel menu_panel = {16, (int)menu_y, (int)menu_w, (int)menu_h, 2};
             menu_panel.draw();
             // Electric blue accent bar at top — 3px
-            vxair_fb_fill_rect(16, menu_y, menu_w, 3, VxTheme::ACCENT);
+            vxair_fb_fill_rect(16, menu_y, menu_w, 3, VxTheme::accent());
             // Title
             const char* launcher_title = "V Air  Start";
             for (int i = 0; launcher_title[i]; i++) {
                 if (launcher_title[i] != ' ')
-                    draw_abstract_char(28 + i * 10, menu_y + 12, launcher_title[i], VxTheme::ACCENT_GLOW);
+                    draw_abstract_char(28 + i * 10, menu_y + 12, launcher_title[i], VxTheme::accent_glow());
             }
             // Search hint
             const char* search_hint = "Search...";
@@ -1066,7 +1058,7 @@ extern "C" {
                 // V2 Final hover: bright blue overlay + electric left bar
                 if (hover) {
                     vxair_fb_fill_rect(item_x, item_y, 248, 44, VxTheme::OVERLAY);
-                    vxair_fb_fill_rect(item_x, item_y, 3, 44, VxTheme::ACCENT);
+                    vxair_fb_fill_rect(item_x, item_y, 3, 44, VxTheme::accent());
                     // Outline on hover
                     vxair_fb_fill_rect(item_x, item_y, 248, 1, VxTheme::BORDER_BRIGHT);
                     vxair_fb_fill_rect(item_x, item_y + 43, 248, 1, VxTheme::BORDER_STRONG);
@@ -1103,7 +1095,7 @@ extern "C" {
             vxair_fb_fill_rect(ptr_x + 2, ptr_y + 26, 6, 2, 0xFFFFFFFF);
             vxair_fb_fill_rect(ptr_x + 6, ptr_y + 26, 2, 6, 0xFFFFFFFF);
             // Accent tip
-            vxair_fb_fill_rect(ptr_x, ptr_y, 4, 4, VxTheme::ACCENT);
+            vxair_fb_fill_rect(ptr_x, ptr_y, 4, 4, VxTheme::accent());
         } else {
             // Normal cursor
             // Drop shadow
@@ -1119,7 +1111,7 @@ extern "C" {
             vxair_fb_fill_rect(ptr_x + 5, ptr_y + 11, 2, 5, 0xFFFFFFFF);
             vxair_fb_fill_rect(ptr_x + 7, ptr_y + 9, 3, 6, 0xFFFFFFFF);
             // Electric blue tip
-            vxair_fb_fill_rect(ptr_x, ptr_y, 3, 3, VxTheme::ACCENT);
+            vxair_fb_fill_rect(ptr_x, ptr_y, 3, 3, VxTheme::accent());
         }
     }
 
@@ -1132,7 +1124,7 @@ extern "C" {
         // V2 Fallback: deep space background with sapphire accent bars
         vxair_fb_clear(VxTheme::BASE_DEEP);
         vxair_fb_fill_rect(W / 4, H / 4, W / 4, H / 4, VxTheme::SURFACE);
-        vxair_fb_fill_rect(W / 2, H / 2, W / 4, H / 4, VxTheme::ACCENT);
+        vxair_fb_fill_rect(W / 2, H / 2, W / 4, H / 4, VxTheme::accent());
         vxair_fb_flip();
 
         g_state.launcher_open = false;
