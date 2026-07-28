@@ -1,96 +1,113 @@
 #pragma once
-
+// V5 Media Player — VXUI-themed now-playing with album art and controls
 #include <stdint.h>
 
-void draw_app_media_player(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool clicked) {
+static void draw_app_media_player(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool clicked) {
     static bool is_playing = false;
     static uint64_t play_progress = 0;
+    uint32_t accent = VxTheme::accent();
 
-    int usable_x = w.x + 2;
-    int usable_y = w.y + 28;
-    int usable_w = w.w - 4;
-    int usable_h = w.h - 30;
+    int ax = w.x + 16;
+    int ay = w.y + 48;
+    int aw = w.w - 32;
+    int ah = w.h - 64;
+    if (aw <= 0 || ah <= 0) return;
 
-    if (usable_w <= 0 || usable_h <= 0) return;
+    if (is_playing) play_progress++;
 
-    if (is_playing) {
-        play_progress++;
-    }
+    // Album art area (left side)
+    int art_size = (aw < ah) ? aw - 20 : ah - 60;
+    if (art_size < 60) art_size = 60;
+    int art_x = ax + (aw - art_size) / 2;
+    int art_y = ay + 8;
+    if (art_size > 120) art_size = 120;
 
-    int control_bar_h = 40;
-    if (usable_h < control_bar_h) {
-        control_bar_h = usable_h;
-    }
-
-    int vid_h = usable_h - control_bar_h;
-    if (vid_h > 0) {
-        // Draw video area (Black)
-        vxair_fb_fill_rect(usable_x, usable_y, usable_w, vid_h, 0xFF000000);
-
-        // Draw some basic "video content" to make it look alive when playing
-        if (is_playing && usable_w > 40 && vid_h > 40) {
-            int bounce_w = usable_w / 4;
-            int bounce_h = vid_h / 4;
-            if (bounce_w > 0 && bounce_h > 0) {
-                int bounce_area_w = usable_w - bounce_w;
-                int bounce_area_h = vid_h - bounce_h;
-                if (bounce_area_w > 0 && bounce_area_h > 0) {
-                    // Bouncing rectangle animation
-                    int px = (play_progress / 2) % (bounce_area_w * 2);
-                    if (px > bounce_area_w) px = (bounce_area_w * 2) - px;
-                    
-                    int py = (play_progress / 3) % (bounce_area_h * 2);
-                    if (py > bounce_area_h) py = (bounce_area_h * 2) - py;
-                    
-                    vxair_fb_fill_rect(usable_x + px, usable_y + py, bounce_w, bounce_h, 0xFF333333);
-                }
-            }
+    // Album art — animated gradient
+    for (int y = 0; y < art_size; y++) {
+        uint32_t c = lerp_color(VxTheme::accent_soft(), VxTheme::BASE_DARK, y, art_size);
+        if (is_playing) {
+            int wave = (y + play_progress / 4) % art_size;
+            c = lerp_color(c, accent, wave, art_size);
         }
+        vxair_fb_fill_rect(art_x, art_y + y, art_size, 1, c);
     }
+    // Album art border
+    vxair_fb_fill_rect(art_x - 1, art_y - 1, art_size + 2, 1, VxTheme::BORDER_BRIGHT);
+    vxair_fb_fill_rect(art_x - 1, art_y + art_size, art_size + 2, 1, VxTheme::BORDER_STRONG);
+    vxair_fb_fill_rect(art_x - 1, art_y, 1, art_size, VxTheme::BORDER_STRONG);
+    vxair_fb_fill_rect(art_x + art_size, art_y, 1, art_size, VxTheme::BORDER_STRONG);
 
-    // Draw control bar background
-    int cb_y = usable_y + vid_h;
-    vxair_fb_fill_rect(usable_x, cb_y, usable_w, control_bar_h, 0xFF222222);
+    // Music note icon centered on art
+    int ncx = art_x + art_size / 2;
+    int ncy = art_y + art_size / 2;
+    vxair_fb_fill_rect(ncx - 2, ncy - 16, 4, 20, VxTheme::TEXT_PRIMARY);
+    vxair_fb_fill_rect(ncx + 2, ncy - 16, 12, 4, VxTheme::TEXT_PRIMARY);
+    vxair_fb_fill_rect(ncx - 8, ncy + 2, 10, 8, VxTheme::TEXT_PRIMARY);
 
-    int btn_w = 30;
-    int btn_h = 30;
-    int btn_x = usable_x + 5;
-    int btn_y = cb_y + 5;
+    // Track info
+    int info_y = art_y + art_size + 16;
+    const char* track = "Now Playing";
+    for (int i = 0; track[i]; i++)
+        draw_abstract_char(ax + aw / 2 - 55 + i * 10, info_y, track[i], VxTheme::TEXT_PRIMARY);
+    const char* artist = "Vextryn Air";
+    for (int i = 0; artist[i]; i++)
+        draw_abstract_char(ax + aw / 2 - 44 + i * 8, info_y + 16, artist[i], VxTheme::TEXT_MUTED);
 
-    // Handle click for play/pause button
-    if (clicked) {
-        if (mouse_x >= btn_x && mouse_x <= btn_x + btn_w &&
-            mouse_y >= btn_y && mouse_y <= btn_y + btn_h) {
-            is_playing = !is_playing;
+    // Progress bar
+    int prog_y = info_y + 40;
+    int prog_x = ax + 20;
+    int prog_w = aw - 40;
+    vxair_fb_fill_rect(prog_x, prog_y, prog_w, 6, VxTheme::BASE_DARK);
+    vxair_fb_fill_rect(prog_x, prog_y, prog_w, 1, VxTheme::BORDER_SUBTLE);
+    int fill_w = (play_progress % 1200) * prog_w / 1200;
+    if (fill_w > 0) vxair_fb_fill_rect(prog_x, prog_y, fill_w, 6, accent);
+
+    // Time labels
+    const char* t1 = "0:42";
+    for (int i = 0; t1[i]; i++) draw_abstract_char(prog_x + i * 8, prog_y + 12, t1[i], VxTheme::TEXT_MUTED);
+    const char* t2 = "3:28";
+    for (int i = 0; t2[i]; i++) draw_abstract_char(prog_x + prog_w - 32 + i * 8, prog_y + 12, t2[i], VxTheme::TEXT_MUTED);
+
+    // Control buttons
+    int ctrl_y = prog_y + 32;
+    int play_x = ax + aw / 2 - 20;
+    int play_y = ctrl_y;
+    bool play_hover = (mouse_x >= play_x && mouse_x < play_x + 40 && mouse_y >= play_y && mouse_y < play_y + 40);
+
+    // Play/pause button — accent circle
+    for (int dy = -20; dy <= 20; dy++) {
+        int half = 0;
+        for (int dx = -20; dx <= 20; dx++) {
+            if (dx * dx + dy * dy <= 400) half = dx;
         }
+        if (half >= 0)
+            vxair_fb_fill_rect(play_x + 20 - half, play_y + 20 + dy, half * 2 + 1, 1, play_hover ? VxTheme::accent_glow() : accent);
     }
-
-    // Draw button background
-    vxair_fb_fill_rect(btn_x, btn_y, btn_w, btn_h, 0xFF444444);
-
     if (is_playing) {
-        // Pause icon (two vertical bars)
-        vxair_fb_fill_rect(btn_x + 8, btn_y + 8, 5, 14, 0xFFFFFFFF);
-        vxair_fb_fill_rect(btn_x + 17, btn_y + 8, 5, 14, 0xFFFFFFFF);
+        // Pause icon
+        vxair_fb_fill_rect(play_x + 14, play_y + 12, 4, 16, VxTheme::TEXT_PRIMARY);
+        vxair_fb_fill_rect(play_x + 22, play_y + 12, 4, 16, VxTheme::TEXT_PRIMARY);
     } else {
         // Play icon (triangle)
-        for (int i = 0; i < 8; ++i) {
-            vxair_fb_fill_rect(btn_x + 10 + i, btn_y + 7 + i, 1, 16 - i * 2, 0xFFFFFFFF);
-        }
+        for (int i = 0; i < 12; i++)
+            vxair_fb_fill_rect(play_x + 14 + i, play_y + 10 + i, 2, 20 - i * 2, VxTheme::TEXT_PRIMARY);
     }
 
-    // Draw progress bar
-    int prog_x = btn_x + btn_w + 10;
-    int prog_y = cb_y + 15;
-    int prog_w = usable_w - (btn_w + 20); // 5 margin left + 30 btn + 10 gap + 5 margin right = 50 total subtracted from usable_w
-    int prog_h = 10;
+    if (clicked && play_hover) is_playing = !is_playing;
 
-    if (prog_w > 0) {
-        // Progress bar background
-        vxair_fb_fill_rect(prog_x, prog_y, prog_w, prog_h, 0xFF555555);
-        
-        // Progress bar filled part
-        int fill_w = (play_progress % 1000) * prog_w / 1000;
-        vxair_fb_fill_rect(prog_x, prog_y, fill_w, prog_h, 0xFFFF0000); // Red
-    }
+    // Prev/Next track buttons
+    int prev_t_x = play_x - 56;
+    int next_t_x = play_x + 56;
+    bool pt_hover = (mouse_x >= prev_t_x && mouse_x < prev_t_x + 36 && mouse_y >= ctrl_y + 2 && mouse_y < ctrl_y + 36);
+    bool nt_hover = (mouse_x >= next_t_x && mouse_x < next_t_x + 36 && mouse_y >= ctrl_y + 2 && mouse_y < ctrl_y + 36);
+
+    // Prev track (|<)
+    for (int i = 0; i < 8; i++) vxair_fb_fill_rect(prev_t_x + 10 + i, ctrl_y + 10 + i, 2, 16 - i * 2, pt_hover ? accent : VxTheme::TEXT_SECONDARY);
+    vxair_fb_fill_rect(prev_t_x + 8, ctrl_y + 10, 2, 16, pt_hover ? accent : VxTheme::TEXT_SECONDARY);
+    // Next track (>|)
+    for (int i = 0; i < 8; i++) vxair_fb_fill_rect(next_t_x + 18 - i, ctrl_y + 10 + i, 2, 16 - i * 2, nt_hover ? accent : VxTheme::TEXT_SECONDARY);
+    vxair_fb_fill_rect(next_t_x + 26, ctrl_y + 10, 2, 16, nt_hover ? accent : VxTheme::TEXT_SECONDARY);
+
+    if (clicked && pt_hover) { play_progress = 0; }
+    if (clicked && nt_hover) { play_progress += 120; }
 }

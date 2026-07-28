@@ -221,12 +221,20 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: /home/ethan/Ve
   /home/ethan/Vextryn_Air/gui/vxui/vxui_theme.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/app_icons.h \
   /home/ethan/Vextryn_Air/gui/compositor/vxair_textinput.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_about.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_browser.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_calculator.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_calendar.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_clock.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_control_center.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_file_manager.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_image_viewer.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_media_player.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_notes.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_settings.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_snake.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_sysmon.hpp \
+  /home/ethan/Vextryn_Air/gui/compositor/apps/app_tasks.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/apps/app_terminal.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/ata_storage.hpp \
   /home/ethan/Vextryn_Air/gui/compositor/font8x8.h \
@@ -960,12 +968,6 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_apic.c.o:
 
 /usr/include/bits/types/timer_t.h:
 
-CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o:
-
-CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o:
-
-/usr/include/bits/types/time_t.h:
-
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_ipc.c.o:
 
 CMakeFiles/vextryn_air.elf.dir/drivers/audio/vxair_pcspk.c.o:
@@ -992,6 +994,18 @@ CMakeFiles/vextryn_air.elf.dir/drivers/bus/bus_xhci.c.o:
 
 /home/ethan/Vextryn_Air/net/core/ndp.c:
 
+/home/ethan/Vextryn_Air/net/core/ip.c:
+
+/home/ethan/Vextryn_Air/net/core/icmp.h:
+
+CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o:
+
+/home/ethan/Vextryn_Air/net/core/icmp.c:
+
+/home/ethan/Vextryn_Air/net/core/ethernet.h:
+
+/home/ethan/Vextryn_Air/net/core/arp.h:
+
 CMakeFiles/vextryn_air.elf.dir/kernel/hal/hal_timer.c.o:
 
 /home/ethan/Vextryn_Air/fs/vxairfs.c:
@@ -1012,6 +1026,10 @@ CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o:
 
 /home/ethan/Vextryn_Air/fs/ramdisk.c:
 
+/home/ethan/Vextryn_Air/net/core/ethernet.c:
+
+/home/ethan/Vextryn_Air/net/bluetooth/vxair_ble_gatt.c:
+
 /home/ethan/Vextryn_Air/drivers/wireless/ax200.c:
 
 /home/ethan/Vextryn_Air/drivers/wireless/rtl8852.h:
@@ -1028,15 +1046,11 @@ CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o:
 
 /home/ethan/Vextryn_Air/drivers/net/e1000.h:
 
-/usr/include/bits/wordsize.h:
-
 /home/ethan/Vextryn_Air/net/core/loopback.h:
 
 /home/ethan/Vextryn_Air/drivers/wireless/rtl8852.c:
 
 /home/ethan/Vextryn_Air/drivers/net/rtl8139.c:
-
-/home/ethan/Vextryn_Air/net/core/arp.h:
 
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o:
 
@@ -1060,15 +1074,11 @@ CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint.h:
 
-CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_idt.c.o:
-
-/home/ethan/Vextryn_Air/net/core/icmp.c:
-
 /usr/include/bits/floatn-common.h:
 
-/home/ethan/Vextryn_Air/kernel/core/include/vxair_log.h:
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_tasks.hpp:
 
-/usr/include/gnu/stubs.h:
+/home/ethan/Vextryn_Air/kernel/core/include/vxair_log.h:
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o:
 
@@ -1080,11 +1090,21 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_kheap.c.o:
 
 /home/ethan/Vextryn_Air/drivers/audio/vxair_pcspk.c:
 
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_media_player.hpp:
+
 CMakeFiles/vextryn_air.elf.dir/net/tls/tls.c.o:
 
 CMakeFiles/vextryn_air.elf.dir/fs/vfs.c.o:
 
 /home/ethan/Vextryn_Air/drivers/bus/bus_pci.h:
+
+CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o:
+
+/home/ethan/Vextryn_Air/net/wifi/mac80211.c:
+
+/home/ethan/Vextryn_Air/net/core/loopback.c:
+
+/home/ethan/Vextryn_Air/fs/vfs.c:
 
 /home/ethan/Vextryn_Air/gui/compositor/apps/app_calculator.hpp:
 
@@ -1117,8 +1137,6 @@ CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o:
 /home/ethan/Vextryn_Air/net/tls/tls.c:
 
 /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h:
-
-/home/ethan/Vextryn_Air/net/core/ip.c:
 
 CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_main.c.o:
 
@@ -1182,6 +1200,10 @@ CMakeFiles/vextryn_air.elf.dir/drivers/gpu/vxair_gop.c.o:
 
 /home/ethan/Vextryn_Air/fs/vxairfs.h:
 
+/usr/include/gnu/stubs.h:
+
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_image_viewer.hpp:
+
 /home/ethan/Vextryn_Air/drivers/input/vxair_input.h:
 
 /home/ethan/Vextryn_Air/kernel/core/include/vxair_sched.h:
@@ -1203,6 +1225,36 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_context_switch.asm.o:
 /home/ethan/Vextryn_Air/gui/compositor/app_icons.h:
 
 /home/ethan/Vextryn_Air/gui/compositor/vxair_textinput.hpp:
+
+/usr/include/bits/wordsize.h:
+
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_about.hpp:
+
+CMakeFiles/vextryn_air.elf.dir/net/core/loopback.c.o:
+
+CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o:
+
+/usr/include/bits/types/time_t.h:
+
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_sysmon.hpp:
+
+/home/ethan/Vextryn_Air/net/bluetooth/vxair_bt_profiles.c:
+
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_calendar.hpp:
+
+/home/ethan/Vextryn_Air/kernel/core/src/vxair_pmm.c:
+
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_clock.hpp:
+
+/home/ethan/Vextryn_Air/net/wifi/vxair_80211_mac.h:
+
+/home/ethan/Vextryn_Air/net/wifi/dhcp.h:
+
+/usr/include/bits/long-double.h:
+
+/home/ethan/Vextryn_Air/kernel/core/include/vxair_idt.h:
+
+/home/ethan/Vextryn_Air/gui/compositor/apps/app_control_center.hpp:
 
 /home/ethan/Vextryn_Air/gui/compositor/apps/app_notes.hpp:
 
@@ -1232,14 +1284,6 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o:
 
 /home/ethan/Vextryn_Air/kernel/core/src/vxair_idt.c:
 
-/home/ethan/Vextryn_Air/net/wifi/vxair_80211_mac.h:
-
-/home/ethan/Vextryn_Air/net/wifi/dhcp.h:
-
-/usr/include/bits/long-double.h:
-
-/home/ethan/Vextryn_Air/kernel/core/include/vxair_idt.h:
-
 /home/ethan/Vextryn_Air/net/bluetooth/gatt.c:
 
 /home/ethan/Vextryn_Air/kernel/core/src/vxair_idt_asm.asm:
@@ -1251,8 +1295,6 @@ CMakeFiles/vextryn_air.elf.dir/kernel/core/src/vxair_syscall.c.o:
 /home/ethan/Vextryn_Air/kernel/core/src/vxair_kheap.c:
 
 /home/ethan/Vextryn_Air/kernel/core/src/vxair_main.c:
-
-/home/ethan/Vextryn_Air/kernel/core/src/vxair_pmm.c:
 
 /home/ethan/Vextryn_Air/kernel/core/src/vxair_sched.c:
 
@@ -1303,21 +1345,3 @@ CMakeFiles/vextryn_air.elf.dir/fs/vxairfs.c.o:
 CMakeFiles/vextryn_air.elf.dir/boot/multiboot2_stub.S.o:
 
 /home/ethan/Vextryn_Air/net/bluetooth/vxair_ble_gatt.h:
-
-/home/ethan/Vextryn_Air/net/bluetooth/vxair_bt_profiles.c:
-
-/home/ethan/Vextryn_Air/net/core/ethernet.h:
-
-/home/ethan/Vextryn_Air/net/bluetooth/vxair_ble_gatt.c:
-
-/home/ethan/Vextryn_Air/net/core/ethernet.c:
-
-/home/ethan/Vextryn_Air/net/core/icmp.h:
-
-CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o:
-
-/home/ethan/Vextryn_Air/net/wifi/mac80211.c:
-
-/home/ethan/Vextryn_Air/fs/vfs.c:
-
-/home/ethan/Vextryn_Air/net/core/loopback.c:

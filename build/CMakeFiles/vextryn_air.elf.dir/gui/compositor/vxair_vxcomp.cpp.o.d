@@ -18,4 +18,12 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_snake.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_browser.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_notes.hpp \
- /home/ethan/Vextryn_Air/gui/compositor/apps/app_calculator.hpp
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_calculator.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_sysmon.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_calendar.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_image_viewer.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_media_player.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_clock.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_about.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_tasks.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_control_center.hpp

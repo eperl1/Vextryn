@@ -1,7 +1,7 @@
 # Booting Vextryn Air on Real Hardware
 ## Requirements
 - x86_64 CPU (2010 or newer)
-- 512MB RAM minimum
+- 512MB RAM minimum (3GB recommended for QEMU)
 - UEFI firmware (2011 or newer)
 - USB drive 1GB+
 ## Flash to USB

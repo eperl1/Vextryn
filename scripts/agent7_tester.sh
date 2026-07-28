@@ -20,7 +20,7 @@ rm -f /tmp/vxair_serial.log /tmp/qemu_int.log
 source .env
 timeout 3 qemu-system-x86_64 \
     -cdrom vextryn-air.iso \
-    -m 512M \
+    -m 3072M \
     -serial file:/tmp/vxair_serial.log \
     -display none \
     -no-reboot \

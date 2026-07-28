@@ -19,7 +19,9 @@ void vxair_pmm_init(void* mmap_info) {
     vxair_log_info("PMM: Initializing...");
     (void)mmap_info;
     
-    size_t mem_size = 256 * 1024 * 1024;
+    // Track up to 3GB of physical memory (matching QEMU -m 3072M).
+    // The PMM bitmap can handle up to 16GB (PMM_MAX_PAGES), so this is safe.
+    size_t mem_size = (size_t)3072 * 1024 * 1024;
     pmm_total_memory = mem_size;
     pmm_free_memory = mem_size;
     

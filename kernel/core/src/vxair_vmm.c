@@ -22,9 +22,14 @@ void vxair_vmm_init(void) {
     
     for (int i = 0; i < 512; i++) kernel_pml4->entries[i] = 0;
     
-    // Map first 1GB identity and higher half
-    for (uint64_t i = 0; i < 1024 * 256; i++) {
+    // Map first 4GB identity — needed so UEFI/ACPI tables placed above 1GB
+    // when QEMU has >512MB RAM are accessible.
+    for (uint64_t i = 0; i < 1024 * 1024; i++) {
         vxair_vmm_map_page(kernel_pml4, i * VXAIR_PAGE_SIZE, i * VXAIR_PAGE_SIZE, VXAIR_VMM_PRESENT | VXAIR_VMM_RW);
+    }
+    // Map first 2GB into the higher half (0xFFFFFFFF80000000 base).
+    // Only 2GB fits before the address wraps at 0x100000000 — do NOT go beyond.
+    for (uint64_t i = 0; i < 1024 * 512; i++) {
         vxair_vmm_map_page(kernel_pml4, 0xFFFFFFFF80000000ull + i * VXAIR_PAGE_SIZE, i * VXAIR_PAGE_SIZE, VXAIR_VMM_PRESENT | VXAIR_VMM_RW);
     }
     

@@ -2,7 +2,7 @@
 # Simplest possible QEMU boot for debugging
 qemu-system-x86_64 \
   -cdrom ~/Vextryn_Air/vextryn-air.iso \
-  -m 512M \
+  -m 3072M \
   -vga std \
   -display sdl \
   -serial stdio \

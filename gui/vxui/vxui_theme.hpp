@@ -1,5 +1,5 @@
-// VXUI Theme — VAir OS V3 Design System
-// Runtime-accent-driven, flat, neutral, premium. No more pink cast.
+// VXUI Theme — VAir OS V4 Premium Design System
+// Cool, glassy, premium.  Lighter surfaces, refined accents, calmer contrast.
 #ifndef VXUI_THEME_HPP
 #define VXUI_THEME_HPP
 
@@ -7,35 +7,36 @@
 
 namespace VxTheme {
 
-// Background — cool neutral, no warm/pink cast
-constexpr uint32_t BASE_DEEP     = 0xFF0B0D12;  // Near-black cool grey
-constexpr uint32_t BASE_DARK     = 0xFF101318;  // Desktop — neutral dark
-constexpr uint32_t SURFACE       = 0xFF171A21;  // Cards — cool dark grey
-constexpr uint32_t SURFACE_HIGH  = 0xFF1E222B;  // Raised — slightly lighter
-constexpr uint32_t OVERLAY       = 0xFF262A36;  // Hover lift
-constexpr uint32_t GLASS_TINT    = 0xFF1A1E28;  // Frosted glass
+// Background — softer and cooler, less harsh
+constexpr uint32_t BASE_DEEP     = 0xFF080A10;  // Deepest background
+constexpr uint32_t BASE_DARK     = 0xFF0E1118;  // Desktop base
+constexpr uint32_t BASE_MID      = 0xFF151923;  // Mid background
+constexpr uint32_t SURFACE       = 0xFF1D2230;  // Card surface
+constexpr uint32_t SURFACE_HIGH  = 0xFF262C3B;  // Raised surface
+constexpr uint32_t OVERLAY       = 0xFF2E3547;  // Hover lift
+constexpr uint32_t GLASS_TINT    = 0xFF1A1F2C;  // Frosted glass
 
-// Default accent — electric blue; runtime accent may override this
-constexpr uint32_t ACCENT        = 0xFF2D7FF9;
-constexpr uint32_t ACCENT_DIM    = 0xFF1E5FCC;
-constexpr uint32_t ACCENT_GLOW   = 0xFF5AA0FF;
-constexpr uint32_t ACCENT_SOFT   = 0xFF1A3A6C;
+// Accent — electric ice blue, premium and vivid
+constexpr uint32_t ACCENT        = 0xFF3B8CFF;
+constexpr uint32_t ACCENT_DIM    = 0xFF2568CC;
+constexpr uint32_t ACCENT_GLOW   = 0xFF6BA8FF;
+constexpr uint32_t ACCENT_SOFT   = 0xFF1E3A66;
 
 // Semantic — bright and clear
-constexpr uint32_t SUCCESS       = 0xFF22C55E;
-constexpr uint32_t DANGER        = 0xFFEF4444;
-constexpr uint32_t WARNING       = 0xFFF59E0B;
+constexpr uint32_t SUCCESS       = 0xFF34D399;
+constexpr uint32_t DANGER        = 0xFFFB7185;
+constexpr uint32_t WARNING       = 0xFFFBBF24;
 
-// Text — bright, high contrast
-constexpr uint32_t TEXT_PRIMARY  = 0xFFFFFFFF;
-constexpr uint32_t TEXT_SECONDARY = 0xFFA8B2C8;
-constexpr uint32_t TEXT_MUTED    = 0xFF5C6680;
+// Text — crisp, readable
+constexpr uint32_t TEXT_PRIMARY  = 0xFFF1F5FB;
+constexpr uint32_t TEXT_SECONDARY = 0xFF9AA4B8;
+constexpr uint32_t TEXT_MUTED    = 0xFF5E6A82;
 
-// Borders — visible outlines
-constexpr uint32_t BORDER_SUBTLE = 0xFF2A2F3A;
-constexpr uint32_t BORDER_STRONG = 0xFF3A4050;
-constexpr uint32_t BORDER_ACCENT = 0xFF2D7FF9;
-constexpr uint32_t BORDER_BRIGHT = 0xFF4A5160;
+// Borders — refined, not harsh
+constexpr uint32_t BORDER_SUBTLE = 0xFF2C3344;
+constexpr uint32_t BORDER_STRONG = 0xFF3B4559;
+constexpr uint32_t BORDER_ACCENT = 0xFF3B8CFF;
+constexpr uint32_t BORDER_BRIGHT = 0xFF52607A;
 
 // Spacing
 constexpr int SP_XS   = 6;

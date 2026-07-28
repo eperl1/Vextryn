@@ -1,6 +1,6 @@
 #!/bin/bash
 # Vextryn Air QEMU GUI Launch
-MEM=${1:-512}
+MEM=${1:-3072}
 
 # Find OVMF
 OVMF=""
