@@ -1,5 +1,5 @@
 #include "net_core.h"
-#include "../../drivers/net/e1000.h"
+#include "../../drivers/net/rtl8139.h"
 #include "../../drivers/bus/bus_pci.h"
 #include "../wifi/dns.h"
 #include "arp.h"
@@ -42,7 +42,7 @@ static int resolve_dns_server_arp(void) {
         
         // Receive frame from virtio-net
         uint8_t frame_buf[2048];
-        uint16_t frame_len = vxair_e1000_receive(frame_buf, sizeof(frame_buf));
+        uint16_t frame_len = vxair_rtl8139_receive(frame_buf, sizeof(frame_buf));
         if (frame_len > 0) {
             vxair_log_info("DNS: Got frame len=%u iteration=%d", frame_len, i);
             vxair_eth_receive(frame_buf, frame_len);
@@ -87,7 +87,7 @@ static int do_dns_query(const char *hostname) {
         vxair_hpet_sleep_ms(20);
         
         uint8_t frame_buf[2048];
-        uint16_t frame_len = vxair_e1000_receive(frame_buf, sizeof(frame_buf));
+        uint16_t frame_len = vxair_rtl8139_receive(frame_buf, sizeof(frame_buf));
         if (frame_len > 0) {
             // Feed to Ethernet → IP → UDP → DNS
             vxair_eth_receive(frame_buf, frame_len);
@@ -133,24 +133,24 @@ void vxair_net_init(void) {
     vxair_bus_pci_init();
     vxair_bus_pci_scan();
     
-    // Initialize virtio-net driver
-    int ret = vxair_e1000_init();
+    // Initialize rtl8139 driver
+    int ret = vxair_rtl8139_init();
     if (ret != 0) {
-        vxair_log_info("NET: e1000 init FAILED (%d)", ret);
+        vxair_log_info("NET: rtl8139 init FAILED (%d)", ret);
         return;
     }
     
     // Log MAC address
-    vxair_log_info("NET: e1000 MAC %02x:%02x:%02x:%02x:%02x:%02x",
-                   g_e1000.mac_addr[0], g_e1000.mac_addr[1],
-                   g_e1000.mac_addr[2], g_e1000.mac_addr[3],
-                   g_e1000.mac_addr[4], g_e1000.mac_addr[5]);
+    vxair_log_info("NET: rtl8139 MAC %02x:%02x:%02x:%02x:%02x:%02x",
+                   g_rtl8139.mac_addr[0], g_rtl8139.mac_addr[1],
+                   g_rtl8139.mac_addr[2], g_rtl8139.mac_addr[3],
+                   g_rtl8139.mac_addr[4], g_rtl8139.mac_addr[5]);
     
     vxair_log_info("NET: Stack initialized successfully");
 }
 
 void vxair_net_test(void) {
-    if (!g_e1000.found) {
+    if (!g_rtl8139.found) {
         vxair_log_info("NET: No NIC found, skipping DNS test");
         return;
     }

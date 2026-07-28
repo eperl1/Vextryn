@@ -45,6 +45,14 @@ typedef struct {
 void vxair_hal_acpi_init(void* rsdp_addr);
 
 /**
+ * @brief Scan physical memory for the ACPI RSDP ("RSD PTR " signature)
+ * Searches the standard BIOS area (0xE0000–0xFFFFF) for a valid RSDP.
+ * Used as a fallback when the bootloader does not provide the RSDP address.
+ * @return Physical address of the RSDP, or NULL if not found
+ */
+void* vxair_hal_acpi_scan_rsdp(void);
+
+/**
  * @brief Find an ACPI table by its signature
  * @param signature The 4-character signature to search for
  * @return Pointer to the ACPI table header, or NULL if not found

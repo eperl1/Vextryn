@@ -50,6 +50,8 @@ bool vxair_hal_pci_device_exists(uint8_t bus, uint8_t slot, uint8_t func);
 bool vxair_hal_pci_mmconfig_init(void);
 void vxair_hal_pci_write_config_mmconfig(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset, uint32_t value);
 uint32_t vxair_hal_pci_read_config_mmconfig(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
+uint64_t vxair_hal_pci_mmconfig_calc_addr(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset);
+bool     vxair_hal_pci_mmconfig_is_ready(void);
 
 #ifdef __cplusplus
 }

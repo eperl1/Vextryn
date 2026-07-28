@@ -18,6 +18,8 @@ file(REMOVE_RECURSE
   "CMakeFiles/vextryn_air.elf.dir/drivers/input/vxair_input.c.o.d"
   "CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o"
   "CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.o.d"
+  "CMakeFiles/vextryn_air.elf.dir/drivers/net/rtl8139.c.o"
+  "CMakeFiles/vextryn_air.elf.dir/drivers/net/rtl8139.c.o.d"
   "CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o"
   "CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o.d"
   "CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o"

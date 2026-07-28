@@ -100,11 +100,14 @@ int vxair_e1000_init(void) {
     g_e1000.mmio_paddr = mmio_paddr;
     vxair_log_info("E1000: MMIO base = 0x%llx", (unsigned long long)mmio_paddr);
 
-    // Identity-map the MMIO region in kernel page tables (same pattern as APIC driver).
-    // e1000 registers span offsets 0x0000-0x5404 (RAL/RAH): need pages 0-5 (24KB)
+    // Identity-map the MMIO region with NOCACHE (device registers must be uncacheable).
+    // Without PCD (cache-disable), writes may be buffered and reads may return stale data.
+    // e1000 registers span offsets 0x0000-0x5404 (RAL/RAH): need pages 0-5 (24KB).
+    vxair_log_info("E1000: mapping MMIO at 0x%llx size=0x6000 (flags=PRESENT|RW|NOCACHE)",
+                   (unsigned long long)mmio_paddr);
     for (uint64_t page = mmio_paddr; page < mmio_paddr + 0x6000; page += 0x1000) {
         if (!vxair_vmm_map_page(kernel_pml4, page, page,
-                                VXAIR_VMM_PRESENT | VXAIR_VMM_RW)) {
+                                VXAIR_VMM_PRESENT | VXAIR_VMM_RW | VXAIR_VMM_NOCACHE)) {
             vxair_log_info("E1000: Failed to map MMIO page 0x%llx", (unsigned long long)page);
             return -1;
         }
@@ -215,8 +218,18 @@ int vxair_e1000_init(void) {
     for (int i = 0; i < 128; i += 4)
         mmio_write32(mmio, E1000_MTA + i, 0);
 
+
+
     // Disable interrupts (polling mode).
     mmio_write32(mmio, E1000_IMS, 0);
+
+    // Configure RXDCTL (Receive Descriptor Control) — required for the hardware
+    // to prefetch RX descriptors from main memory. Without this, the device may
+    // never DMA-write received frame data into memory (the root cause of silent RX
+    // across all prior fix attempts). 0x01010101 = PTHRESH=1,HTHRESH=1,WTHRESH=1,GRAN=1.
+    mmio_write32(mmio, E1000_RXDCTL, E1000_RXDCTL_DEFAULT);
+    uint32_t rxdctl_rb = mmio_read32(mmio, E1000_RXDCTL);
+    vxair_log_info("E1000: RXDCTL wrote=0x%x readback=0x%x", (unsigned int)E1000_RXDCTL_DEFAULT, (unsigned int)rxdctl_rb);
 
     // Setup RX descriptors.
     for (int i = 0; i < E1000_RX_RING_SIZE; i++) {
@@ -255,11 +268,30 @@ int vxair_e1000_init(void) {
                    (rctl_rb >> 26) & 1, (rctl_rb >> 3) & 1,
                    (rctl_rb >> 4) & 1, (rctl_rb >> 2) & 1);
 
+    // ---- PCI config path diagnostic: compare legacy CF8/CFC vs MMCONFIG ----
+    // Compute and log the exact MMCONFIG physical address for this device.
+    uint64_t mmcfg_phys = vxair_hal_pci_mmconfig_calc_addr(bus, slot, func, 0);
+    vxair_log_info("E1000: MMCONFIG phys addr for bus=%u slot=%u func=%u = 0x%llx",
+                   bus, slot, func, (unsigned long long)mmcfg_phys);
+    vxair_log_info("E1000: MMCONFIG ready=%d", vxair_hal_pci_mmconfig_is_ready() ? 1 : 0);
+    
+    uint32_t cmd_legacy  = vxair_hal_pci_read_config(bus, slot, func, 0x04);
+    uint32_t cmd_mmcfg   = vxair_hal_pci_read_config_mmconfig(bus, slot, func, 0x04);
+    uint32_t devid_legacy = vxair_hal_pci_read_config(bus, slot, func, 0x00);
+    uint32_t devid_mmcfg  = vxair_hal_pci_read_config_mmconfig(bus, slot, func, 0x00);
+    vxair_log_info("E1000: PCI CMD legacy=0x%x mmcfg=0x%x (match=%d)",
+                   cmd_legacy, cmd_mmcfg, (cmd_legacy == cmd_mmcfg) ? 1 : 0);
+    vxair_log_info("E1000: PCI DEVID legacy=0x%x mmcfg=0x%x (match=%d)",
+                   devid_legacy, devid_mmcfg, (devid_legacy == devid_mmcfg) ? 1 : 0);
+
     g_e1000.found = true;
     vxair_log_info("E1000: Init OK (TX=%u RX=%u)",
                    E1000_TX_RING_SIZE, E1000_RX_RING_SIZE);
 
-    vxair_e1000_loopback_test();
+    // NOTE: loopback test removed from boot path — it blocks ~15s in QEMU and the
+    // user explicitly requested no blocking boot-time tests until RX is confirmed.
+    // Run vxair_e1000_loopback_test() manually for diagnostic purposes.
+    // vxair_e1000_loopback_test();
     return 0;
 }
 

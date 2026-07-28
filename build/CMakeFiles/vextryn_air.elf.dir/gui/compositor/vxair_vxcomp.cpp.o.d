@@ -9,6 +9,8 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: \
  /home/ethan/Vextryn_Air/gui/compositor/times_font.h \
  /home/ethan/Vextryn_Air/gui/compositor/font8x8.h \
  /home/ethan/Vextryn_Air/gui/compositor/ata_storage.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxui/vxui.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxui/vxui_theme.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_file_manager.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/../vxair_textinput.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_settings.hpp \

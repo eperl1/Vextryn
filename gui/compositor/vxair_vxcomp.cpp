@@ -127,6 +127,7 @@ extern "C" {
     // Include native app components
     #include "font8x8.h"
     #include "ata_storage.hpp"
+    #include "../vxui/vxui.hpp"
     #include "apps/app_file_manager.hpp"
 
     static inline void write_u32_le(uint8_t* p, uint32_t value) {
@@ -359,16 +360,15 @@ extern "C" {
                     int32_t rdx = mbyte[1]; if (state & 0x10) rdx -= 256;
                     int32_t rdy = mbyte[2]; if (state & 0x20) rdy -= 256;
                     
-                    int scale_lut[6] = {32, 16, 32, 48, 64, 96};
+                    // Mouse scaling: tuned for control, not raw speed.
+                    // Level 1=precise, 3=balanced, 5=fast. Default 3.
+                    int scale_lut[6] = {16, 32, 48, 72, 104, 144};
                     int lvl = g_state.mouse_sensitivity_level;
                     if (lvl < 1) lvl = 1; if (lvl > 5) lvl = 5;
                     int scale = scale_lut[lvl];
                     
-                    if (g_state.exact_x_fp == 0 && g_state.exact_y_fp == 0) {
-                        g_state.exact_x_fp = g_state.mouse_x << 8;
-                        g_state.exact_y_fp = g_state.mouse_y << 8;
-                    }
-                    
+                    // Apply directly — lower scale_lut already eliminates overshoot.
+                    // No damping needed (damping adds perceived lag, not control).
                     g_state.exact_x_fp += rdx * scale;
                     g_state.exact_y_fp -= rdy * scale;
                     
@@ -416,14 +416,14 @@ extern "C" {
                         } 
                         // 2. Launcher open
                         else if (g_state.launcher_open) {
-                            uint32_t menu_w = 200;
-                            uint32_t menu_h = 8 * 40 + 20; // 7 apps
+                            uint32_t menu_w = 220;  // matches VXUI launcher draw code
+                            uint32_t menu_h = 8 * 48 + 24; // matches draw code
                             uint32_t menu_x = 12, menu_y = H - tb_h - menu_h - 8;
                             if (mx >= menu_x && mx <= menu_x + menu_w && my >= menu_y && my <= menu_y + menu_h) {
                                 VxAppId app_ids[8] = {VX_APP_CALCULATOR, VX_APP_NOTES, VX_APP_SYSMON, VX_APP_FILES, VX_APP_SETTINGS, VX_APP_TERMINAL, VX_APP_SNAKE, VX_APP_BROWSER};
                                 for (int i=0; i<8; i++) {
-                                    uint32_t item_y = menu_y + 10 + i * 40;
-                                    if (mx >= 20 && mx <= 200 && my >= item_y && my <= item_y + 30) {
+                                    uint32_t item_y = menu_y + 12 + i * 48;
+                                    if (mx >= 20 && mx <= 212 && my >= item_y && my <= item_y + 40) {
                                         open_app(app_ids[i]);
                                         g_state.launcher_open = false;
                                     }
@@ -461,15 +461,15 @@ extern "C" {
                                     bring_to_front(i);
                                     handled = true;
 
-                                    // Close button
-                                    if (mx >= (uint32_t)w.x + w.w - 24 && mx <= (uint32_t)w.x + w.w - 4 && 
-                                        my >= (uint32_t)w.y + 4 && my <= (uint32_t)w.y + 24) {
+                                    // Close button — match the 18x18 drawn size at new position
+                                    if (mx >= (uint32_t)w.x + w.w - 30 && mx <= (uint32_t)w.x + w.w - 8 && 
+                                        my >= (uint32_t)w.y + 8 && my <= (uint32_t)w.y + 30) {
                                         w.open = false;
                                         break;
                                     }
                                     
-                                    // Title bar drag
-                                    if (my >= (uint32_t)w.y && my <= (uint32_t)w.y + 28) {
+                                    // Title bar drag — 36px bar (VxTheme::TITLE_BAR_H)
+                                    if (my >= (uint32_t)w.y && my <= (uint32_t)w.y + 36) {
                                         w.dragging = true;
                                         w.drag_offset_x = mx - w.x;
                                         w.drag_offset_y = my - w.y;
@@ -637,33 +637,50 @@ extern "C" {
     }
 
     static void draw_window(VxWindow& w, bool clicked) {
-        // Drop shadow (offset dark rects for depth)
-        for (int s = 0; s < 4; s++) {
-            uint32_t a = 60 - s * 15;
+        // Soft, diffuse shadow — premium depth, not harsh
+        for (int s = 0; s < 8; s++) {
+            uint32_t a = 40 - s * 4;  // Was 80-s*13 — much softer
+            if (a > 80) a = 80;
             uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
             vxair_fb_fill_rect(w.x + s, w.y + w.h + s, w.w, 1, c);
             vxair_fb_fill_rect(w.x + w.w + s, w.y + s, 1, w.h, c);
         }
-        // 1px border with accent color
-        vxair_fb_fill_rect(w.x - 1, w.y - 1, w.w + 2, w.h + 2, w.focused ? g_state.accent_color : 0xFF334155);
-        vxair_fb_fill_rect(w.x, w.y, w.w, w.h, 0xFF1E293B); // Fill
-        // Gradient title bar
-        for (int tx = 0; tx < w.w; tx++) {
-            uint32_t tc = lerp_color(w.focused ? g_state.accent_color : 0xFF334155, 0xFF0F172A, tx, w.w);
-            vxair_fb_fill_rect(w.x + tx, w.y, 1, 24, tc);
-        }
-        vxair_fb_fill_rect(w.x, w.y + 24, w.w, 1, 0xFF000000);
+        // Border: 1px gentle for all windows, accent only on focused
+        uint32_t border_color = w.focused ? VxTheme::ACCENT_DIM : VxTheme::BORDER_SUBTLE;
+        vxair_fb_fill_rect(w.x - 1, w.y - 1, w.w + 2, w.h + 2, border_color);
+        // Window fill — warm surface
+        vxair_fb_fill_rect(w.x, w.y, w.w, w.h, VxTheme::SURFACE);
         
-        bool close_hover = (g_state.mouse_x >= w.x + w.w - 24 && g_state.mouse_x <= w.x + w.w - 4 && 
-                            g_state.mouse_y >= w.y + 4 && g_state.mouse_y <= w.y + 24);
-        vxair_fb_fill_rect(w.x + w.w - 24, w.y + 4, 20, 20, close_hover ? 0xFFEF4444 : 0xFF1E293B);
-        vxair_fb_fill_rect(w.x + w.w - 23, w.y + 5, 18, 18, close_hover ? 0xFFDC2626 : 0xFF0F172A);
-        // X mark on hover
+        // Title bar: taller (36px), calm, no neon stripe
+        int tb_h = VxTheme::TITLE_BAR_H; // 36px
+        vxair_fb_fill_rect(w.x, w.y, w.w, tb_h, w.focused ? VxTheme::BASE_DEEP : VxTheme::BASE_DARK);
+        // Gentle separator under title bar — not a bright accent stripe
+        vxair_fb_fill_rect(w.x, w.y + tb_h, w.w, 1, VxTheme::BORDER_SUBTLE);
+        
+        // Window title text
+        const char* titles[] = {"Calculator","Notes","SysMon","Files","Settings","Terminal","Snake","Browser"};
+        int title_idx = (int)w.app - 1;
+        if (title_idx >= 0 && title_idx < 8) {
+            const char* tn = titles[title_idx];
+            int tx = w.x + 14;
+            for (int i = 0; tn[i]; i++) {
+                draw_abstract_char(tx + i * 10, w.y + 11, tn[i],
+                                   w.focused ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_MUTED);
+            }
+        }
+        
+        // Close button: refined, not aggressive. Small circle, warm.
+        bool close_hover = (g_state.mouse_x >= w.x + w.w - 30 && g_state.mouse_x <= w.x + w.w - 8 && 
+                            g_state.mouse_y >= w.y + 8 && g_state.mouse_y <= w.y + 30);
+        int cx = w.x + w.w - 28, cy = w.y + 10;
+        uint32_t close_bg = close_hover ? VxTheme::DANGER : VxTheme::SURFACE_HIGH;
+        vxair_fb_fill_rect(cx, cy, 18, 18, close_bg);
+        vxair_fb_fill_rect(cx + 1, cy + 1, 16, 16, close_hover ? 0xFFB04550 : VxTheme::SURFACE);
         if (close_hover) {
-            int bx = w.x + w.w - 24, by = w.y + 4;
-            for (int i = 0; i < 10; i++) {
-                vxair_fb_fill_rect(bx + 5 + i, by + 5 + i, 1, 1, 0xFFFFFFFF);
-                vxair_fb_fill_rect(bx + 14 - i, by + 5 + i, 1, 1, 0xFFFFFFFF);
+            // Refined X — thinner, more elegant
+            for (int i = 0; i < 8; i++) {
+                vxair_fb_fill_rect(cx + 5 + i, cy + 5 + i, 1, 1, VxTheme::TEXT_PRIMARY);
+                vxair_fb_fill_rect(cx + 12 - i, cy + 5 + i, 1, 1, VxTheme::TEXT_PRIMARY);
             }
         }
 
@@ -711,76 +728,59 @@ extern "C" {
     }
 
     static void draw_polished_desktop(uint32_t W, uint32_t H) {
+        // Warm gradient background — subtle, calm, not cold or mathematical.
+        // Single gentle vertical gradient from warm dark to slightly lighter.
         for (uint32_t y = 0; y < H; y++) {
-            uint32_t color = lerp_color(0xFF020617, 0xFF0F172A, y, H);
+            uint32_t color = lerp_color(VxTheme::BASE_DEEP, VxTheme::BASE_DARK, y, H);
             vxair_fb_fill_rect(0, y, W, 1, color);
         }
         
-        // Subtle dot pattern (replaces harsh grid lines)
-        for (uint32_t y = 40; y < H - 60; y += 40) {
-            for (uint32_t x = 40; x < W; x += 40) {
-                vxair_fb_fill_rect(x, y, 2, 2, 0xFF162032);
-            }
-        }
-        // Vignette — darken top and bottom edges for depth
-        for (uint32_t i = 0; i < 40; i++) {
-            uint32_t a = (40 - i) * 2;
-            uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
-            vxair_fb_fill_rect(0, i, W, 1, c);
-            vxair_fb_fill_rect(0, H - 1 - i, W, 1, c);
-        }
+        // No dot grid, no center workspace panel — the desktop is clean and
+        // calm. Windows float on the warm gradient. Less visual noise = more
+        // premium feel during active use.
 
-        uint32_t tb_h = g_state.compact_taskbar ? 40 : 56;
+        uint32_t tb_h = g_state.compact_taskbar ? 40 : VxTheme::TASKBAR_H; // 52px
         uint32_t tb_y = H - tb_h;
-        // Shadow above taskbar for depth
+        // Taskbar shadow — soft, diffuse
         for (int i = 0; i < 6; i++) {
-            uint32_t a = 50 - i * 8;
+            uint32_t a = 30 - i * 4;  // Was 60-i*7 — much softer
             uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
             vxair_fb_fill_rect(0, tb_y - 6 + i, W, 1, c);
         }
-        // Gradient accent line (center-out fade)
-        for (uint32_t x = 0; x < W; x++) {
-            uint32_t dist = x < W/2 ? x : W - x;
-            uint32_t ac = lerp_color(g_state.accent_color, 0xFF0F172A, W/2 - dist, W/2);
-            vxair_fb_fill_rect(x, tb_y - 1, 1, 1, ac);
-        }
-        vxair_fb_fill_rect(0, tb_y, W, tb_h, 0xFF020617);
+        // No neon accent stripe — replaced with a gentle 1px border line
+        vxair_fb_fill_rect(0, tb_y, W, 1, VxTheme::BORDER_SUBTLE);
+        // Taskbar background — warm dark
+        vxair_fb_fill_rect(0, tb_y + 1, W, tb_h - 1, VxTheme::BASE_DEEP);
 
-        uint32_t lx = 12, ly = tb_y + (tb_h - 32) / 2;
+        uint32_t lx = 16, ly = tb_y + (tb_h - 32) / 2;
         bool launcher_hover = (g_state.mouse_x >= (int)lx && g_state.mouse_x <= (int)lx + 32 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 32);
         
-        // Hover glow with pulse animation
+        // Gentle hover — soft glow, not pulsing neon
         if (launcher_hover) {
-            uint32_t pulse = (g_frame % 60);
-            if (pulse >= 30) pulse = 60 - pulse;
-            uint32_t glow_a = 20 + pulse;
-            uint32_t glow = 0xFF000000 | (glow_a << 16) | (glow_a << 8) | glow_a;
-            vxair_fb_fill_rect(lx - 3, ly - 3, 38, 38, glow);
+            vxair_fb_fill_rect(lx - 4, ly - 4, 40, 40, VxTheme::OVERLAY);
         }
-        vxair_fb_fill_rect(lx, ly, 32, 32, launcher_hover ? g_state.accent_color : 0xFF1E293B);
-        vxair_fb_fill_rect(lx + 1, ly + 1, 30, 30, g_state.launcher_open ? 0xFF0F172A : 0xFF020617);
-        // Three dots launcher icon
+        // Launcher button — refined, warm
+        vxair_fb_fill_rect(lx, ly, 32, 32, launcher_hover ? VxTheme::ACCENT_DIM : VxTheme::SURFACE_HIGH);
+        vxair_fb_fill_rect(lx + 1, ly + 1, 30, 30, g_state.launcher_open ? VxTheme::SURFACE : VxTheme::BASE_DARK);
+        // Three dots — warm, not bright white
         for (int dx = 0; dx < 3; dx++) {
-            vxair_fb_fill_rect(lx + 8 + dx * 6, ly + 14, 4, 4, launcher_hover ? 0xFFFFFFFF : 0xFF64748B);
+            vxair_fb_fill_rect(lx + 8 + dx * 6, ly + 14, 4, 4, launcher_hover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY);
         }
 
         uint32_t tx_base = 60;
         
-        // Draw Taskbar apps
+        // Draw Taskbar apps — gentler hover, subtle active indicator
         for (int i=0; i<8; i++) {
             if (g_state.windows[i].open) {
                 bool hover = (g_state.mouse_x >= (int)tx_base && g_state.mouse_x <= (int)tx_base + 32 && 
                               g_state.mouse_y >= (int)tb_y + 4 && g_state.mouse_y <= (int)tb_y + 36);
                 if (hover) {
-                    vxair_fb_fill_rect(tx_base - 2, tb_y + (tb_h - 32)/2 - 2, 36, 36, 0xFF1E293B);
-                    vxair_fb_fill_rect(tx_base - 1, tb_y + (tb_h - 32)/2 - 1, 34, 34, 0xFF334155);
+                    vxair_fb_fill_rect(tx_base - 2, tb_y + (tb_h - 32)/2 - 2, 36, 36, VxTheme::OVERLAY);
                 }
                 
+                // Active indicator: small dot under icon, not a bright bar
                 if (g_state.windows[i].focused) {
-                    for (int fx = 0; fx < 32; fx++) {
-                        uint32_t fc = lerp_color(g_state.accent_color, 0xFF0F172A, fx < 16 ? fx : 32 - fx, 16);
-                        vxair_fb_fill_rect(tx_base + fx, tb_y + tb_h - 3, 1, 3, fc);
-                    }
+                    vxair_fb_fill_rect(tx_base + 12, tb_y + tb_h - 5, 8, 3, VxTheme::ACCENT_DIM);
                 }
                 
                 int app_idx = g_state.windows[i].app - 1;
@@ -792,22 +792,21 @@ extern "C" {
         
         tx_base = W - 180;
         uint32_t ty = tb_y + (tb_h - 24) / 2;
-        vxair_fb_fill_rect(tx_base, ty, 24, 24, 0xFF1E293B);
-        vxair_fb_fill_rect(tx_base + 6, ty + 12, 4, 6, g_state.accent_color);
-        vxair_fb_fill_rect(tx_base + 12, ty + 8, 4, 10, g_state.accent_color);
+        vxair_fb_fill_rect(tx_base, ty, 24, 24, VxTheme::SURFACE_HIGH);
+        vxair_fb_fill_rect(tx_base + 6, ty + 12, 4, 6, VxTheme::ACCENT_DIM);
+        vxair_fb_fill_rect(tx_base + 12, ty + 8, 4, 10, VxTheme::ACCENT_DIM);
         
         tx_base += 28;
-        vxair_fb_fill_rect(tx_base, ty, 24, 24, 0xFF1E293B);
-        vxair_fb_fill_rect(tx_base + 4, ty + 8, 14, 8, 0xFF10B981);
-        vxair_fb_fill_rect(tx_base + 18, ty + 10, 2, 4, 0xFF10B981);
+        vxair_fb_fill_rect(tx_base, ty, 24, 24, VxTheme::SURFACE_HIGH);
+        vxair_fb_fill_rect(tx_base + 4, ty + 8, 14, 8, VxTheme::SUCCESS);
+        vxair_fb_fill_rect(tx_base + 18, ty + 10, 2, 4, VxTheme::SUCCESS);
         
         tx_base += 28;
-        vxair_fb_fill_rect(tx_base, ty, 140, 24, 0xFF0F172A);
+        vxair_fb_fill_rect(tx_base, ty, 140, 24, VxTheme::SURFACE);
         
-        // Very basic static date/time for now since we don't have full RTC/Timer mapped to g_state
         const char* dt = "JUL 20 10:42";
         for (int i=0; dt[i] != 0; i++) {
-            draw_abstract_char(tx_base + 4 + i * 10, ty + 6, dt[i], 0xFFFFFFFF);
+            draw_abstract_char(tx_base + 4 + i * 10, ty + 6, dt[i], VxTheme::TEXT_PRIMARY);
         }
 
         for (int z = 0; z < 8; z++) {
@@ -818,60 +817,53 @@ extern "C" {
         }
 
         if (g_state.launcher_open) {
-            uint32_t menu_w = 200;
-            uint32_t menu_h = 8 * 40 + 20; // 7 apps
+            uint32_t menu_w = 220;  // Wider — more breathing room
+            uint32_t menu_h = 8 * 48 + 24; // Taller items, more padding
             uint32_t menu_y = tb_y - menu_h - 8;
-            // Drop shadow
-            for (int s = 0; s < 6; s++) {
-                uint32_t a = 50 - s * 8;
-                uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
-                vxair_fb_fill_rect(12 + s, menu_y + menu_h + s, menu_w, 1, c);
-                vxair_fb_fill_rect(12 + menu_w + s, menu_y + s, 1, menu_h, c);
-            }
-            // Card background
-            vxair_fb_fill_rect(12, menu_y, menu_w, menu_h, 0xFF0F172A);
-            // Gradient top border
-            for (uint32_t x = 0; x < menu_w; x++) {
-                uint32_t ac = lerp_color(g_state.accent_color, 0xFF0F172A, x, menu_w);
-                vxair_fb_fill_rect(12 + x, menu_y, 1, 2, ac);
-            }
-            // Side borders (subtle)
-            vxair_fb_fill_rect(12, menu_y, 1, menu_h, 0xFF334155);
-            vxair_fb_fill_rect(12 + menu_w - 1, menu_y, 1, menu_h, 0xFF334155);
+            // Premium launcher card — soft shadow, warm surface, gentle border
+            VxPanel menu_panel = {12, (int)menu_y, (int)menu_w, (int)menu_h, 2};
+            menu_panel.draw();
+            // Subtle accent line at top — 1px, not 3px neon
+            vxair_fb_fill_rect(12, menu_y, menu_w, 1, VxTheme::ACCENT_DIM);
             
             const char* app_names[8] = {"Calculator", "Notes", "SysMon", "Files", "Settings", "Terminal", "Snake", "Browser"};
-            
             for (int i=0; i<8; i++) {
-                uint32_t item_y = menu_y + 10 + i * 40;
-                bool hover = (g_state.mouse_x >= 20 && g_state.mouse_x <= 200 && g_state.mouse_y >= (int)item_y && g_state.mouse_y <= (int)item_y + 36);
+                int item_x = 20;
+                int item_y = menu_y + 12 + i * 48;  // More spacing between items
+                bool hover = (g_state.mouse_x >= item_x && g_state.mouse_x <= item_x + 192 &&
+                              g_state.mouse_y >= item_y && g_state.mouse_y <= item_y + 40);
+                // Hover: gentle warm overlay with rounded feel
                 if (hover) {
-                    vxair_fb_fill_rect(20, item_y, 184, 36, 0x66334155);
+                    vxair_fb_fill_rect(item_x, item_y, 192, 40, VxTheme::OVERLAY);
+                    // Subtle left accent indicator on hover
+                    vxair_fb_fill_rect(item_x, item_y, 3, 40, VxTheme::ACCENT_DIM);
                 }
-                draw_app_icon(24, item_y + 2, i, hover);
+                // Icon
+                draw_app_icon(item_x + 6, item_y + 4, i, hover);
+                // Label — warm text, generous spacing from icon
                 for (int j=0; app_names[i][j]; j++) {
-                    draw_abstract_char(64 + j*10, item_y + 12, app_names[i][j], 0xFFF8FAFC);
+                    draw_abstract_char(item_x + 48 + j * 10, item_y + 14, app_names[i][j],
+                                       hover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY);
                 }
             }
         }
 
+        // Cursor: refined, warm, elegant — not harsh white with neon tip
         uint32_t ptr_x = g_state.mouse_x, ptr_y = g_state.mouse_y;
-        // Shadow (offset by 2px for depth)
-        vxair_fb_fill_rect(ptr_x + 2, ptr_y + 2, 1, 16, 0xFF000000);
-        for (int i = 0; i < 11; i++) vxair_fb_fill_rect(ptr_x + 2 + i, ptr_y + 2 + i, 1, 1, 0xFF000000);
-        vxair_fb_fill_rect(ptr_x + 3, ptr_y + 13, 3, 1, 0xFF000000);
-        vxair_fb_fill_rect(ptr_x + 6, ptr_y + 13, 1, 5, 0xFF000000);
-        vxair_fb_fill_rect(ptr_x + 9, ptr_y + 11, 1, 5, 0xFF000000);
-        // Outline (dark)
-        vxair_fb_fill_rect(ptr_x, ptr_y, 1, 16, 0xFF1E293B);
-        for (int i = 0; i < 11; i++) vxair_fb_fill_rect(ptr_x + i, ptr_y + i, 1, 1, 0xFF1E293B);
-        vxair_fb_fill_rect(ptr_x + 1, ptr_y + 11, 3, 1, 0xFF1E293B);
-        vxair_fb_fill_rect(ptr_x + 4, ptr_y + 11, 1, 5, 0xFF1E293B);
-        vxair_fb_fill_rect(ptr_x + 7, ptr_y + 9, 1, 5, 0xFF1E293B);
-        vxair_fb_fill_rect(ptr_x + 5, ptr_y + 15, 2, 1, 0xFF1E293B);
-        vxair_fb_fill_rect(ptr_x + 8, ptr_y + 10, 2, 1, 0xFF1E293B);
-        // Fill (white)
-        for (int i = 1; i < 11; i++) vxair_fb_fill_rect(ptr_x + 1, ptr_y + i, i - 1, 1, 0xFFFFFFFF);
-        vxair_fb_fill_rect(ptr_x + 5, ptr_y + 11, 2, 4, 0xFFFFFFFF);
+        // Soft shadow
+        vxair_fb_fill_rect(ptr_x + 1, ptr_y + 2, 1, 16, 0x66000000);
+        for (int i = 0; i < 10; i++) vxair_fb_fill_rect(ptr_x + 1 + i, ptr_y + 2 + i, 1, 1, 0x66000000);
+        // Warm dark outline
+        vxair_fb_fill_rect(ptr_x - 1, ptr_y - 1, 1, 16, VxTheme::BASE_DEEP);
+        for (int i = 0; i < 10; i++) vxair_fb_fill_rect(ptr_x - 1 + i, ptr_y - 1 + i, 1, 1, VxTheme::BASE_DEEP);
+        // Warm off-white fill
+        for (int i = 0; i < 14; i++) vxair_fb_fill_rect(ptr_x, ptr_y + i, 1, 1, VxTheme::TEXT_PRIMARY);
+        for (int i = 1; i < 9; i++) vxair_fb_fill_rect(ptr_x + i, ptr_y + i, 1, 1, VxTheme::TEXT_PRIMARY);
+        vxair_fb_fill_rect(ptr_x + 1, ptr_y + 9, 4, 1, VxTheme::TEXT_PRIMARY);
+        vxair_fb_fill_rect(ptr_x + 4, ptr_y + 10, 2, 4, VxTheme::TEXT_PRIMARY);
+        vxair_fb_fill_rect(ptr_x + 6, ptr_y + 8, 3, 5, VxTheme::TEXT_PRIMARY);
+        // Gentle teal tip — not bright neon
+        vxair_fb_fill_rect(ptr_x, ptr_y, 2, 2, VxTheme::ACCENT_DIM);
     }
 
     void vxair_compositor_main(void) {
@@ -889,10 +881,10 @@ extern "C" {
         g_state.previous_left_down = false;
         g_state.mouse_x = W / 2;
         g_state.mouse_y = H / 2;
-        g_state.exact_x_fp = 0;
-        g_state.exact_y_fp = 0;
+        g_state.exact_x_fp = g_state.mouse_x << 8;
+        g_state.exact_y_fp = g_state.mouse_y << 8;
         g_state.mouse_sensitivity_level = 3;
-        g_state.compact_taskbar = true;
+        g_state.compact_taskbar = false;
         g_state.focused_window = -1;
         g_state.file_selected_idx = -1;
         g_state.file_preview_open = false;
@@ -901,7 +893,8 @@ extern "C" {
         g_state.e0_prefix = false;
         g_state.ctrl_down = false;
         
-        g_state.accent_color = 0xFF06B6D4;
+        g_state.accent_color = VxTheme::ACCENT;  // Warm muted teal — matches new palette
+        VxTheme::set_accent(g_state.accent_color);
         g_state.term_buffer[0] = 0;
         g_state.term_len = 0;
         g_state.term_out_len = 0;
@@ -940,6 +933,7 @@ extern "C" {
                 g_state.mouse_sensitivity_level = settings_buf[3];
                 g_state.compact_taskbar = settings_buf[5];
                 g_state.accent_color = read_u32_le(&settings_buf[6]);
+                VxTheme::set_accent(g_state.accent_color);
                 if (g_state.mouse_sensitivity_level < 1) g_state.mouse_sensitivity_level = 1;
                 if (g_state.mouse_sensitivity_level > 5) g_state.mouse_sensitivity_level = 5;
             }

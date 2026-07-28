@@ -5,7 +5,7 @@ CMakeFiles/vextryn_air.elf.dir/net/core/net_core.c.o: \
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h \
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h \
  /home/ethan/Vextryn_Air/net/core/net_core.h \
- /home/ethan/Vextryn_Air/net/core/../../drivers/net/e1000.h \
+ /home/ethan/Vextryn_Air/net/core/../../drivers/net/rtl8139.h \
  /home/ethan/Vextryn_Air/net/core/../../drivers/bus/bus_pci.h \
  /home/ethan/Vextryn_Air/net/core/../wifi/dns.h \
  /home/ethan/Vextryn_Air/net/core/arp.h \

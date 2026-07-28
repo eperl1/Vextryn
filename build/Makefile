@@ -376,6 +376,30 @@ drivers/net/e1000.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/e1000.c.s
 .PHONY : drivers/net/e1000.c.s
 
+drivers/net/rtl8139.o: drivers/net/rtl8139.c.o
+.PHONY : drivers/net/rtl8139.o
+
+# target to build an object file
+drivers/net/rtl8139.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/rtl8139.c.o
+.PHONY : drivers/net/rtl8139.c.o
+
+drivers/net/rtl8139.i: drivers/net/rtl8139.c.i
+.PHONY : drivers/net/rtl8139.i
+
+# target to preprocess a source file
+drivers/net/rtl8139.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/rtl8139.c.i
+.PHONY : drivers/net/rtl8139.c.i
+
+drivers/net/rtl8139.s: drivers/net/rtl8139.c.s
+.PHONY : drivers/net/rtl8139.s
+
+# target to generate assembly for a file
+drivers/net/rtl8139.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/net/rtl8139.c.s
+.PHONY : drivers/net/rtl8139.c.s
+
 drivers/net/virtio_net.o: drivers/net/virtio_net.c.o
 .PHONY : drivers/net/virtio_net.o
 
@@ -1761,6 +1785,9 @@ help:
 	@echo "... drivers/net/e1000.o"
 	@echo "... drivers/net/e1000.i"
 	@echo "... drivers/net/e1000.s"
+	@echo "... drivers/net/rtl8139.o"
+	@echo "... drivers/net/rtl8139.i"
+	@echo "... drivers/net/rtl8139.s"
 	@echo "... drivers/net/virtio_net.o"
 	@echo "... drivers/net/virtio_net.i"
 	@echo "... drivers/net/virtio_net.s"

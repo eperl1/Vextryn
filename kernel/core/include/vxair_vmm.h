@@ -10,6 +10,7 @@
 #define VXAIR_VMM_PRESENT  (1 << 0)
 #define VXAIR_VMM_RW       (1 << 1)
 #define VXAIR_VMM_USER     (1 << 2)
+#define VXAIR_VMM_NOCACHE  (1 << 4)  // PCD = Page-level Cache Disable (for MMIO regions)
 
 typedef struct vxair_page_table {
     uint64_t entries[512];

@@ -1,7 +1,10 @@
 #include "hal_pci.h"
 #include "hal_acpi.h"
 #include "../core/include/vxair_vmm.h"
+#include <string.h>
+#include <stddef.h>
 
+extern void vxair_log_info(const char* fmt, ...);
 extern vxair_page_table_t* kernel_pml4;
 
 static inline void outl(uint16_t port, uint32_t value) {
@@ -83,37 +86,65 @@ static bool     g_mmcfg_ready    = false;
 bool vxair_hal_pci_mmconfig_init(void) {
     void* table = vxair_hal_acpi_find_table("MCFG");
     if (!table) {
+        vxair_log_info("PCIE: MCFG table not found — ACPI not initialized or not present");
         return false;
     }
     vxair_acpi_mcfg_t* mcfg = (vxair_acpi_mcfg_t*)table;
     uint32_t total_len = mcfg->length;
     uint32_t header_size = sizeof(vxair_acpi_mcfg_t);
-    if (total_len <= header_size) return false;
+    if (total_len <= header_size) {
+        vxair_log_info("PCIE: MCFG table too short (%u bytes)", total_len);
+        return false;
+    }
     uint32_t num_entries = (total_len - header_size) / sizeof(vxair_acpi_mcfg_entry_t);
+    vxair_log_info("PCIE: MCFG found, %u entries", num_entries);
     vxair_acpi_mcfg_entry_t* entries = (vxair_acpi_mcfg_entry_t*)((uint8_t*)mcfg + header_size);
     for (uint32_t i = 0; i < num_entries; i++) {
+        vxair_log_info("PCIE: MCFG entry %u: base=0x%llx seg=%u bus=%u..%u",
+                       i,
+                       (unsigned long long)entries[i].base_address,
+                       entries[i].pci_segment,
+                       entries[i].start_bus,
+                       entries[i].end_bus);
         if (entries[i].pci_segment == 0 &&
-            entries[i].start_bus <= 0 && 0 <= entries[i].end_bus) {
+            (uint32_t)entries[i].start_bus <= 0 && 0 <= (uint32_t)entries[i].end_bus) {
             g_mmcfg_base     = entries[i].base_address;
             g_mmcfg_startbus = entries[i].start_bus;
             g_mmcfg_ready    = true;
-            // Identity-map a small MMCONFIG region (256 KB is plenty for bus 0).
-            for (uint64_t p = g_mmcfg_base; p < g_mmcfg_base + 0x40000; p += 0x1000) {
+            // Identity-map MMCONFIG region with NOCACHE (MMIO must be uncacheable).
+            // Map enough for bus 0 (1 MB) to cover all devices on the root bus.
+            uint64_t mmcfg_map_size = 0x100000; // 1 MB covers bus 0 entirely
+            vxair_log_info("PCIE: mapping MMCONFIG at 0x%llx size=0x%llx (flags=PRESENT|RW|NOCACHE)",
+                           (unsigned long long)g_mmcfg_base, (unsigned long long)mmcfg_map_size);
+            for (uint64_t p = g_mmcfg_base; p < g_mmcfg_base + mmcfg_map_size; p += 0x1000) {
                 vxair_vmm_map_page(kernel_pml4, p, p,
-                                   VXAIR_VMM_PRESENT | VXAIR_VMM_RW);
+                                   VXAIR_VMM_PRESENT | VXAIR_VMM_RW | VXAIR_VMM_NOCACHE);
             }
             return true;
         }
     }
+    vxair_log_info("PCIE: No suitable MCFG entry found (segment 0)");
     return false;
 }
 
 static inline uint64_t mmcfg_addr(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
-    return g_mmcfg_base +
-           ((uint64_t)(bus - g_mmcfg_startbus) << 20) |
-           ((uint64_t)(slot & 0x1F) << 15) |
-           ((uint64_t)(func & 0x7) << 12) |
-           (offset & 0xFFF);
+    // PCIe MMCONFIG address: base + (bus << 20) | (slot << 15) | (func << 12) | offset
+    // Note: use ONLY + (not |) for correctness — the base may have bits set in lower 20 bits
+    // if the MCFG region is not 1 MB-aligned (paranoid, but safe). The shifted values are
+    // guaranteed non-overlapping in bits 20+ / 15-19 / 12-14 / 0-11.
+    return g_mmcfg_base
+         + ((uint64_t)((uint32_t)bus - (uint32_t)g_mmcfg_startbus) << 20)
+         + ((uint64_t)(slot & 0x1F) << 15)
+         + ((uint64_t)(func & 0x7) << 12)
+         + (offset & 0xFFF);
+}
+
+bool vxair_hal_pci_mmconfig_is_ready(void) {
+    return g_mmcfg_ready;
+}
+
+uint64_t vxair_hal_pci_mmconfig_calc_addr(uint8_t bus, uint8_t slot, uint8_t func, uint8_t offset) {
+    return mmcfg_addr(bus, slot, func, offset);
 }
 
 void vxair_hal_pci_write_config_mmconfig(uint8_t bus, uint8_t slot, uint8_t func,

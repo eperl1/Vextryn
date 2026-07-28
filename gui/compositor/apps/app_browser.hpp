@@ -179,11 +179,16 @@ void draw_app_browser(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, boo
                 selection_anchor = caret_pos;
             }
         }
-        fill(addr_x, btn_y, addr_w, btn_h, addr_hover ? 0xFF1E2229 : 0xFF21252B);
-        // Lock icon
+        // Address bar border using VXUI theme (focused ring when active)
+        uint32_t addr_border = (url_focused && w.focused) ? VxTheme::accent() : VxTheme::BORDER_SUBTLE;
+        fill(addr_x, btn_y, addr_w, btn_h, addr_hover ? VxTheme::OVERLAY : VxTheme::SURFACE);
+        vxair_fb_fill_rect(addr_x, btn_y, addr_w, 1, addr_border);
+        vxair_fb_fill_rect(addr_x, btn_y + btn_h - 1, addr_w, 1, addr_border);
+        vxair_fb_fill_rect(addr_x, btn_y, 1, btn_h, addr_border);
+        vxair_fb_fill_rect(addr_x + addr_w - 1, btn_y, 1, btn_h, addr_border);
+        // Lock icon overlay
         fill(addr_x + 8, btn_y + 10, 8, 8, 0xFF98C379);
-        // Address text
-        int text_y = btn_y + 6;
+        // Selection highlight overlay
         if (sel_active()) {
             int s = sel_min();
             int e = sel_max();
@@ -193,13 +198,12 @@ void draw_app_browser(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, boo
                 fill(text_x + s * 8, btn_y + 4, (e - s) * 8, btn_h - 8, 0xFF3E4451);
             }
         }
+        // Address text
+        int text_y = btn_y + 6;
         for (int i = 0; i < url_len; i++) {
             draw_abstract_char(text_x + i * 8, text_y, url_buffer[i], 0xFFABB2BF);
         }
         // ── Mouse-drag selection ───────────────────────────────────────
-        // When left button is held (not a fresh click) and the address bar
-        // is focused, update caret_pos to follow the mouse while keeping
-        // selection_anchor fixed at the original click position.
         if (url_focused && g_state.previous_left_down && !clicked &&
             mouse_y >= btn_y && mouse_y <= btn_y + btn_h) {
             int drag_char = (mouse_x - text_x + 4) / 8;
@@ -209,7 +213,7 @@ void draw_app_browser(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, boo
         }
 
         if (w.focused && url_focused && (frame % 60 < 30) && !sel_active()) {
-            fill(text_x + caret_pos * 8, text_y, 2, 16, 0xFFABB2BF);
+            fill(text_x + caret_pos * 8, text_y, 2, 16, VxTheme::accent());
         }
     }
 

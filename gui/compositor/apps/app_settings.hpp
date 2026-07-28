@@ -2,117 +2,106 @@
 #define APP_SETTINGS_HPP
 
 static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool clicked) {
-    uint32_t bg = 0xFF0F172A; // darker background
-    uint32_t sidebar_bg = 0xFF1E293B; // sidebar
-    uint32_t panel = 0xFF1E293B;
-    uint32_t text_color = 0xFFF8FAFC;
-    uint32_t highlight = 0xFF334155;
-    uint32_t muted = 0xFF94A3B8;
+    uint32_t accent = VxTheme::accent();
     
-    // Split into sidebar and main area
+    // Split into sidebar and main area using VXUI panels
     int sidebar_w = 180;
-    vxair_fb_fill_rect(w.x, w.y + 28, sidebar_w, w.h - 28, sidebar_bg);
-    vxair_fb_fill_rect(w.x + sidebar_w, w.y + 28, w.w - sidebar_w, w.h - 28, bg);
+    VxPanel sidebar = {w.x, w.y + 28, sidebar_w, w.h - 28, 0};
+    sidebar.draw();
+    VxPanel main_area = {w.x + sidebar_w, w.y + 28, w.w - sidebar_w, w.h - 28, 0};
+    main_area.draw();
     
     // Draw Settings App Icon in sidebar top
     draw_app_icon(w.x + 20, w.y + 40, 4, false);
-    const char* title = "SETTINGS";
-    for(int i=0; title[i]; i++) draw_abstract_char(w.x + 64 + i*10, w.y + 50, title[i], g_state.accent_color);
+    VxLabel title_lbl = {w.x + 64, w.y + 50, "SETTINGS", accent, VxTheme::FONT_LARGE};
+    title_lbl.draw();
 
-    // Categories
+    // Categories — VXUI buttons
     const char* cats[4] = {"INPUT", "APPEARANCE", "THEME", "SYSTEM"};
     static int selected_cat = 0;
     
     for (int i=0; i<4; i++) {
         int cy = w.y + 100 + i*40;
-        bool hover = (mouse_x >= w.x + 10 && mouse_x <= w.x + sidebar_w - 10 && mouse_y >= cy && mouse_y <= cy + 30);
         bool active = (selected_cat == i);
-        
-        if (hover || active) {
-            vxair_fb_fill_rect(w.x + 10, cy, sidebar_w - 20, 30, active ? highlight : 0xFF273548);
-        }
+        VxButton btn = {w.x + 10, cy, sidebar_w - 20, 30, cats[i], VX_BTN_DEFAULT, false, false, active};
+        btn.check_hover(mouse_x, mouse_y);
+        btn.draw();
         if (active) {
-            vxair_fb_fill_rect(w.x + 10, cy, 4, 30, g_state.accent_color);
+            vxair_fb_fill_rect(w.x + 10, cy, 4, 30, accent);
         }
-        
-        for (int j=0; cats[i][j]; j++) {
-            draw_abstract_char(w.x + 30 + j*10, cy + 10, cats[i][j], active ? text_color : muted);
-        }
-        
-        if (clicked && hover) selected_cat = i;
+        if (clicked && btn.is_hovered) selected_cat = i;
     }
 
     int cx = w.x + sidebar_w + 30;
     int cy = w.y + 50;
     bool settings_changed = false;
+    uint32_t text_color = VxTheme::TEXT_PRIMARY;
+    uint32_t muted = VxTheme::TEXT_SECONDARY;
 
     if (selected_cat == 0) {
         // INPUT
-        const char* lbl_mouse = "MOUSE SENSITIVITY";
-        for(int i=0; lbl_mouse[i]; i++) draw_abstract_char(cx + i*12, cy, lbl_mouse[i], text_color);
+        VxLabel lbl = {cx, cy, "MOUSE SENSITIVITY", text_color, VxTheme::FONT_BODY};
+        lbl.draw();
         
         for (int i=1; i<=5; i++) {
             int bx = cx + i*30 - 30;
-            bool hover = (mouse_x >= bx && mouse_x <= bx + 24 && mouse_y >= cy + 30 && mouse_y <= cy + 54);
+            char lbl_digit[2] = {(char)('0'+i), 0};
             bool active = (g_state.mouse_sensitivity_level == i);
-            
-            vxair_fb_fill_rect(bx, cy + 30, 24, 24, active ? g_state.accent_color : (hover ? highlight : panel));
-            vxair_fb_fill_rect(bx+1, cy+31, 22, 22, active ? 0xFF0F172A : panel);
-            draw_abstract_char(bx + 8, cy + 36, '0' + i, active ? g_state.accent_color : text_color);
-            
-            if (clicked && hover) { g_state.mouse_sensitivity_level = i; settings_changed = true; }
+            VxButton btn = {bx, cy + 30, 28, 28, lbl_digit, active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+            btn.check_hover(mouse_x, mouse_y);
+            btn.draw();
+            if (clicked && btn.is_hovered) { g_state.mouse_sensitivity_level = i; settings_changed = true; }
         }
     } else if (selected_cat == 1) {
         // APPEARANCE
-        const char* lbl_task = "TASKBAR STYLE";
-        for(int i=0; lbl_task[i]; i++) draw_abstract_char(cx + i*12, cy, lbl_task[i], text_color);
+        VxLabel lbl = {cx, cy, "TASKBAR STYLE", text_color, VxTheme::FONT_BODY};
+        lbl.draw();
         
-        int bx1 = cx;
-        bool thover1 = (mouse_x >= bx1 && mouse_x <= bx1 + 80 && mouse_y >= cy + 30 && mouse_y <= cy + 60);
-        vxair_fb_fill_rect(bx1, cy + 30, 80, 30, g_state.compact_taskbar ? g_state.accent_color : (thover1 ? highlight : panel));
-        vxair_fb_fill_rect(bx1+1, cy + 31, 78, 28, g_state.compact_taskbar ? 0xFF0F172A : panel);
-        const char* txt1 = "COMPACT";
-        for(int i=0; txt1[i]; i++) draw_abstract_char(bx1 + 10 + i*8, cy + 40, txt1[i], g_state.compact_taskbar ? g_state.accent_color : text_color);
-        if (clicked && thover1) { g_state.compact_taskbar = true; settings_changed = true; }
+        VxButton btn1 = {cx, cy + 30, 90, 32, "COMPACT", g_state.compact_taskbar ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+        btn1.check_hover(mouse_x, mouse_y);
+        btn1.draw();
+        if (clicked && btn1.is_hovered) { g_state.compact_taskbar = true; settings_changed = true; }
         
-        int bx2 = cx + 100;
-        bool thover2 = (mouse_x >= bx2 && mouse_x <= bx2 + 80 && mouse_y >= cy + 30 && mouse_y <= cy + 60);
-        vxair_fb_fill_rect(bx2, cy + 30, 80, 30, !g_state.compact_taskbar ? g_state.accent_color : (thover2 ? highlight : panel));
-        vxair_fb_fill_rect(bx2+1, cy + 31, 78, 28, !g_state.compact_taskbar ? 0xFF0F172A : panel);
-        const char* txt2 = "NORMAL";
-        for(int i=0; txt2[i]; i++) draw_abstract_char(bx2 + 15 + i*8, cy + 40, txt2[i], !g_state.compact_taskbar ? g_state.accent_color : text_color);
-        if (clicked && thover2) { g_state.compact_taskbar = false; settings_changed = true; }
+        VxButton btn2 = {cx + 100, cy + 30, 90, 32, "NORMAL", !g_state.compact_taskbar ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+        btn2.check_hover(mouse_x, mouse_y);
+        btn2.draw();
+        if (clicked && btn2.is_hovered) { g_state.compact_taskbar = false; settings_changed = true; }
     } else if (selected_cat == 2) {
         // THEME
-        const char* lbl_theme = "ACCENT COLOR";
-        for(int i=0; lbl_theme[i]; i++) draw_abstract_char(cx + i*12, cy, lbl_theme[i], text_color);
+        VxLabel lbl = {cx, cy, "ACCENT COLOR", text_color, VxTheme::FONT_BODY};
+        lbl.draw();
         
-        uint32_t colors[5] = {0xFF06B6D4, 0xFF0EA5E9, 0xFF3B82F6, 0xFF6366F1, 0xFF8B5CF6};
+        uint32_t colors[5] = {VxTheme::ACCENT, 0xFF6B8E5A, 0xFFD4A04A, 0xFF9B6B9E, 0xFF5B7BA0};
         for (int i=0; i<5; i++) {
             int bx = cx + i*45;
-            bool hover = (mouse_x >= bx && mouse_x <= bx + 36 && mouse_y >= cy + 30 && mouse_y <= cy + 66);
             bool active = (g_state.accent_color == colors[i]);
-            vxair_fb_fill_rect(bx, cy + 30, 36, 36, active ? text_color : (hover ? highlight : panel));
-            vxair_fb_fill_rect(bx+2, cy + 32, 32, 32, colors[i]);
-            if (clicked && hover) { g_state.accent_color = colors[i]; settings_changed = true; }
+            VxButton swatch = {bx, cy + 30, 36, 36, "", active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+            swatch.check_hover(mouse_x, mouse_y);
+            swatch.draw();
+            vxair_fb_fill_rect(bx + 4, cy + 34, 28, 28, colors[i]);
+            if (clicked && swatch.is_hovered) {
+                g_state.accent_color = colors[i];
+                VxTheme::set_accent(colors[i]);
+                settings_changed = true;
+            }
         }
     } else if (selected_cat == 3) {
         // SYSTEM
-        const char* lbl_storage = "STORAGE: ATA BLOCK DEV";
-        for(int i=0; lbl_storage[i]; i++) draw_abstract_char(cx + i*12, cy, lbl_storage[i], text_color);
+        VxLabel lbl = {cx, cy, "STORAGE: ATA BLOCK DEV", text_color, VxTheme::FONT_BODY};
+        lbl.draw();
         
         int used_blocks = 0;
         for(int i=0; i<10; i++) if (g_state.ram_files[i].in_use) used_blocks++;
         
-        const char* val_storage1 = "CAPACITY:";
-        for(int i=0; val_storage1[i]; i++) draw_abstract_char(cx + i*12, cy + 30, val_storage1[i], text_color);
-        draw_abstract_char(cx + 120, cy + 30, '0' + used_blocks, g_state.accent_color);
+        VxLabel cap_lbl = {cx, cy + 30, "CAPACITY:", text_color, VxTheme::FONT_BODY};
+        cap_lbl.draw();
+        draw_abstract_char(cx + 120, cy + 30, '0' + used_blocks, accent);
         draw_abstract_char(cx + 132, cy + 30, '/', muted);
         draw_abstract_char(cx + 144, cy + 30, '1', muted);
         draw_abstract_char(cx + 156, cy + 30, '0', muted);
         
-        const char* lbl_about = "OS: VEXTRYN AIR 1.0";
-        for(int i=0; lbl_about[i]; i++) draw_abstract_char(cx + i*12, cy + 70, lbl_about[i], muted);
+        VxLabel about_lbl = {cx, cy + 70, "OS: VEXTRYN AIR 1.0", muted, VxTheme::FONT_BODY};
+        about_lbl.draw();
     }
     
     if (settings_changed) {

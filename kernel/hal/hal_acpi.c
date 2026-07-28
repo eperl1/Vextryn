@@ -14,6 +14,34 @@ static bool vxair_hal_acpi_validate_checksum(const void* table, uint32_t length)
     return sum == 0;
 }
 
+/**
+ * @brief Scan for RSDP signature in BIOS memory area
+ */
+void* vxair_hal_acpi_scan_rsdp(void) {
+    // Scan physical memory from 0xE0000 to 0xFFFFF for the RSDP signature "RSD PTR "
+    // The RSDP is always 16-byte aligned in EBDA or the BIOS ROM area.
+    for (uint64_t addr = 0xE0000; addr <= 0xFFFF0; addr += 16) {
+        volatile const char *sig = (volatile const char *)(uintptr_t)addr;
+        if (sig[0] == 'R' && sig[1] == 'S' && sig[2] == 'D' &&
+            sig[3] == ' ' && sig[4] == 'P' && sig[5] == 'T' &&
+            sig[6] == 'R' && sig[7] == ' ') {
+            // Validate v1 checksum (first 20 bytes of RSDP)
+            uint8_t sum = 0;
+            for (int i = 0; i < 20; i++) sum += ((const uint8_t *)addr)[i];
+            if (sum == 0) return (void *)(uintptr_t)addr;
+            // v2 RSDP is 36 bytes; validate extended checksum
+            // Use the revision field (byte 15) to determine RSDP version.
+            // Byte 20 contains the length field for v2 RSDP.
+            uint8_t revision = ((const uint8_t *)addr)[15];
+            uint32_t len = (revision >= 2) ? 36 : 20;
+            sum = 0;
+            for (uint32_t i = 0; i < len; i++) sum += ((const uint8_t *)addr)[i];
+            if (sum == 0) return (void *)(uintptr_t)addr;
+        }
+    }
+    return NULL;
+}
+
 void vxair_hal_acpi_init(void* rsdp_addr) {
     if (!rsdp_addr) {
         return;

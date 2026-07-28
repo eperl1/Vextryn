@@ -1,5 +1,5 @@
 #include "ethernet.h"
-#include "../../drivers/net/e1000.h"
+#include "../../drivers/net/rtl8139.h"
 #include <string.h>
 
 /**
@@ -44,17 +44,24 @@ void vxair_eth_receive(void *frame, uint16_t len) {
  * @return 0 on success.
  */
 int vxair_eth_send(void *dest_mac, uint16_t ethertype, void *payload, uint16_t len) {
-    if (!dest_mac || !payload || !g_e1000.found) return -1;
+    if (!dest_mac || !payload || !g_rtl8139.found) return -1;
     
     uint16_t frame_len = sizeof(vxair_eth_header_t) + len;
-    if (frame_len > E1000_BUFFER_SIZE) return -1;
+    if (frame_len > RTL8139_MAX_FRAME_SIZE) return -1;
     
-    uint8_t frame[E1000_BUFFER_SIZE];
+    uint8_t frame[RTL8139_MAX_FRAME_SIZE];
     vxair_eth_header_t *hdr = (vxair_eth_header_t *)frame;
     
     memcpy(hdr->dest_mac, dest_mac, 6);
-    memcpy(hdr->src_mac, g_e1000.mac_addr, 6);
-    hdr->ethertype = ethertype; /* Already in network byte order */    memcpy(frame + sizeof(vxair_eth_header_t), payload, len);
+    memcpy(hdr->src_mac, g_rtl8139.mac_addr, 6);
+    hdr->ethertype = ethertype; /* Already in network byte order */
+    memcpy(frame + sizeof(vxair_eth_header_t), payload, len);
 
-    return vxair_e1000_send(frame, frame_len);
+    // Pad to minimum Ethernet frame size (60 bytes payload)
+    if (frame_len < RTL8139_MIN_FRAME_SIZE) {
+        memset(frame + frame_len, 0, RTL8139_MIN_FRAME_SIZE - frame_len);
+        frame_len = RTL8139_MIN_FRAME_SIZE;
+    }
+
+    return vxair_rtl8139_send(frame, frame_len);
 }
