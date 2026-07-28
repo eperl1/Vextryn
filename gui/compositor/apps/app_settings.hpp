@@ -3,25 +3,25 @@
 
 static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool clicked) {
     uint32_t accent = VxTheme::accent();
-    
-    // Split into sidebar and main area using VXUI panels
+
+    // Sidebar and main area using VXUI panels
     int sidebar_w = 180;
-    VxPanel sidebar = {w.x, w.y + 28, sidebar_w, w.h - 28, 0};
+    VxPanel sidebar = {w.x, w.y + VxTheme::TITLE_BAR_H, sidebar_w, w.h - VxTheme::TITLE_BAR_H, 0};
     sidebar.draw();
-    VxPanel main_area = {w.x + sidebar_w, w.y + 28, w.w - sidebar_w, w.h - 28, 0};
+    VxPanel main_area = {w.x + sidebar_w, w.y + VxTheme::TITLE_BAR_H, w.w - sidebar_w, w.h - VxTheme::TITLE_BAR_H, 0};
     main_area.draw();
-    
+
     // Draw Settings App Icon in sidebar top
     draw_app_icon(w.x + 20, w.y + 40, 4, false);
     VxLabel title_lbl = {w.x + 64, w.y + 50, "SETTINGS", accent, VxTheme::FONT_LARGE};
     title_lbl.draw();
 
     // Categories — VXUI buttons
-    const char* cats[4] = {"INPUT", "APPEARANCE", "THEME", "SYSTEM"};
+    const char* cats[5] = {"INPUT", "APPEARANCE", "DESKTOP", "ACCESSIBILITY", "SYSTEM"};
     static int selected_cat = 0;
-    
-    for (int i=0; i<4; i++) {
-        int cy = w.y + 100 + i*40;
+
+    for (int i = 0; i < 5; i++) {
+        int cy = w.y + 100 + i * 40;
         bool active = (selected_cat == i);
         VxButton btn = {w.x + 10, cy, sidebar_w - 20, 30, cats[i], VX_BTN_DEFAULT, false, false, active};
         btn.check_hover(mouse_x, mouse_y);
@@ -38,88 +38,181 @@ static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mous
     uint32_t text_color = VxTheme::TEXT_PRIMARY;
     uint32_t muted = VxTheme::TEXT_SECONDARY;
 
+    auto draw_section_title = [&](const char* label, int y) {
+        VxLabel lbl = {cx, y, label, text_color, VxTheme::FONT_LARGE};
+        lbl.draw();
+        vxair_fb_fill_rect(cx, y + 14, w.w - sidebar_w - 60, 1, VxTheme::BORDER_SUBTLE);
+    };
+
+    auto draw_toggle = [&](int x, int y, const char* label, bool& value, int max_w) -> bool {
+        VxLabel lbl = {x, y + 8, label, text_color, VxTheme::FONT_BODY};
+        lbl.draw();
+        int bw = 72, bh = 28;
+        int bx = x + max_w - bw - 8;
+        VxButton btn = {bx, y, bw, bh, value ? "ON" : "OFF", value ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+        btn.check_hover(mouse_x, mouse_y);
+        btn.draw();
+        if (clicked && btn.is_hovered) { value = !value; return true; }
+        return false;
+    };
+
     if (selected_cat == 0) {
         // INPUT
-        VxLabel lbl = {cx, cy, "MOUSE SENSITIVITY", text_color, VxTheme::FONT_BODY};
+        draw_section_title("MOUSE & POINTER", cy);
+        cy += 34;
+
+        VxLabel lbl = {cx, cy, "SENSITIVITY", text_color, VxTheme::FONT_BODY};
         lbl.draw();
-        
-        for (int i=1; i<=5; i++) {
-            int bx = cx + i*30 - 30;
-            char lbl_digit[2] = {(char)('0'+i), 0};
+        for (int i = 1; i <= 5; i++) {
+            int bx = cx + i * 30 - 30;
+            char lbl_digit[2] = {(char)('0' + i), 0};
             bool active = (g_state.mouse_sensitivity_level == i);
-            VxButton btn = {bx, cy + 30, 28, 28, lbl_digit, active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+            VxButton btn = {bx, cy + 20, 28, 28, lbl_digit, active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
             btn.check_hover(mouse_x, mouse_y);
             btn.draw();
             if (clicked && btn.is_hovered) { g_state.mouse_sensitivity_level = i; settings_changed = true; }
         }
+        cy += 70;
+        if (draw_toggle(cx, cy, "LARGE CURSOR", g_state.large_cursor, w.w - sidebar_w - 60)) settings_changed = true;
+
     } else if (selected_cat == 1) {
         // APPEARANCE
-        VxLabel lbl = {cx, cy, "TASKBAR STYLE", text_color, VxTheme::FONT_BODY};
-        lbl.draw();
-        
-        VxButton btn1 = {cx, cy + 30, 90, 32, "COMPACT", g_state.compact_taskbar ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
-        btn1.check_hover(mouse_x, mouse_y);
-        btn1.draw();
-        if (clicked && btn1.is_hovered) { g_state.compact_taskbar = true; settings_changed = true; }
-        
-        VxButton btn2 = {cx + 100, cy + 30, 90, 32, "NORMAL", !g_state.compact_taskbar ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
-        btn2.check_hover(mouse_x, mouse_y);
-        btn2.draw();
-        if (clicked && btn2.is_hovered) { g_state.compact_taskbar = false; settings_changed = true; }
-    } else if (selected_cat == 2) {
-        // THEME
-        VxLabel lbl = {cx, cy, "ACCENT COLOR", text_color, VxTheme::FONT_BODY};
-        lbl.draw();
-        
-        uint32_t colors[5] = {VxTheme::ACCENT, 0xFF6B8E5A, 0xFFD4A04A, 0xFF9B6B9E, 0xFF5B7BA0};
-        for (int i=0; i<5; i++) {
-            int bx = cx + i*45;
+        draw_section_title("ACCENT COLOR", cy);
+        cy += 34;
+
+        uint32_t colors[6] = {0xFF2D7FF9, 0xFF5AA0FF, 0xFF22C55E, 0xFFF59E0B, 0xFFEF4444, 0xFFA855F7};
+        for (int i = 0; i < 6; i++) {
+            int bx = cx + i * 45;
             bool active = (g_state.accent_color == colors[i]);
-            VxButton swatch = {bx, cy + 30, 36, 36, "", active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+            VxButton swatch = {bx, cy, 36, 36, "", active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
             swatch.check_hover(mouse_x, mouse_y);
             swatch.draw();
-            vxair_fb_fill_rect(bx + 4, cy + 34, 28, 28, colors[i]);
+            vxair_fb_fill_rect(bx + 4, cy + 4, 28, 28, colors[i]);
             if (clicked && swatch.is_hovered) {
                 g_state.accent_color = colors[i];
                 VxTheme::set_accent(colors[i]);
                 settings_changed = true;
             }
         }
-    } else if (selected_cat == 3) {
-        // SYSTEM
-        VxLabel lbl = {cx, cy, "STORAGE: ATA BLOCK DEV", text_color, VxTheme::FONT_BODY};
+        cy += 54;
+
+        draw_section_title("TASKBAR & CHROME", cy);
+        cy += 34;
+
+        VxLabel lbl = {cx, cy, "TASKBAR", text_color, VxTheme::FONT_BODY};
         lbl.draw();
-        
+        VxButton btn1 = {cx, cy + 18, 90, 32, "COMPACT", g_state.compact_taskbar ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+        btn1.check_hover(mouse_x, mouse_y);
+        btn1.draw();
+        if (clicked && btn1.is_hovered) { g_state.compact_taskbar = true; settings_changed = true; }
+        VxButton btn2 = {cx + 100, cy + 18, 90, 32, "NORMAL", !g_state.compact_taskbar ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+        btn2.check_hover(mouse_x, mouse_y);
+        btn2.draw();
+        if (clicked && btn2.is_hovered) { g_state.compact_taskbar = false; settings_changed = true; }
+        cy += 64;
+
+        if (draw_toggle(cx, cy, "SHOW TOP BAR", g_state.show_top_bar, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+        if (draw_toggle(cx, cy, "DESKTOP GLOW", g_state.show_desktop_glow, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+        if (draw_toggle(cx, cy, "WINDOW SHADOWS", g_state.show_window_shadows, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+
+        VxLabel lbl2 = {cx, cy, "WALLPAPER", text_color, VxTheme::FONT_BODY};
+        lbl2.draw();
+        const char* wp_names[3] = {"GRADIENT", "DOTS", "NONE"};
+        for (int i = 0; i < 3; i++) {
+            VxButton btn = {cx + i * 78, cy + 20, 70, 28, wp_names[i], (g_state.wallpaper_mode == i) ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
+            btn.check_hover(mouse_x, mouse_y);
+            btn.draw();
+            if (clicked && btn.is_hovered) { g_state.wallpaper_mode = i; settings_changed = true; }
+        }
+
+    } else if (selected_cat == 2) {
+        // DESKTOP
+        draw_section_title("CLOCK & WINDOWS", cy);
+        cy += 34;
+
+        if (draw_toggle(cx, cy, "SHOW SECONDS", g_state.show_seconds, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+        if (draw_toggle(cx, cy, "24-HOUR CLOCK", g_state.hour_24, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+        if (draw_toggle(cx, cy, "AUTO-CENTER WINDOWS", g_state.auto_center_windows, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+        if (draw_toggle(cx, cy, "CLOSE CONFIRMATION", g_state.show_close_confirm, w.w - sidebar_w - 60)) settings_changed = true;
+
+    } else if (selected_cat == 3) {
+        // ACCESSIBILITY
+        draw_section_title("ACCESSIBILITY", cy);
+        cy += 34;
+
+        if (draw_toggle(cx, cy, "FOCUS DIMMING", g_state.focus_dim, w.w - sidebar_w - 60)) settings_changed = true;
+        cy += 42;
+        if (draw_toggle(cx, cy, "HIGH CONTRAST", g_state.high_contrast, w.w - sidebar_w - 60)) settings_changed = true;
+
+    } else if (selected_cat == 4) {
+        // SYSTEM
+        draw_section_title("STORAGE & ABOUT", cy);
+        cy += 34;
+
         int used_blocks = 0;
-        for(int i=0; i<10; i++) if (g_state.ram_files[i].in_use) used_blocks++;
-        
-        VxLabel cap_lbl = {cx, cy + 30, "CAPACITY:", text_color, VxTheme::FONT_BODY};
+        for (int i = 0; i < 10; i++) if (g_state.ram_files[i].in_use) used_blocks++;
+
+        VxLabel cap_lbl = {cx, cy, "RAM FILES:", text_color, VxTheme::FONT_BODY};
         cap_lbl.draw();
-        draw_abstract_char(cx + 120, cy + 30, '0' + used_blocks, accent);
-        draw_abstract_char(cx + 132, cy + 30, '/', muted);
-        draw_abstract_char(cx + 144, cy + 30, '1', muted);
-        draw_abstract_char(cx + 156, cy + 30, '0', muted);
-        
-        VxLabel about_lbl = {cx, cy + 70, "OS: VEXTRYN AIR 1.0", muted, VxTheme::FONT_BODY};
+        draw_abstract_char(cx + 120, cy, '0' + used_blocks, accent);
+        draw_abstract_char(cx + 132, cy, '/', muted);
+        draw_abstract_char(cx + 144, cy, '1', muted);
+        draw_abstract_char(cx + 156, cy, '0', muted);
+        cy += 40;
+
+        VxLabel about_lbl = {cx, cy, "OS: VEXTRYN AIR V2", muted, VxTheme::FONT_BODY};
         about_lbl.draw();
+        cy += 40;
+
+        // Reset to defaults button
+        VxButton reset_btn = {cx, cy, 160, 36, "RESET DEFAULTS", VX_BTN_ACTION, false, false};
+        reset_btn.check_hover(mouse_x, mouse_y);
+        reset_btn.draw();
+        if (clicked && reset_btn.is_hovered) {
+            g_state.mouse_sensitivity_level = 3;
+            g_state.wallpaper_mode = 0;
+            g_state.compact_taskbar = false;
+            g_state.accent_color = 0xFF2D7FF9;
+            VxTheme::set_accent(g_state.accent_color);
+            g_state.show_top_bar = true;
+            g_state.show_desktop_glow = true;
+            g_state.show_window_shadows = true;
+            g_state.focus_dim = false;
+            g_state.high_contrast = false;
+            g_state.large_cursor = false;
+            g_state.show_seconds = false;
+            g_state.hour_24 = true;
+            g_state.auto_center_windows = false;
+            g_state.show_close_confirm = false;
+            settings_changed = true;
+        }
     }
-    
+
     if (settings_changed) {
-        // Let vxair_vxcomp.cpp handle the actual write logic by calling intercepted_settings_write
-        // But since we can't easily call it without extern, we'll just write it correctly.
         uint8_t settings_buf[512] = {0};
         settings_buf[0] = 0xAA;
         settings_buf[1] = 0x55;
-        settings_buf[2] = 0x01; 
+        settings_buf[2] = 0x01;
         settings_buf[3] = g_state.mouse_sensitivity_level;
-        settings_buf[4] = 0;
+        settings_buf[4] = g_state.wallpaper_mode;
         settings_buf[5] = g_state.compact_taskbar;
-        
-        settings_buf[6] = (g_state.accent_color & 0xFF);
-        settings_buf[7] = ((g_state.accent_color >> 8) & 0xFF);
-        settings_buf[8] = ((g_state.accent_color >> 16) & 0xFF);
-        settings_buf[9] = ((g_state.accent_color >> 24) & 0xFF);
-        
+        write_u32_le(&settings_buf[6], g_state.accent_color);
+        settings_buf[10] = g_state.show_top_bar;
+        settings_buf[11] = g_state.show_desktop_glow;
+        settings_buf[12] = g_state.show_window_shadows;
+        settings_buf[13] = g_state.focus_dim;
+        settings_buf[14] = g_state.high_contrast;
+        settings_buf[15] = g_state.large_cursor;
+        settings_buf[16] = g_state.show_seconds;
+        settings_buf[17] = g_state.hour_24;
+        settings_buf[18] = g_state.auto_center_windows;
+        settings_buf[19] = g_state.show_close_confirm;
         ata_write_sector(0, settings_buf);
     }
 }

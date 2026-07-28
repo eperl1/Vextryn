@@ -46,15 +46,16 @@ static inline void vxui_draw_rounded_rect(int x, int y, int w, int h, int radius
     }
 }
 
-// ===== Shadow helper =====
+// ===== Shadow helper — V2: layered, premium, soft diffusion =====
 static inline void vxui_draw_shadow(int x, int y, int w, int h, int depth) {
-    // Softer, more diffuse shadow — lower alpha, wider spread
+    // Premium layered shadow: wide, diffuse, low alpha — like ambient occlusion
     for (int s = 0; s < depth; s++) {
-        uint32_t a = (depth - s) * (depth - s) * 2;  // Was *3 — gentler
-        if (a > 100) a = 100;  // Was 160 — much softer
+        uint32_t a = (depth - s) * 3;
+        if (a > 80) a = 80;
         uint32_t c = 0xFF000000 | (a << 16) | (a << 8) | a;
-        vxair_fb_fill_rect(x + s, y + h + s, w, 1, c);
-        vxair_fb_fill_rect(x + w + s, y + s, 1, h, c);
+        vxair_fb_fill_rect(x - s, y + h + s, w + s * 2, 1, c);
+        vxair_fb_fill_rect(x + w + s, y - s, 1, h + s * 2, c);
+        vxair_fb_fill_rect(x - s, y - s, 1, h + s * 2, c);
     }
 }
 
@@ -97,27 +98,27 @@ struct VxButton {
 
         switch (variant) {
         case VX_BTN_DIGIT:
-            // Digits: warm raised surface, soft text, rounded
+            // Digits: glass surface, crisp text, premium rounded
             bg = is_pressed ? VxTheme::OVERLAY : VxTheme::SURFACE_HIGH;
             text_col = VxTheme::TEXT_PRIMARY;
             radius = VxTheme::RADIUS_MD;
             break;
         case VX_BTN_OPERATOR:
-            // Operators: subtle teal tint, not loud — calm distinctiveness
-            bg = is_pressed ? 0xFF2A3F3A : 0xFF2D3530;
-            text_col = VxTheme::ACCENT_GLOW;  // Soft teal text, not neon
+            // Operators: sapphire-tinted glass, distinct and premium
+            bg = is_pressed ? VxTheme::ACCENT_SOFT : 0xFF1E2440;
+            text_col = VxTheme::ACCENT_GLOW;
             radius = VxTheme::RADIUS_LG;
             break;
         case VX_BTN_UTILITY:
-            // Utility: muted, recessed — clearly secondary
+            // Utility: recessed, clearly secondary
             bg = is_pressed ? VxTheme::BORDER_SUBTLE : VxTheme::SURFACE;
             text_col = VxTheme::TEXT_SECONDARY;
             radius = VxTheme::RADIUS_SM;
             break;
         case VX_BTN_ACTION:
-            // Equals: warm accent fill, dark text — primary but not screaming
+            // Equals: sapphire fill, white text — unmistakably primary
             bg = is_pressed ? VxTheme::ACCENT_DIM : accent;
-            text_col = 0xFF1A1A1F;  // Warm dark, not pure black
+            text_col = VxTheme::TEXT_PRIMARY;
             radius = VxTheme::RADIUS_LG;
             break;
         case VX_BTN_PRIMARY:
@@ -143,10 +144,15 @@ struct VxButton {
             bg = VxTheme::OVERLAY;
         }
 
-        // Focus ring — softer, 1px with accent glow, not harsh 2px solid
+        // Focus ring — 1px electric blue glow
         if (is_focused) {
-            vxair_fb_fill_rect(x - 1, y - 1, w + 2, h + 2, VxTheme::ACCENT_DIM);
+            vxair_fb_fill_rect(x - 1, y - 1, w + 2, h + 2, VxTheme::ACCENT);
         }
+        // V2 Final: visible outline on EVERY button
+        vxair_fb_fill_rect(x, y, w, 1, VxTheme::BORDER_BRIGHT);
+        vxair_fb_fill_rect(x, y + h - 1, w, 1, VxTheme::BORDER_SUBTLE);
+        vxair_fb_fill_rect(x, y, 1, h, VxTheme::BORDER_SUBTLE);
+        vxair_fb_fill_rect(x + w - 1, y, 1, h, VxTheme::BORDER_SUBTLE);
 
         if (radius > 0) {
             vxui_draw_rounded_rect(x, y, w, h, radius, bg);
@@ -154,9 +160,9 @@ struct VxButton {
             vxair_fb_fill_rect(x, y, w, h, bg);
         }
 
-        // Top highlight for digit/secondary — subtle light edge for depth
+        // Top highlight for digit/secondary — bright light edge
         if (variant == VX_BTN_DIGIT || variant == VX_BTN_SECONDARY) {
-            vxair_fb_fill_rect(x, y, w, 1, 0xFF3A3A42);  // Gentle top highlight
+            vxair_fb_fill_rect(x + 2, y + 1, w - 4, 1, VxTheme::BORDER_BRIGHT);
         }
 
         int label_len = 0;
@@ -207,13 +213,15 @@ struct VxPanel {
     void draw() {
         uint32_t bg = bg_color ? bg_color : VxTheme::SURFACE;
         if (elevation > 0) {
-            int depth = elevation == 2 ? 5 : 3;  // Was 6/4 — softer
+            int depth = elevation == 2 ? 8 : 5;
             vxui_draw_shadow(x, y, w, h, depth);
         }
         vxair_fb_fill_rect(x, y, w, h, bg);
-        // Gentle borders — only top and bottom, not all 4 sides
-        vxair_fb_fill_rect(x, y, w, 1, VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(x, y + h - 1, w, 1, VxTheme::BORDER_SUBTLE);
+        // V2 Final: visible outlines on ALL sides
+        vxair_fb_fill_rect(x, y, w, 1, VxTheme::BORDER_BRIGHT);
+        vxair_fb_fill_rect(x, y + h - 1, w, 1, VxTheme::BORDER_STRONG);
+        vxair_fb_fill_rect(x, y, 1, h, VxTheme::BORDER_STRONG);
+        vxair_fb_fill_rect(x + w - 1, y, 1, h, VxTheme::BORDER_STRONG);
     }
 
     bool contains(int mx, int my) const {
@@ -231,11 +239,13 @@ struct VxTextField {
 
     void draw() {
         uint32_t accent = VxTheme::accent();
+        uint32_t bcolor = is_focused ? accent : VxTheme::BORDER_BRIGHT;
         vxair_fb_fill_rect(x, y, w, h, VxTheme::SURFACE);
-        vxair_fb_fill_rect(x, y, w, 1, is_focused ? accent : VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(x, y + h - 1, w, 1, is_focused ? accent : VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(x, y, 1, h, is_focused ? accent : VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(x + w - 1, y, 1, h, is_focused ? accent : VxTheme::BORDER_SUBTLE);
+        // V2 Final: visible outlines on all sides
+        vxair_fb_fill_rect(x, y, w, 1, bcolor);
+        vxair_fb_fill_rect(x, y + h - 1, w, 1, bcolor);
+        vxair_fb_fill_rect(x, y, 1, h, bcolor);
+        vxair_fb_fill_rect(x + w - 1, y, 1, h, bcolor);
         // Text
         for (int i = 0; i < buf_len && buffer[i]; i++) {
             draw_abstract_char(x + 8 + i * VxTheme::FONT_BODY, y + (h - 12) / 2 + 2,
