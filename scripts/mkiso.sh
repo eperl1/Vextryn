@@ -5,7 +5,7 @@ PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BUILD_DIR="${PROJECT_ROOT}/build_out"
 ISO_DIR="${BUILD_DIR}/iso_root"
 ISO_FILE="${BUILD_DIR}/vextryn_air.iso"
-KERNEL_BIN="${BUILD_DIR}/bin/vextryn_air.elf"
+KERNEL_BIN="${PROJECT_ROOT}/build/bin/vextryn_air.elf"
 
 echo "Creating ISO directory structure..."
 mkdir -p "${ISO_DIR}/boot/grub"
@@ -20,8 +20,11 @@ fi
 
 echo "Creating GRUB config..."
 cat > "${ISO_DIR}/boot/grub/grub.cfg" << EOF
+set timeout=0
+set default=0
+
 menuentry "Vextryn Air OS" {
-    multiboot /boot/vextryn_air.elf
+    multiboot2 /boot/vextryn_air.elf
     boot
 }
 EOF

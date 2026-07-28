@@ -27,7 +27,7 @@ static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mous
         btn.check_hover(mouse_x, mouse_y);
         btn.draw();
         if (active) {
-            vxair_fb_fill_rect(w.x + 10, cy, 4, 30, accent);
+            vxr_fill_rect(w.x + 10, cy, 4, 30, accent);
         }
         if (clicked && btn.is_hovered) selected_cat = i;
     }
@@ -41,7 +41,7 @@ static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mous
     auto draw_section_title = [&](const char* label, int y) {
         VxLabel lbl = {cx, y, label, text_color, VxTheme::FONT_LARGE};
         lbl.draw();
-        vxair_fb_fill_rect(cx, y + 14, w.w - sidebar_w - 60, 1, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(cx, y + 14, w.w - sidebar_w - 60, 1, VxTheme::BORDER_SUBTLE);
     };
 
     auto draw_toggle = [&](int x, int y, const char* label, bool& value, int max_w) -> bool {
@@ -63,14 +63,29 @@ static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mous
 
         VxLabel lbl = {cx, cy, "SENSITIVITY", text_color, VxTheme::FONT_BODY};
         lbl.draw();
-        for (int i = 1; i <= 5; i++) {
-            int bx = cx + i * 30 - 30;
-            char lbl_digit[2] = {(char)('0' + i), 0};
-            bool active = (g_state.mouse_sensitivity_level == i);
-            VxButton btn = {bx, cy + 20, 28, 28, lbl_digit, active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
-            btn.check_hover(mouse_x, mouse_y);
-            btn.draw();
-            if (clicked && btn.is_hovered) { g_state.mouse_sensitivity_level = i; settings_changed = true; }
+        VxSlider sens_slider = {cx, cy + 14, w.w - sidebar_w - 60, 36, g_state.mouse_sensitivity_level};
+        sens_slider.draw();
+        
+        // Draw percentage text inside the slider
+        char pct_str[8];
+        int pct = g_state.mouse_sensitivity_level;
+        pct_str[0] = '0' + (pct / 100);
+        pct_str[1] = '0' + ((pct % 100) / 10);
+        pct_str[2] = '0' + (pct % 10);
+        pct_str[3] = '%';
+        pct_str[4] = 0;
+        // Trim leading zeros
+        char* pct_ptr = pct_str;
+        if (pct_ptr[0] == '0' && pct < 100) pct_ptr++;
+        if (pct_ptr[0] == '0' && pct < 10) pct_ptr++;
+        
+        VxLabel pct_lbl = {cx + w.w - sidebar_w - 90, cy + 26, pct_ptr, VxTheme::TEXT_PRIMARY, VxTheme::FONT_BODY};
+        pct_lbl.draw();
+
+        if (g_state.previous_left_down && sens_slider.handle_drag(mouse_x, mouse_y)) {
+            g_state.mouse_sensitivity_level = sens_slider.value_pct;
+            if (g_state.mouse_sensitivity_level < 1) g_state.mouse_sensitivity_level = 1;
+            settings_changed = true;
         }
         cy += 70;
         if (draw_toggle(cx, cy, "LARGE CURSOR", g_state.large_cursor, w.w - sidebar_w - 60)) settings_changed = true;
@@ -87,7 +102,7 @@ static void draw_app_settings(VxWindow& w, uint64_t frame, int mouse_x, int mous
             VxButton swatch = {bx, cy, 36, 36, "", active ? VX_BTN_PRIMARY : VX_BTN_SECONDARY, false, false};
             swatch.check_hover(mouse_x, mouse_y);
             swatch.draw();
-            vxair_fb_fill_rect(bx + 4, cy + 4, 28, 28, colors[i]);
+            vxr_fill_rect(bx + 4, cy + 4, 28, 28, colors[i]);
             if (clicked && swatch.is_hovered) {
                 g_state.accent_color = colors[i];
                 VxTheme::set_accent(colors[i]);

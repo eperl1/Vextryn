@@ -3,7 +3,7 @@
 
 static void draw_app_snake(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool clicked) {
     uint32_t bg = 0xFF223322;
-    vxair_fb_fill_rect(w.x, w.y + 28, w.w, w.h - 28, bg);
+    vxr_fill_rect(w.x, w.y + 28, w.w, w.h - 28, bg);
     
     if (w.focused && !g_state.snake_dead && frame - g_state.last_snake_move > 15) {
         g_state.last_snake_move = frame;
@@ -37,12 +37,12 @@ static void draw_app_snake(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
     }
     
     // Draw food
-    vxair_fb_fill_rect(w.x + g_state.food_x * 10, w.y + 28 + g_state.food_y * 10, 10, 10, 0xFFFF0000);
+    vxr_fill_rect(w.x + g_state.food_x * 10, w.y + 28 + g_state.food_y * 10, 10, 10, 0xFFFF0000);
     
     // Draw snake
     for (int i=0; i<g_state.snake_len; i++) {
         uint32_t c = (i == 0) ? 0xFF00FF00 : 0xFF009900;
-        vxair_fb_fill_rect(w.x + g_state.snake_x[i] * 10, w.y + 28 + g_state.snake_y[i] * 10, 10, 10, c);
+        vxr_fill_rect(w.x + g_state.snake_x[i] * 10, w.y + 28 + g_state.snake_y[i] * 10, 10, 10, c);
     }
     
     if (g_state.snake_dead) {

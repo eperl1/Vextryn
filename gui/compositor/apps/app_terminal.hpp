@@ -83,7 +83,7 @@ static void draw_app_terminal(VxWindow& w, uint64_t frame, int mouse_x, int mous
     uint32_t text_color = 0xFF00FF00;
     uint32_t sel_color = 0xFF1E3A1E; // subtle green-tinted selection
 
-    vxair_fb_fill_rect(w.x, w.y + 28, w.w, w.h - 28, bg);
+    vxr_fill_rect(w.x, w.y + 28, w.w, w.h - 28, bg);
 
     int cur_x = w.x + 10;
     int cur_y = w.y + 40;
@@ -121,7 +121,7 @@ static void draw_app_terminal(VxWindow& w, uint64_t frame, int mouse_x, int mous
         if (s < 0) s = 0;
         if (e > g_state.term_len) e = g_state.term_len;
         if (e > s) {
-            vxair_fb_fill_rect(text_x + s * char_w, text_y - 1,
+            vxr_fill_rect(text_x + s * char_w, text_y - 1,
                                (e - s) * char_w, 16, sel_color);
         }
     }
@@ -134,7 +134,7 @@ static void draw_app_terminal(VxWindow& w, uint64_t frame, int mouse_x, int mous
 
     // ── Caret (drawn AFTER chars so it isn't overwritten) ────────────────
     if (w.focused && (frame % 60 < 30) && !term_input.sel_active()) {
-        vxair_fb_fill_rect(text_x + term_input.caret_pos * char_w, text_y,
+        vxr_fill_rect(text_x + term_input.caret_pos * char_w, text_y,
                            8, 14, text_color);
     }
 

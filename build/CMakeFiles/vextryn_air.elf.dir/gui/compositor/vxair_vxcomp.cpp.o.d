@@ -7,12 +7,17 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: \
  /home/ethan/Vextryn_Air/gui/compositor/../../drivers/gpu/vxair_gop.h \
  /home/ethan/Vextryn_Air/gui/compositor/app_icons.h \
  /home/ethan/Vextryn_Air/gui/compositor/times_font.h \
+ /home/ethan/Vextryn_Air/gui/compositor/vxair_textinput.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/font8x8.h \
  /home/ethan/Vextryn_Air/gui/compositor/ata_storage.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxrender/vxrender.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxrender/../vxui/vxui_theme.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/../vxui/vxui.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/../vxui/vxui_theme.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxui/../vxrender/vxrender.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_file_manager.hpp \
- /home/ethan/Vextryn_Air/gui/compositor/apps/../vxair_textinput.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/../../vxui/vxui_advanced.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/../../vxui/vxui.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_settings.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_terminal.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_snake.hpp \
@@ -20,8 +25,8 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_notes.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_calculator.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_sysmon.hpp \
- /home/ethan/Vextryn_Air/gui/compositor/apps/app_calendar.hpp \
- /home/ethan/Vextryn_Air/gui/compositor/apps/app_image_viewer.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_mail.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_gallery.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_media_player.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_clock.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_about.hpp \

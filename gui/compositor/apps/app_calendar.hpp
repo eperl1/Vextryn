@@ -17,7 +17,7 @@ static void draw_app_calendar(VxWindow& w, uint64_t frame, int mouse_x, int mous
     for (int i = 0; month[i]; i++)
         draw_abstract_char(ax + 16 + i * 10, ay + 12, month[i], VxTheme::TEXT_PRIMARY);
     // Accent underline
-    vxair_fb_fill_rect(ax + 16, ay + 30, 80, 2, VxTheme::accent());
+    vxr_fill_rect(ax + 16, ay + 30, 80, 2, VxTheme::accent());
 
     // Day-of-week headers
     const char* dows[7] = {"S","M","T","W","T","F","S"};
@@ -34,7 +34,7 @@ static void draw_app_calendar(VxWindow& w, uint64_t frame, int mouse_x, int mous
     }
 
     // Grid lines
-    vxair_fb_fill_rect(ax, grid_y + 16, aw, 1, VxTheme::BORDER_SUBTLE);
+    vxr_fill_rect(ax, grid_y + 16, aw, 1, VxTheme::BORDER_SUBTLE);
 
     // 5×7 day cells
     static int selected_day = -1;
@@ -59,9 +59,9 @@ static void draw_app_calendar(VxWindow& w, uint64_t frame, int mouse_x, int mous
             else if (is_sel) bg = VxTheme::OVERLAY;
             else if (hover) bg = VxTheme::SURFACE_HIGH;
 
-            vxair_fb_fill_rect(cx + 1, cy + 1, cell_w - 2, cell_h - 2, bg);
+            vxr_fill_rect(cx + 1, cy + 1, cell_w - 2, cell_h - 2, bg);
             if (is_today) {
-                vxair_fb_fill_rect(cx + 1, cy + 1, cell_w - 2, 1, VxTheme::accent());
+                vxr_fill_rect(cx + 1, cy + 1, cell_w - 2, 1, VxTheme::accent());
             }
 
             // Day number
@@ -85,10 +85,10 @@ static void draw_app_calendar(VxWindow& w, uint64_t frame, int mouse_x, int mous
 
     // Grid vertical lines
     for (int c = 1; c < 7; c++) {
-        vxair_fb_fill_rect(ax + c * cell_w, grid_y + 16, 1, grid_start_y + 5 * cell_h - grid_y - 16, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(ax + c * cell_w, grid_y + 16, 1, grid_start_y + 5 * cell_h - grid_y - 16, VxTheme::BORDER_SUBTLE);
     }
     // Horizontal lines
     for (int r = 1; r < 5; r++) {
-        vxair_fb_fill_rect(ax, grid_start_y + r * cell_h, aw, 1, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(ax, grid_start_y + r * cell_h, aw, 1, VxTheme::BORDER_SUBTLE);
     }
 }

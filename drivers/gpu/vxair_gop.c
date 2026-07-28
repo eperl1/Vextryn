@@ -109,11 +109,35 @@ void vxair_fb_fill_rect(int32_t x,
     uint32_t* buf = fb_back ? fb_back : fb_front;
     if (!buf) return;
 
-    for (int32_t row = y1; row < y2; row++) {
-        uint32_t* line = (uint32_t*)(
-            (uint8_t*)buf + row * fb_pitch);
-        for (int32_t col = x1; col < x2; col++) {
-            line[col] = color;
+    uint32_t a = (color >> 24) & 0xFF;
+    if (a == 255) {
+        // Fast path: Opaque fill
+        for (int32_t row = y1; row < y2; row++) {
+            uint32_t* line = (uint32_t*)((uint8_t*)buf + row * fb_pitch);
+            for (int32_t col = x1; col < x2; col++) {
+                line[col] = color;
+            }
+        }
+    } else if (a > 0) {
+        // Alpha blend path
+        uint32_t r_src = (color >> 16) & 0xFF;
+        uint32_t g_src = (color >> 8) & 0xFF;
+        uint32_t b_src = color & 0xFF;
+        
+        for (int32_t row = y1; row < y2; row++) {
+            uint32_t* line = (uint32_t*)((uint8_t*)buf + row * fb_pitch);
+            for (int32_t col = x1; col < x2; col++) {
+                uint32_t bg = line[col];
+                uint32_t r_bg = (bg >> 16) & 0xFF;
+                uint32_t g_bg = (bg >> 8) & 0xFF;
+                uint32_t b_bg = bg & 0xFF;
+                
+                uint32_t r_out = (r_src * a + r_bg * (255 - a)) / 255;
+                uint32_t g_out = (g_src * a + g_bg * (255 - a)) / 255;
+                uint32_t b_out = (b_src * a + b_bg * (255 - a)) / 255;
+                
+                line[col] = (0xFF << 24) | (r_out << 16) | (g_out << 8) | b_out;
+            }
         }
     }
 }

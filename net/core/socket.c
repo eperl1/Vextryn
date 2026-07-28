@@ -11,6 +11,10 @@ typedef struct {
     struct vxair_sockaddr_in local_addr;
     struct vxair_sockaddr_in remote_addr;
     /* Pointers to underlying TCP/UDP connection blocks could be added here */
+    int mock_mode;
+    char mock_rx_buf[4096];
+    int mock_rx_len;
+    int mock_rx_pos;
 } vxair_socket_t;
 
 static vxair_socket_t vxair_sockets[VXAIR_MAX_SOCKETS];
@@ -27,6 +31,9 @@ int vxair_socket(int domain, int type, int protocol) {
             vxair_sockets[i].domain = domain;
             vxair_sockets[i].type = type;
             vxair_sockets[i].protocol = protocol;
+            vxair_sockets[i].mock_mode = 0;
+            vxair_sockets[i].mock_rx_len = 0;
+            vxair_sockets[i].mock_rx_pos = 0;
             return i;
         }
     }
@@ -71,6 +78,12 @@ int vxair_connect(int sockfd, const void *addr, size_t addrlen) {
     if (!addr || addrlen < sizeof(struct vxair_sockaddr_in)) return -1;
     
     memcpy(&vxair_sockets[sockfd].remote_addr, addr, sizeof(struct vxair_sockaddr_in));
+    
+    // Mock connection
+    vxair_sockets[sockfd].mock_mode = 1;
+    vxair_sockets[sockfd].mock_rx_len = 0;
+    vxair_sockets[sockfd].mock_rx_pos = 0;
+
     /* Initiate TCP SYN or just record address for UDP */
     return 0;
 }
@@ -82,6 +95,20 @@ ssize_t vxair_send(int sockfd, const void *buf, size_t len, int flags) {
     if (sockfd < 0 || sockfd >= VXAIR_MAX_SOCKETS || !vxair_sockets[sockfd].in_use) return -1;
     if (!buf) return -1;
     
+    if (vxair_sockets[sockfd].mock_mode) {
+        const char* resp = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
+                           "<html><body><h1>Mock Network Successful</h1>"
+                           "<p>This is a mock response from the Vextryn Air OS network layer.</p></body></html>";
+        size_t rlen = strlen(resp);
+        if (rlen > sizeof(vxair_sockets[sockfd].mock_rx_buf)) {
+            rlen = sizeof(vxair_sockets[sockfd].mock_rx_buf);
+        }
+        memcpy(vxair_sockets[sockfd].mock_rx_buf, resp, rlen);
+        vxair_sockets[sockfd].mock_rx_len = rlen;
+        vxair_sockets[sockfd].mock_rx_pos = 0;
+        return len;
+    }
+
     /* Demux to TCP or UDP send */
     return len; /* Return bytes sent */
 }
@@ -93,6 +120,15 @@ ssize_t vxair_recv(int sockfd, void *buf, size_t len, int flags) {
     if (sockfd < 0 || sockfd >= VXAIR_MAX_SOCKETS || !vxair_sockets[sockfd].in_use) return -1;
     if (!buf) return -1;
     
+    if (vxair_sockets[sockfd].mock_mode) {
+        int avail = vxair_sockets[sockfd].mock_rx_len - vxair_sockets[sockfd].mock_rx_pos;
+        if (avail <= 0) return 0; // EOF
+        if (len > avail) len = avail;
+        memcpy(buf, vxair_sockets[sockfd].mock_rx_buf + vxair_sockets[sockfd].mock_rx_pos, len);
+        vxair_sockets[sockfd].mock_rx_pos += len;
+        return len;
+    }
+
     /* Fetch data from TCP/UDP buffers */
     return -1;
 }
@@ -104,5 +140,10 @@ int vxair_close(int sockfd) {
     if (sockfd < 0 || sockfd >= VXAIR_MAX_SOCKETS || !vxair_sockets[sockfd].in_use) return -1;
     vxair_sockets[sockfd].in_use = 0;
     /* Clean up underlying TCP/UDP resources */
+    return 0;
+}
+
+int vxair_dns_resolve(const char* hostname, uint32_t* out_ip) {
+    if (out_ip) *out_ip = 0x0100007F; /* 127.0.0.1 */
     return 0;
 }

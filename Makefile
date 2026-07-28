@@ -19,5 +19,5 @@ run: all
 
 iso: all
 	@echo "=> Generating Bootable ISO..."
-	@./scripts/generate_iso.sh
+	@./scripts/mkiso.sh
 	@echo "=> ISO generated in build/out/vextryn-air.iso"

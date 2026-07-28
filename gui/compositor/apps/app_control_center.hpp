@@ -61,31 +61,31 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
     uint32_t accent = VxTheme::accent();
 
     // Backdrop dim
-    vxair_fb_fill_rect(0, 0, W, H, 0x40000000);
+    vxr_fill_rect(0, 0, W, H, 0x40000000);
 
     // Panel shadow
     vxui_draw_shadow(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 20);
 
     // Panel body — frosted glass
-    vxair_fb_fill_rect(L.panel.x, L.panel.y, L.panel.w, L.panel.h, VxTheme::GLASS_TINT);
-    vxair_fb_fill_rect(L.panel.x, L.panel.y, L.panel.w, 1, VxTheme::BORDER_BRIGHT);
-    vxair_fb_fill_rect(L.panel.x, L.panel.y + L.panel.h - 1, L.panel.w, 1, VxTheme::BORDER_STRONG);
-    vxair_fb_fill_rect(L.panel.x, L.panel.y, 1, L.panel.h, VxTheme::BORDER_STRONG);
-    vxair_fb_fill_rect(L.panel.x + L.panel.w - 1, L.panel.y, 1, L.panel.h, VxTheme::BORDER_STRONG);
+    vxr_fill_rect(L.panel.x, L.panel.y, L.panel.w, L.panel.h, VxTheme::GLASS_TINT);
+    vxr_fill_rect(L.panel.x, L.panel.y, L.panel.w, 1, VxTheme::BORDER_BRIGHT);
+    vxr_fill_rect(L.panel.x, L.panel.y + L.panel.h - 1, L.panel.w, 1, VxTheme::BORDER_STRONG);
+    vxr_fill_rect(L.panel.x, L.panel.y, 1, L.panel.h, VxTheme::BORDER_STRONG);
+    vxr_fill_rect(L.panel.x + L.panel.w - 1, L.panel.y, 1, L.panel.h, VxTheme::BORDER_STRONG);
 
     // Header
     const char* title = "Control Center";
     for (int i = 0; title[i]; i++)
         draw_abstract_char(L.panel.x + 16, L.panel.y + 16, title[i], VxTheme::TEXT_PRIMARY);
-    vxair_fb_fill_rect(L.panel.x + 16, L.panel.y + 32, 100, 2, accent);
+    vxr_fill_rect(L.panel.x + 16, L.panel.y + 32, 100, 2, accent);
 
     // Close button
     bool close_hover = L.close_btn.contains(mx, my);
-    vxair_fb_fill_rect(L.close_btn.x, L.close_btn.y, L.close_btn.w, L.close_btn.h,
+    vxr_fill_rect(L.close_btn.x, L.close_btn.y, L.close_btn.w, L.close_btn.h,
                        close_hover ? VxTheme::DANGER : VxTheme::SURFACE_HIGH);
     for (int i = 0; i < 10; i++) {
-        vxair_fb_fill_rect(L.close_btn.x + 7 + i, L.close_btn.y + 7 + i, 2, 2, VxTheme::TEXT_PRIMARY);
-        vxair_fb_fill_rect(L.close_btn.x + 16 - i, L.close_btn.y + 7 + i, 2, 2, VxTheme::TEXT_PRIMARY);
+        vxr_fill_rect(L.close_btn.x + 7 + i, L.close_btn.y + 7 + i, 2, 2, VxTheme::TEXT_PRIMARY);
+        vxr_fill_rect(L.close_btn.x + 16 - i, L.close_btn.y + 7 + i, 2, 2, VxTheme::TEXT_PRIMARY);
     }
 
     // Toggle tiles
@@ -107,22 +107,22 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
         // Tile background
         uint32_t bg = on ? VxTheme::accent_soft() : VxTheme::SURFACE_HIGH;
         if (hover) bg = on ? VxTheme::OVERLAY : VxTheme::SURFACE;
-        vxair_fb_fill_rect(t.x, t.y, t.w, t.h, bg);
+        vxr_fill_rect(t.x, t.y, t.w, t.h, bg);
         // Border
-        vxair_fb_fill_rect(t.x, t.y, t.w, 1, VxTheme::BORDER_BRIGHT);
-        vxair_fb_fill_rect(t.x, t.y + t.h - 1, t.w, 1, VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(t.x, t.y, 1, t.h, VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(t.x + t.w - 1, t.y, 1, t.h, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(t.x, t.y, t.w, 1, VxTheme::BORDER_BRIGHT);
+        vxr_fill_rect(t.x, t.y + t.h - 1, t.w, 1, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(t.x, t.y, 1, t.h, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(t.x + t.w - 1, t.y, 1, t.h, VxTheme::BORDER_SUBTLE);
 
         // Toggle indicator (top-right)
         uint32_t ind = on ? accent : VxTheme::BORDER_STRONG;
-        vxair_fb_fill_rect(t.x + t.w - 16, t.y + 8, 8, 8, ind);
+        vxr_fill_rect(t.x + t.w - 16, t.y + 8, 8, 8, ind);
         if (on) {
             // Checkmark
             for (int j = 0; j < 4; j++)
-                vxair_fb_fill_rect(t.x + t.w - 14 + j, t.y + 11 + j, 2, 2, VxTheme::TEXT_PRIMARY);
+                vxr_fill_rect(t.x + t.w - 14 + j, t.y + 11 + j, 2, 2, VxTheme::TEXT_PRIMARY);
             for (int j = 0; j < 5; j++)
-                vxair_fb_fill_rect(t.x + t.w - 11 + j, t.y + 13 - j, 2, 2, VxTheme::TEXT_PRIMARY);
+                vxr_fill_rect(t.x + t.w - 11 + j, t.y + 13 - j, 2, 2, VxTheme::TEXT_PRIMARY);
         }
 
         // Label
@@ -140,11 +140,11 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
     for (int s = 0; s < 2; s++) {
         const VxRect& sl = L.sliders[s];
         // Background
-        vxair_fb_fill_rect(sl.x, sl.y, sl.w, sl.h, VxTheme::SURFACE_HIGH);
-        vxair_fb_fill_rect(sl.x, sl.y, sl.w, 1, VxTheme::BORDER_BRIGHT);
-        vxair_fb_fill_rect(sl.x, sl.y + sl.h - 1, sl.w, 1, VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(sl.x, sl.y, 1, sl.h, VxTheme::BORDER_SUBTLE);
-        vxair_fb_fill_rect(sl.x + sl.w - 1, sl.y, 1, sl.h, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(sl.x, sl.y, sl.w, sl.h, VxTheme::SURFACE_HIGH);
+        vxr_fill_rect(sl.x, sl.y, sl.w, 1, VxTheme::BORDER_BRIGHT);
+        vxr_fill_rect(sl.x, sl.y + sl.h - 1, sl.w, 1, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(sl.x, sl.y, 1, sl.h, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(sl.x + sl.w - 1, sl.y, 1, sl.h, VxTheme::BORDER_SUBTLE);
 
         // Label
         for (int j = 0; slider_labels[s][j]; j++)
@@ -154,7 +154,7 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
         int track_x = sl.x + 12;
         int track_y = sl.y + 26;
         int track_w = sl.w - 24;
-        vxair_fb_fill_rect(track_x, track_y, track_w, 6, VxTheme::BASE_DARK);
+        vxr_fill_rect(track_x, track_y, track_w, 6, VxTheme::BASE_DARK);
 
         // Fill (static at ~70%)
         int fill_pct = 70;
@@ -162,12 +162,12 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
             fill_pct = (mx - track_x) * 100 / track_w;
         }
         int fill_w = track_w * fill_pct / 100;
-        vxair_fb_fill_rect(track_x, track_y, fill_w, 6, accent);
+        vxr_fill_rect(track_x, track_y, fill_w, 6, accent);
         // Knob
         int knob_x = track_x + fill_w - 6;
         if (knob_x < track_x) knob_x = track_x;
-        vxair_fb_fill_rect(knob_x, track_y - 4, 14, 14, VxTheme::TEXT_PRIMARY);
-        vxair_fb_fill_rect(knob_x + 2, track_y - 2, 10, 10, accent);
+        vxr_fill_rect(knob_x, track_y - 4, 14, 14, VxTheme::TEXT_PRIMARY);
+        vxr_fill_rect(knob_x + 2, track_y - 2, 10, 10, accent);
     }
 
     // Accent color picker
@@ -192,10 +192,10 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
 
         // Selection ring
         if (sel || hover) {
-            vxair_fb_fill_rect(sw.x - 3, sw.y - 3, sw.w + 6, sw.h + 6, sel ? accent : VxTheme::BORDER_BRIGHT);
+            vxr_fill_rect(sw.x - 3, sw.y - 3, sw.w + 6, sw.h + 6, sel ? accent : VxTheme::BORDER_BRIGHT);
         }
         // Swatch
-        vxair_fb_fill_rect(sw.x, sw.y, sw.w, sw.h, accent_options[i]);
+        vxr_fill_rect(sw.x, sw.y, sw.w, sw.h, accent_options[i]);
 
         if (clicked && hover) {
             g_state.accent_color = accent_options[i];

@@ -176,7 +176,7 @@ void draw_app_calculator(VxWindow& w, uint64_t /*frame*/, int mouse_x, int mouse
     int num_x = disp_x + disp_w - pad;
     int num_y = disp_y + 12;
     if (calc_err) {
-        vxair_fb_fill_rect(disp_x + pad, disp_y + 12, 20, 30, VxTheme::DANGER);
+        vxr_fill_rect(disp_x + pad, disp_y + 12, 20, 30, VxTheme::DANGER);
         VxLabel err_lbl = {disp_x + pad + 28, disp_y + 22, "Error", VxTheme::DANGER, VxTheme::FONT_BODY};
         err_lbl.draw();
     } else {
@@ -189,7 +189,7 @@ void draw_app_calculator(VxWindow& w, uint64_t /*frame*/, int mouse_x, int mouse
                 draw_digit(dx, num_y, ch - '0', display_col);
                 dx -= digit_spacing;
             } else if (ch == '.') {
-                vxair_fb_fill_rect(dx + digit_spacing - 6, num_y + 20, 6, 6, display_col);
+                vxr_fill_rect(dx + digit_spacing - 6, num_y + 20, 6, 6, display_col);
             } else if (ch == '-') {
                 draw_segment(dx, num_y + 11, 12, true, display_col);
                 dx -= 16;

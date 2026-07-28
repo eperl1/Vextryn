@@ -74,4 +74,6 @@ int vxair_close(int sockfd);
 }
 #endif
 
+int vxair_dns_resolve(const char* hostname, uint32_t* out_ip);
+
 #endif // VXAIR_NET_SOCKET_H

@@ -29,14 +29,14 @@ static void draw_app_clock(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
             if (dx * dx + dy * dy <= radius * radius) half = dx;
         }
         if (half >= 0)
-            vxair_fb_fill_rect(cx - half, cy + dy, half * 2 + 1, 1, VxTheme::SURFACE_HIGH);
+            vxr_fill_rect(cx - half, cy + dy, half * 2 + 1, 1, VxTheme::SURFACE_HIGH);
     }
     // Outer ring
     for (int dy = -radius; dy <= radius; dy++) {
         for (int dx = -radius; dx <= radius; dx++) {
             int dist = dx * dx + dy * dy;
             if (dist <= radius * radius && dist > (radius - 3) * (radius - 3)) {
-                vxair_fb_fill_rect(cx + dx, cy + dy, 1, 1, VxTheme::BORDER_BRIGHT);
+                vxr_fill_rect(cx + dx, cy + dy, 1, 1, VxTheme::BORDER_BRIGHT);
             }
         }
     }
@@ -60,7 +60,7 @@ static void draw_app_clock(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
         for (int s = 0; s <= steps; s++) {
             int px = ix + (tx - ix) * s / steps;
             int py = iy + (ty - iy) * s / steps;
-            vxair_fb_fill_rect(px - thickness / 2, py - thickness / 2, thickness, thickness, tcol);
+            vxr_fill_rect(px - thickness / 2, py - thickness / 2, thickness, thickness, tcol);
         }
         // Hour numbers at cardinal positions
         if (h % 3 == 0) {
@@ -105,7 +105,7 @@ static void draw_app_clock(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
     for (int s = 0; s <= 20; s++) {
         int px = cx + (hx2 - cx) * s / 20;
         int py = cy + (hy2 - cy) * s / 20;
-        vxair_fb_fill_rect(px - 1, py - 1, 3, 3, VxTheme::TEXT_PRIMARY);
+        vxr_fill_rect(px - 1, py - 1, 3, 3, VxTheme::TEXT_PRIMARY);
     }
 
     // Minute hand (medium, medium thickness)
@@ -115,7 +115,7 @@ static void draw_app_clock(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
     for (int s = 0; s <= 20; s++) {
         int px = cx + (mx2 - cx) * s / 20;
         int py = cy + (my2 - cy) * s / 20;
-        vxair_fb_fill_rect(px - 1, py, 2, 2, VxTheme::TEXT_PRIMARY);
+        vxr_fill_rect(px - 1, py, 2, 2, VxTheme::TEXT_PRIMARY);
     }
 
     // Second hand (long, thin, accent color)
@@ -125,12 +125,12 @@ static void draw_app_clock(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
     for (int s = 0; s <= 20; s++) {
         int px = cx + (sx2 - cx) * s / 20;
         int py = cy + (sy2 - cy) * s / 20;
-        vxair_fb_fill_rect(px, py, 1, 1, accent);
+        vxr_fill_rect(px, py, 1, 1, accent);
     }
 
     // Center dot
-    vxair_fb_fill_rect(cx - 3, cy - 3, 6, 6, accent);
-    vxair_fb_fill_rect(cx - 1, cy - 1, 2, 2, VxTheme::TEXT_PRIMARY);
+    vxr_fill_rect(cx - 3, cy - 3, 6, 6, accent);
+    vxr_fill_rect(cx - 1, cy - 1, 2, 2, VxTheme::TEXT_PRIMARY);
 
     // Digital readout below clock — positioned in the reserved readout area
     int dy = w.y + w.h - pad - readout_h + 8;
@@ -149,8 +149,8 @@ static void draw_app_clock(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
         if (dig[i] >= '0' && dig[i] <= '9') {
             draw_digit(dx + i * 24, dy, dig[i] - '0', VxTheme::TEXT_PRIMARY);
         } else if (dig[i] == ':') {
-            vxair_fb_fill_rect(dx + i * 24 + 4, dy + 4, 4, 4, VxTheme::accent());
-            vxair_fb_fill_rect(dx + i * 24 + 4, dy + 14, 4, 4, VxTheme::accent());
+            vxr_fill_rect(dx + i * 24 + 4, dy + 4, 4, 4, VxTheme::accent());
+            vxr_fill_rect(dx + i * 24 + 4, dy + 14, 4, 4, VxTheme::accent());
         }
     }
 }

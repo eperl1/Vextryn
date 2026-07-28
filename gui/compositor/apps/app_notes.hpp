@@ -36,9 +36,9 @@ void draw_app_notes(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool 
     VxPanel note_area = {w.x + 4, w.y + 30, w.w - 8, w.h - 34, 0};
     note_area.draw();
 
-    vxair_fb_fill_rect(w.x + 30, w.y + 28, 2, w.h - 30, accent); // Margin accent
+    vxr_fill_rect(w.x + 30, w.y + 28, 2, w.h - 30, accent); // Margin accent
     for (int i = 0; i < 13; i++) {
-        vxair_fb_fill_rect(w.x + 2, w.y + 60 + i * 28, w.w - 4, 1, VxTheme::BORDER_SUBTLE);
+        vxr_fill_rect(w.x + 2, w.y + 60 + i * 28, w.w - 4, 1, VxTheme::BORDER_SUBTLE);
     }
 
     // ── Click-to-position + double-click-select-all (multi-line) ─────────
@@ -74,13 +74,13 @@ void draw_app_notes(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool 
 
         if (notes_buffer[i] == '\n') {
             if (notes_input.sel_active() && i >= notes_input.sel_min() && i < notes_input.sel_max()) {
-                vxair_fb_fill_rect(cur_x, cur_y - 2, 8, 18, sel_color);
+                vxr_fill_rect(cur_x, cur_y - 2, 8, 18, sel_color);
             }
             cur_x = margin_x;
             cur_y += line_h;
         } else {
             if (notes_input.sel_active() && i >= notes_input.sel_min() && i < notes_input.sel_max()) {
-                vxair_fb_fill_rect(cur_x, cur_y - 2, char_w, 18, sel_color);
+                vxr_fill_rect(cur_x, cur_y - 2, char_w, 18, sel_color);
             }
             draw_abstract_char(cur_x, cur_y, notes_buffer[i], text_col);
             cur_x += char_w;
@@ -91,6 +91,6 @@ void draw_app_notes(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool 
         }
     }
     if (w.focused && (frame % 60 < 30) && !notes_input.sel_active()) {
-        vxair_fb_fill_rect(caret_px, caret_py, 2, 14, accent);
+        vxr_fill_rect(caret_px, caret_py, 2, 14, accent);
     }
 }

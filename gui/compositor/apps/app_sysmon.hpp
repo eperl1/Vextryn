@@ -1,65 +1,102 @@
-#ifndef APP_SYSMON_HPP
-#define APP_SYSMON_HPP
+#pragma once
 
-static void draw_app_sysmon(VxWindow& w, uint64_t /*frame*/, int mouse_x, int mouse_y, bool /*clicked*/) {
-    uint32_t accent = VxTheme::accent();
-    int margin = 28;
-    int sm_x = w.x + margin;
-    int sm_w = w.w - margin * 2;
-    int row_h = 70;
-    int bar_h = 18;
+#include "../../vxui/vxui_advanced.hpp"
 
-    struct Metric { const char* label; int pct; uint32_t color; };
-    Metric metrics[] = {
-        {"RAM",  45, accent},
-        {"CPU",  15, VxTheme::SUCCESS},
-        {"DISK", 30, VxTheme::WARNING},
-    };
-    int n = sizeof(metrics) / sizeof(metrics[0]);
+static int sysmon_tab = 0;
+static const char* sysmon_tabs[] = { "Processes", "Performance" };
+static int sysmon_scroll = 0;
 
-    for (int i = 0; i < n; i++) {
-        int cy = w.y + 44 + i * row_h;
-        // Label
-        VxLabel lbl = {sm_x, cy, metrics[i].label, VxTheme::TEXT_PRIMARY, VxTheme::FONT_BODY};
-        lbl.draw();
-        // Percentage
-        char pct_str[5];
-        int len = 0;
-        int p = metrics[i].pct;
-        if (p >= 100) { pct_str[len++] = '1'; pct_str[len++] = '0'; pct_str[len++] = '0'; }
-        else { if (p >= 10) pct_str[len++] = '0' + p / 10; pct_str[len++] = '0' + p % 10; }
-        pct_str[len++] = '%';
-        pct_str[len] = 0;
-        for (int j = 0; pct_str[j]; j++) {
-            draw_abstract_char(sm_x + sm_w - (len - j) * 10, cy, pct_str[j], VxTheme::TEXT_SECONDARY);
+static void draw_app_sysmon(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y, bool clicked) {
+    vxr_fill_rect(w.x, w.y + 28, w.w, w.h - 28, VxTheme::BASE_DEEP);
+
+    // Sidebar/TabBar equivalent
+    VxSegmentedControl seg;
+    seg.x = w.x + 20;
+    seg.y = w.y + 28 + 20;
+    seg.w = 240;
+    seg.h = 32;
+    seg.segments = sysmon_tabs;
+    seg.segment_count = 2;
+    seg.selected_index = sysmon_tab;
+    
+    if (clicked && mouse_x >= seg.x && mouse_x < seg.x + seg.w && mouse_y >= seg.y && mouse_y < seg.y + seg.h) {
+        int clicked_idx = (mouse_x - seg.x) / (seg.w / seg.segment_count);
+        if (clicked_idx >= 0 && clicked_idx < seg.segment_count) {
+            sysmon_tab = clicked_idx;
         }
-        // Bar background
-        VxPanel bar_bg = {sm_x, cy + 20, sm_w, bar_h, 0};
-        bar_bg.draw();
-        // Bar fill
-        int fill_w = (sm_w - 4) * metrics[i].pct / 100;
-        vxair_fb_fill_rect(sm_x + 2, cy + 22, fill_w, bar_h - 4, metrics[i].color);
     }
+    
+    seg.draw();
+    
+    int content_y = seg.y + seg.h + 20;
 
-    // Bottom stats grid
-    int grid_y = w.y + 44 + n * row_h + 16;
-    const char* stat_titles[4] = {"UPTIME", "PROCESSES", "THREADS", "HANDLES"};
-    const char* stat_vals[4] = {"00:42:18", "12", "48", "156"};
-    int card_w = (sm_w - 24) / 2;
-    int card_h = 52;
-    for (int r = 0; r < 2; r++) {
-        for (int c = 0; c < 2; c++) {
-            int idx = r * 2 + c;
-            int cx = sm_x + c * (card_w + 16);
-            int cy = grid_y + r * (card_h + 16);
-            VxPanel card = {cx, cy, card_w, card_h, 1};
-            card.draw();
-            VxLabel t = {cx + 12, cy + 10, stat_titles[idx], VxTheme::TEXT_SECONDARY, VxTheme::FONT_BODY};
-            t.draw();
-            VxLabel v = {cx + 12, cy + 28, stat_vals[idx], VxTheme::TEXT_PRIMARY, VxTheme::FONT_LARGE};
-            v.draw();
+    if (sysmon_tab == 0) {
+        // Processes (Mock list for UI)
+        static const char* mock_procs[] = {
+            "kernel_task    | PID 0    | 12% CPU",
+            "compositor     | PID 1    |  8% CPU",
+            "sysmon         | PID 4    |  2% CPU",
+            "vxweb          | PID 12   |  0% CPU",
+            "idle           | PID -    | 78% CPU"
+        };
+        
+        VxListView list;
+        list.x = w.x + 20;
+        list.y = content_y;
+        list.w = w.w - 40;
+        list.h = w.h - (content_y - w.y) - 20;
+        list.items = mock_procs;
+        list.item_count = 5;
+        list.selected_index = -1;
+        list.hover_index = -1;
+        list.scroll_y = sysmon_scroll;
+        
+        list.draw();
+    } else {
+        // Performance
+        auto draw_str = [&](int dx, int dy, const char* str, uint32_t col) {
+            for (int i = 0; str[i]; i++) draw_abstract_char(dx + i*8, dy, str[i], col);
+        };
+        
+        draw_str(w.x + 20, content_y, "CPU Usage", VxTheme::TEXT_PRIMARY);
+        VxProgressBar cpu_bar;
+        cpu_bar.x = w.x + 20;
+        cpu_bar.y = content_y + 20;
+        cpu_bar.w = w.w - 40;
+        cpu_bar.h = 16;
+        cpu_bar.progress_pct = 22; // Mock 22%
+        cpu_bar.draw();
+        
+        draw_str(w.x + 20, content_y + 60, "RAM Usage", VxTheme::TEXT_PRIMARY);
+        VxProgressBar ram_bar;
+        ram_bar.x = w.x + 20;
+        ram_bar.y = content_y + 80;
+        ram_bar.w = w.w - 40;
+        ram_bar.h = 16;
+        ram_bar.progress_pct = 45; // Mock 45%
+        ram_bar.draw();
+        
+        draw_str(w.x + 20, content_y + 120, "Disk I/O", VxTheme::TEXT_PRIMARY);
+        VxProgressBar disk_bar;
+        disk_bar.x = w.x + 20;
+        disk_bar.y = content_y + 140;
+        disk_bar.w = w.w - 40;
+        disk_bar.h = 16;
+        disk_bar.progress_pct = 5; // Mock 5%
+        disk_bar.draw();
+        
+        draw_str(w.x + 20, content_y + 200, "Dark Mode", VxTheme::TEXT_PRIMARY);
+        static bool dark_mode = true;
+        VxToggle toggle;
+        toggle.x = w.x + w.w - 80;
+        toggle.y = content_y + 195;
+        toggle.w = 50;
+        toggle.h = 24;
+        toggle.is_on = dark_mode;
+        
+        if (clicked && mouse_x >= toggle.x && mouse_x < toggle.x + toggle.w && mouse_y >= toggle.y && mouse_y < toggle.y + toggle.h) {
+            dark_mode = !dark_mode;
         }
+        toggle.draw();
     }
 }
-
-#endif // APP_SYSMON_HPP

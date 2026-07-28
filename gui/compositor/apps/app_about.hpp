@@ -20,7 +20,7 @@ static void draw_app_about(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
             if (dx * dx + dy * dy <= 32 * 32) half = dx;
         }
         if (half >= 0)
-            vxair_fb_fill_rect(logo_cx - half, logo_cy + dy, half * 2 + 1, 1, VxTheme::accent_soft());
+            vxr_fill_rect(logo_cx - half, logo_cy + dy, half * 2 + 1, 1, VxTheme::accent_soft());
     }
     for (int dy = -28; dy <= 28; dy++) {
         int half = 0;
@@ -28,7 +28,7 @@ static void draw_app_about(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
             if (dx * dx + dy * dy <= 28 * 28) half = dx;
         }
         if (half >= 0)
-            vxair_fb_fill_rect(logo_cx - half, logo_cy + dy, half * 2 + 1, 1, VxTheme::SURFACE);
+            vxr_fill_rect(logo_cx - half, logo_cy + dy, half * 2 + 1, 1, VxTheme::SURFACE);
     }
     // "V" inside logo
     const char* v = "V";
@@ -47,7 +47,7 @@ static void draw_app_about(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
         draw_abstract_char(ax + 90 + i * 8, ay + 52, tagline[i], VxTheme::TEXT_MUTED);
 
     // Divider
-    vxair_fb_fill_rect(ax, ay + 84, aw, 1, VxTheme::BORDER_SUBTLE);
+    vxr_fill_rect(ax, ay + 84, aw, 1, VxTheme::BORDER_SUBTLE);
 
     // Spec cards — 2×3 grid
     struct SpecRow { const char* label; const char* value; };
@@ -71,7 +71,7 @@ static void draw_app_about(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
         VxPanel card{cx, cy, card_w, card_h, 0, VxTheme::SURFACE_HIGH};
         card.draw();
         // Accent dot
-        vxair_fb_fill_rect(cx + 10, cy + 10, 6, 6, accent);
+        vxr_fill_rect(cx + 10, cy + 10, 6, 6, accent);
         // Label
         for (int j = 0; specs[i].label[j]; j++)
             draw_abstract_char(cx + 24 + j * 8, cy + 10, specs[i].label[j], VxTheme::TEXT_MUTED);
@@ -86,5 +86,5 @@ static void draw_app_about(VxWindow& w, uint64_t frame, int mouse_x, int mouse_y
     for (int i = 0; footer[i]; i++)
         draw_abstract_char(ax + i * 8, fy, footer[i], VxTheme::TEXT_MUTED);
     // Accent dot at end
-    vxair_fb_fill_rect(ax + 26 * 8, fy + 4, 4, 4, accent);
+    vxr_fill_rect(ax + 26 * 8, fy + 4, 4, 4, accent);
 }

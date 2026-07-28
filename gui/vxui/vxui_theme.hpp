@@ -8,13 +8,13 @@
 namespace VxTheme {
 
 // Background — softer and cooler, less harsh
-constexpr uint32_t BASE_DEEP     = 0xFF080A10;  // Deepest background
-constexpr uint32_t BASE_DARK     = 0xFF0E1118;  // Desktop base
-constexpr uint32_t BASE_MID      = 0xFF151923;  // Mid background
-constexpr uint32_t SURFACE       = 0xFF1D2230;  // Card surface
-constexpr uint32_t SURFACE_HIGH  = 0xFF262C3B;  // Raised surface
-constexpr uint32_t OVERLAY       = 0xFF2E3547;  // Hover lift
-constexpr uint32_t GLASS_TINT    = 0xFF1A1F2C;  // Frosted glass
+constexpr uint32_t BASE_DEEP     = 0xFFE0EAF5;  // Deepest background
+constexpr uint32_t BASE_DARK     = 0xFFE8F0F8;  // Desktop base
+constexpr uint32_t BASE_MID      = 0xFFF0F5FA;  // Mid background
+constexpr uint32_t SURFACE       = 0xFFFFFFFF;  // Card surface
+constexpr uint32_t SURFACE_HIGH  = 0xFFF8FAFC;  // Raised surface
+constexpr uint32_t OVERLAY       = 0x333B8CFF;  // Subtle blue hover lift (transparent)
+constexpr uint32_t GLASS_TINT    = 0xDDF0F5FA;  // Real translucent frosted glass
 
 // Accent — electric ice blue, premium and vivid
 constexpr uint32_t ACCENT        = 0xFF3B8CFF;
@@ -28,15 +28,15 @@ constexpr uint32_t DANGER        = 0xFFFB7185;
 constexpr uint32_t WARNING       = 0xFFFBBF24;
 
 // Text — crisp, readable
-constexpr uint32_t TEXT_PRIMARY  = 0xFFF1F5FB;
-constexpr uint32_t TEXT_SECONDARY = 0xFF9AA4B8;
-constexpr uint32_t TEXT_MUTED    = 0xFF5E6A82;
+constexpr uint32_t TEXT_PRIMARY  = 0xFF101B2B;
+constexpr uint32_t TEXT_SECONDARY = 0xFF4A5568;
+constexpr uint32_t TEXT_MUTED    = 0xFF718096;
 
 // Borders — refined, not harsh
-constexpr uint32_t BORDER_SUBTLE = 0xFF2C3344;
-constexpr uint32_t BORDER_STRONG = 0xFF3B4559;
+constexpr uint32_t BORDER_SUBTLE = 0xFFD2DCE6;
+constexpr uint32_t BORDER_STRONG = 0xFFB0C0D4;
 constexpr uint32_t BORDER_ACCENT = 0xFF3B8CFF;
-constexpr uint32_t BORDER_BRIGHT = 0xFF52607A;
+constexpr uint32_t BORDER_BRIGHT = 0xFFE2E8F0;
 
 // Spacing
 constexpr int SP_XS   = 6;
