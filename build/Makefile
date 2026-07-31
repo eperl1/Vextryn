@@ -472,6 +472,54 @@ drivers/storage/nvme.c.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.s
 .PHONY : drivers/storage/nvme.c.s
 
+drivers/usb/rtl8852a_fw.o: drivers/usb/rtl8852a_fw.c.o
+.PHONY : drivers/usb/rtl8852a_fw.o
+
+# target to build an object file
+drivers/usb/rtl8852a_fw.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o
+.PHONY : drivers/usb/rtl8852a_fw.c.o
+
+drivers/usb/rtl8852a_fw.i: drivers/usb/rtl8852a_fw.c.i
+.PHONY : drivers/usb/rtl8852a_fw.i
+
+# target to preprocess a source file
+drivers/usb/rtl8852a_fw.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.i
+.PHONY : drivers/usb/rtl8852a_fw.c.i
+
+drivers/usb/rtl8852a_fw.s: drivers/usb/rtl8852a_fw.c.s
+.PHONY : drivers/usb/rtl8852a_fw.s
+
+# target to generate assembly for a file
+drivers/usb/rtl8852a_fw.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.s
+.PHONY : drivers/usb/rtl8852a_fw.c.s
+
+drivers/usb/usb.o: drivers/usb/usb.c.o
+.PHONY : drivers/usb/usb.o
+
+# target to build an object file
+drivers/usb/usb.c.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o
+.PHONY : drivers/usb/usb.c.o
+
+drivers/usb/usb.i: drivers/usb/usb.c.i
+.PHONY : drivers/usb/usb.i
+
+# target to preprocess a source file
+drivers/usb/usb.c.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.i
+.PHONY : drivers/usb/usb.c.i
+
+drivers/usb/usb.s: drivers/usb/usb.c.s
+.PHONY : drivers/usb/usb.s
+
+# target to generate assembly for a file
+drivers/usb/usb.c.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/vextryn_air.elf.dir/build.make CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.s
+.PHONY : drivers/usb/usb.c.s
+
 drivers/wireless/ax200.o: drivers/wireless/ax200.c.o
 .PHONY : drivers/wireless/ax200.o
 
@@ -1797,6 +1845,12 @@ help:
 	@echo "... drivers/storage/nvme.o"
 	@echo "... drivers/storage/nvme.i"
 	@echo "... drivers/storage/nvme.s"
+	@echo "... drivers/usb/rtl8852a_fw.o"
+	@echo "... drivers/usb/rtl8852a_fw.i"
+	@echo "... drivers/usb/rtl8852a_fw.s"
+	@echo "... drivers/usb/usb.o"
+	@echo "... drivers/usb/usb.i"
+	@echo "... drivers/usb/usb.s"
 	@echo "... drivers/wireless/ax200.o"
 	@echo "... drivers/wireless/ax200.i"
 	@echo "... drivers/wireless/ax200.s"

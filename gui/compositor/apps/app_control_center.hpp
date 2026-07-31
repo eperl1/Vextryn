@@ -91,10 +91,10 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
     // Toggle tiles
     struct TileInfo { const char* label; bool* state; uint32_t icon_color; };
     TileInfo tiles[6] = {
-        {"WiFi",      &g_state.show_top_bar,      accent},
-        {"Bluetooth", &g_state.show_desktop_glow, VxTheme::SUCCESS},
-        {"AirDrop",   &g_state.show_window_shadows, VxTheme::WARNING},
-        {"DND",       &g_state.focus_dim,          VxTheme::DANGER},
+        {"WiFi",      &g_state.wifi_enabled,      accent},
+        {"Bluetooth", &g_state.bluetooth_enabled, VxTheme::SUCCESS},
+        {"AirDrop",   &g_state.airdrop_enabled,   VxTheme::WARNING},
+        {"DND",       &g_state.dnd_enabled,       VxTheme::DANGER},
         {"Dark Mode", &g_state.high_contrast,      VxTheme::TEXT_PRIMARY},
         {"Large Ptr", &g_state.large_cursor,       VxTheme::TEXT_SECONDARY},
     };

@@ -14,6 +14,8 @@ bin/vextryn_air.elf: \
   CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o \
+  CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o \
+  CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o \
   CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o \
   CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o \
@@ -94,6 +96,10 @@ CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o:
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o:
 
 CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o:
+
+CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o:
+
+CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o:
 
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o:
 

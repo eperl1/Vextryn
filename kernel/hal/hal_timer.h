@@ -24,6 +24,18 @@ uint64_t vxair_hal_timer_get_uptime_ms(void);
  */
 void vxair_hal_timer_sleep_ms(uint64_t ms);
 
+/**
+ * @brief Get the current system uptime in microseconds
+ * @return Uptime in microseconds
+ */
+uint64_t vxair_hal_timer_get_uptime_us(void);
+
+/**
+ * @brief Sleep for the specified number of microseconds
+ * @param us Microseconds to sleep
+ */
+void vxair_hal_timer_sleep_us(uint64_t us);
+
 #ifdef __cplusplus
 }
 #endif

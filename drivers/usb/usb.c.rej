@@ -1,0 +1,10 @@
+--- usb.c
++++ usb.c
+@@ -384,6 +384,7 @@
+         tx_desc->mac_ax.macid = 0x80;
+         tx_desc->mac_ax.pckt_type = 1;
+         tx_desc->mac_ax.ls = 1;
++        tx_desc->mac_ax.qsel = 0;
+         tx_desc->mac_ax.qpn = 0;
+         tx_desc->mac_ax.amsdu = 0;
+         tx_desc->mac_ax.wlan_hdr_len = 0;

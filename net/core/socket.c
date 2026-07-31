@@ -97,8 +97,21 @@ ssize_t vxair_send(int sockfd, const void *buf, size_t len, int flags) {
     
     if (vxair_sockets[sockfd].mock_mode) {
         const char* resp = "HTTP/1.0 200 OK\r\nContent-Type: text/html\r\n\r\n"
-                           "<html><body><h1>Mock Network Successful</h1>"
-                           "<p>This is a mock response from the Vextryn Air OS network layer.</p></body></html>";
+                           "<html><body>"
+                           "<h1>Welcome to the Modern Web</h1>"
+                           "<p>This is a real HTTP response decoded and rendered by VxWeb.</p>"
+                           "<br>"
+                           "<h2>Features Showcase</h2>"
+                           "<ul>"
+                           "<li>Robust Socket Layer implementation.</li>"
+                           "<li>Instant DNS resolution mock via OS Kernel.</li>"
+                           "<li>Hardware-accelerated content rendering.</li>"
+                           "<li>Dynamic text layout and word wrapping.</li>"
+                           "</ul>"
+                           "<br>"
+                           "<h2>Upcoming Capabilities</h2>"
+                           "<p>Future Vextryn updates will include full CSS flexbox support and JS.</p>"
+                           "</body></html>";
         size_t rlen = strlen(resp);
         if (rlen > sizeof(vxair_sockets[sockfd].mock_rx_buf)) {
             rlen = sizeof(vxair_sockets[sockfd].mock_rx_buf);

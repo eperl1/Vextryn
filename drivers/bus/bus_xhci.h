@@ -8,15 +8,11 @@
 extern "C" {
 #endif
 
-/**
- * @brief Initialize the xHCI subsystem
- */
 void vxair_bus_xhci_init(void);
-
-/**
- * @brief Probe for xHCI controllers on the PCI bus
- */
 void vxair_bus_xhci_probe(void);
+void vxair_usb_core_test(void);
+int vxair_xhci_configure_endpoint(uint8_t slot_id, uint8_t ep_addr, uint16_t max_packet, uint8_t type);
+int vxair_xhci_queue_bulk_trb(uint8_t slot_id, uint8_t ep_addr, void* data, uint32_t len);
 
 #ifdef __cplusplus
 }

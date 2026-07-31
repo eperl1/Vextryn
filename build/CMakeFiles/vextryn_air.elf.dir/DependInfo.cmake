@@ -36,6 +36,8 @@ set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/ethan/Vextryn_Air/drivers/net/virtio_net.c" "CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/storage/ahci.c" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/storage/nvme.c" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o.d"
+  "/home/ethan/Vextryn_Air/drivers/usb/rtl8852a_fw.c" "CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o.d"
+  "/home/ethan/Vextryn_Air/drivers/usb/usb.c" "CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/wireless/ax200.c" "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o.d"
   "/home/ethan/Vextryn_Air/drivers/wireless/rtl8852.c" "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o.d"
   "/home/ethan/Vextryn_Air/fs/ext2.c" "CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o" "gcc" "CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o.d"

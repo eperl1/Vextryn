@@ -83,6 +83,10 @@ extern "C" {
         bool auto_center_windows;
         bool show_close_confirm;
         
+        bool wifi_enabled;
+        bool bluetooth_enabled;
+        bool airdrop_enabled;
+        bool dnd_enabled;
 
         int active_menu;
         int file_selected_idx;
@@ -140,6 +144,7 @@ extern "C" {
     static void draw_number(int x, int y, int num, uint32_t color);
     static void draw_segment(int x, int y, int length, bool horizontal, uint32_t color);
     static void draw_abstract_char(int x, int y, char c, uint32_t color);
+    static void draw_abstract_char_scaled(int x, int y, char c, uint32_t color, int scale);
     static void draw_app_icon(uint32_t x, uint32_t y, int app_index, bool hover);
     static void save_files_to_disk();
     // V5: lerp_color now delegates to VXRender's VxColor::lerp
@@ -852,6 +857,19 @@ extern "C" {
         }
     }
 
+    static void draw_abstract_char_scaled(int x, int y, char c, uint32_t color, int scale) {
+        if (c == ' ') return;
+        uint8_t index = (uint8_t)c;
+        for (int i = 0; i < 16; i++) {
+            uint8_t row = times_font[index][i];
+            for (int j = 0; j < 8; j++) {
+                if (row & (1 << (7 - j))) {
+                    vxr_fill_rect(x + (j * scale), y + (i * scale), scale, scale, color);
+                }
+            }
+        }
+    }
+
     // Draw a 32×32 app icon centered inside a cell of given size, clipping
     // any part that would exceed the cell.  This is the structural guarantee
     // that an icon can never overflow its container.
@@ -1285,7 +1303,8 @@ extern "C" {
                     vxr_fill_rect(tx_base + 18, dock_y + 50, 4, 4, VxTheme::accent());
                 }
 
-                draw_app_icon_in_cell(tx_base + 4, dock_y + 12, 32, 32, g_state.windows[i].app, ihover);
+                // Convert VxAppId (1-based) to app_index (0-based) for the icon generator
+                draw_app_icon_in_cell(tx_base + 4, dock_y + 12, 32, 32, g_state.windows[i].app - 1, ihover);
                 tx_base += 52;
             }
         }

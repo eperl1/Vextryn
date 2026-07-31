@@ -66,3 +66,27 @@ void vxair_hal_timer_sleep_ms(uint64_t ms) {
         __asm__ volatile ("pause" ::: "memory");
     }
 }
+
+uint64_t vxair_hal_timer_get_uptime_us(void) {
+    if (!g_hpet_available || !g_hpet_period) {
+        return 0; // Fallback required in full implementation
+    }
+    
+    uint64_t main_counter = g_hpet_regs[30]; // 0xF0 offset / 8 = 30
+    // femtoseconds to microseconds: divide by 10^9
+    return (main_counter * g_hpet_period) / 1000000000ULL;
+}
+
+void vxair_hal_timer_sleep_us(uint64_t us) {
+    if (!g_hpet_available) {
+        // Fallback delay loop
+        for (volatile uint64_t i = 0; i < us * 10; i++) {}
+        return; 
+    }
+    
+    uint64_t start = vxair_hal_timer_get_uptime_us();
+    while (vxair_hal_timer_get_uptime_us() - start < us) {
+        // Busy wait
+        __asm__ volatile ("pause" ::: "memory");
+    }
+}

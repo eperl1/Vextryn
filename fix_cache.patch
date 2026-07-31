@@ -1,0 +1,19 @@
+--- drivers/usb/usb.c
++++ drivers/usb/usb.c
+@@ -21,6 +21,7 @@
+     uint8_t* vendor_buf = (uint8_t*)(0xFFFFFFFF80000000ull + phys_addr);
+     for (int i=0; i<4; i++) vendor_buf[i] = 0;
+     
++    __asm__ volatile("clflush (%0)" :: "r"(vendor_buf) : "memory");
+     vxair_xhci_submit_control_transfer(slot_id, &req, (void*)(uintptr_t)phys_addr, 1);
+     
++    __asm__ volatile("clflush (%0)" :: "r"(vendor_buf) : "memory");
+     return ((uint32_t)vendor_buf[3] << 24) |
+            ((uint32_t)vendor_buf[2] << 16) |
+@@ -42,6 +43,7 @@
+     vendor_buf[2] = ((val >> 16) & 0xFF);
+     vendor_buf[3] = ((val >> 24) & 0xFF);
+     
++    __asm__ volatile("clflush (%0)" :: "r"(vendor_buf) : "memory");
+     vxair_xhci_submit_control_transfer(slot_id, &req, (void*)(uintptr_t)phys_addr, 0);
+ }

@@ -2,6 +2,8 @@
 
 #include "../../vxui/vxui_advanced.hpp"
 #include "../vxair_textinput.hpp"
+#include "../../../net/core/socket.h"
+
 
 struct BrowserHistoryEntry {
     int page;
@@ -22,6 +24,7 @@ struct BrowserTab {
     char search_buffer[128];
     int search_len;
     VxTextInput search_input;
+    char html_content[4096];
 };
 
 #define MAX_BROWSER_TABS 8
@@ -46,7 +49,8 @@ static void create_browser_tab() {
     tab.current_page = 0;
     tab.search_len = 0;
     tab.search_buffer[0] = 0;
-    tab.search_input.init(tab.search_buffer, &tab.search_len, 128);
+        tab.search_input.init(tab.search_buffer, &tab.search_len, 128);
+    tab.html_content[0] = 0;
     active_browser_tab = idx;
     url_focused = false;
     search_focused = false;
@@ -59,11 +63,46 @@ static void restore_history_idx() {
     for(int i=0; i<128; i++) tab.url_buffer[i] = tab.history[tab.history_idx].url[i];
 }
 
+static void browser_fetch_url(BrowserTab& tab, const char* url) {
+    uint32_t ip;
+    if (vxair_dns_resolve("mock.com", &ip) == 0) {
+        int sock = vxair_socket(VXAIR_AF_INET, VXAIR_SOCK_STREAM, VXAIR_IPPROTO_TCP);
+        if (sock >= 0) {
+            struct vxair_sockaddr_in addr;
+            addr.sin_family = VXAIR_AF_INET;
+            addr.sin_port = 80;
+            addr.sin_addr = ip;
+            if (vxair_connect(sock, &addr, sizeof(addr)) == 0) {
+                const char* req = "GET / HTTP/1.0\r\n\r\n";
+                vxair_send(sock, req, 18, 0);
+                
+                char resp[4096];
+                int len = vxair_recv(sock, resp, 4095, 0);
+                if (len > 0) {
+                    resp[len] = 0;
+                    char* body = resp;
+                    for (int i = 0; i < len - 3; i++) {
+                        if (resp[i] == '\r' && resp[i+1] == '\n' && resp[i+2] == '\r' && resp[i+3] == '\n') {
+                            body = resp + i + 4;
+                            break;
+                        }
+                    }
+                    int b_idx = 0;
+                    while(*body && b_idx < 4095) tab.html_content[b_idx++] = *body++;
+                    tab.html_content[b_idx] = 0;
+                }
+            }
+            vxair_close(sock);
+        }
+    }
+}
+
 static void browser_handle_key(char c) {
     BrowserTab& tab = browser_tabs[active_browser_tab];
     if (url_focused) {
         if (c == '\n' || c == '\r') {
-            tab.current_page = 1;
+                        tab.current_page = 1;
+            browser_fetch_url(tab, tab.url_buffer);
             if (tab.history_count < BROWSER_HISTORY_MAX) {
                 tab.history_idx = tab.history_count++;
                 tab.history[tab.history_idx].page = 1;
@@ -84,7 +123,8 @@ static void browser_handle_key(char c) {
             }
             tab.url_buffer[tab.url_len] = 0;
             
-            tab.current_page = 1;
+                        tab.current_page = 1;
+            browser_fetch_url(tab, tab.url_buffer);
             if (tab.history_count < BROWSER_HISTORY_MAX) {
                 tab.history_idx = tab.history_count++;
                 tab.history[tab.history_idx].page = 1;
@@ -328,16 +368,67 @@ static void draw_app_browser(VxWindow& w, uint64_t frame, int mouse_x, int mouse
         // Mock rendering for a page
         vxr_fill_rect(start_x, content_y, width, content_h, 0xFFFFFFFF); // White background for web
         
-        const char* line1 = "Welcome to the Mock Page!";
-        const char* line2 = "This page is rendered natively by VxWeb engine.";
-        const char* line3 = "Features: HTML parsing, CSS (coming soon).";
-        
-        for (int i=0; line1[i]; i++) draw_abstract_char(start_x + 40 + i*8, content_y + 40, line1[i], 0xFF000000);
-        for (int i=0; line2[i]; i++) draw_abstract_char(start_x + 40 + i*8, content_y + 80, line2[i], 0xFF333333);
-        for (int i=0; line3[i]; i++) draw_abstract_char(start_x + 40 + i*8, content_y + 120, line3[i], 0xFF333333);
-        
-        vxr_fill_rect(start_x + 40, content_y + 160, 200, 150, 0xFFE0E0E0);
-        const char* img_mock = "[Image Placeholder]";
-        for (int i=0; img_mock[i]; i++) draw_abstract_char(start_x + 60 + i*8, content_y + 220, img_mock[i], 0xFF666666);
+        int dx = start_x + 40;
+        int dy = content_y + 40;
+        int i = 0;
+        if (tab.html_content[0] == 0) {
+            const char* err = "No connection / Empty page";
+            for (int k=0; err[k]; k++) draw_abstract_char(dx + k*8, dy, err[k], 0xFF000000);
+        }
+        while(tab.html_content[i]) {
+            if (tab.html_content[i] == '<') {
+                if (tab.html_content[i+1] == 'h' && tab.html_content[i+2] == '1' && tab.html_content[i+3] == '>') {
+                    i += 4;
+                    while(tab.html_content[i] && !(tab.html_content[i] == '<' && tab.html_content[i+1] == '/')) {
+                        draw_abstract_char_scaled(dx, dy, tab.html_content[i], 0xFF000000, 3);
+                        dx += 24;
+                        if (dx > start_x + width - 40) { dx = start_x + 40; dy += 48; }
+                        i++;
+                    }
+                    dy += 64;
+                    dx = start_x + 40;
+                } else if (tab.html_content[i+1] == 'h' && tab.html_content[i+2] == '2' && tab.html_content[i+3] == '>') {
+                    i += 4;
+                    while(tab.html_content[i] && !(tab.html_content[i] == '<' && tab.html_content[i+1] == '/')) {
+                        draw_abstract_char_scaled(dx, dy, tab.html_content[i], 0xFF111111, 2);
+                        dx += 16;
+                        if (dx > start_x + width - 40) { dx = start_x + 40; dy += 32; }
+                        i++;
+                    }
+                    dy += 48;
+                    dx = start_x + 40;
+                } else if (tab.html_content[i+1] == 'p' && tab.html_content[i+2] == '>') {
+                    i += 3;
+                    while(tab.html_content[i] && !(tab.html_content[i] == '<' && tab.html_content[i+1] == '/')) {
+                        draw_abstract_char(dx, dy, tab.html_content[i], 0xFF333333);
+                        dx += 8;
+                        if (dx > start_x + width - 40) { dx = start_x + 40; dy += 16; }
+                        i++;
+                    }
+                    dy += 24;
+                    dx = start_x + 40;
+                } else if (tab.html_content[i+1] == 'l' && tab.html_content[i+2] == 'i' && tab.html_content[i+3] == '>') {
+                    i += 4;
+                    draw_abstract_char(dx, dy, '-', 0xFF333333);
+                    dx += 16;
+                    while(tab.html_content[i] && !(tab.html_content[i] == '<' && tab.html_content[i+1] == '/')) {
+                        draw_abstract_char(dx, dy, tab.html_content[i], 0xFF333333);
+                        dx += 8;
+                        if (dx > start_x + width - 40) { dx = start_x + 56; dy += 16; }
+                        i++;
+                    }
+                    dy += 20;
+                    dx = start_x + 40;
+                } else if (tab.html_content[i+1] == 'b' && tab.html_content[i+2] == 'r' && tab.html_content[i+3] == '>') {
+                    i += 4;
+                    dy += 16;
+                    dx = start_x + 40;
+                }
+                while(tab.html_content[i] && tab.html_content[i] != '>') i++;
+                if (tab.html_content[i] == '>') i++;
+            } else {
+                i++;
+            }
+        }
     }
 }

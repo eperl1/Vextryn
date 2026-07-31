@@ -27,9 +27,25 @@ CMakeFiles/vextryn_air.elf.dir/drivers/bus/bus_pci.c.o
 
 CMakeFiles/vextryn_air.elf.dir/drivers/bus/bus_xhci.c.o
  /home/ethan/Vextryn_Air/drivers/bus/bus_xhci.c
+ /home/ethan/Vextryn_Air/kernel/core/include/vxair_log.h
+ /home/ethan/Vextryn_Air/kernel/core/include/vxair_types.h
+ /home/ethan/Vextryn_Air/kernel/hal/hal_dma.h
  /home/ethan/Vextryn_Air/kernel/hal/hal_pci.h
+ /home/ethan/Vextryn_Air/drivers/usb/usb.h
  /home/ethan/Vextryn_Air/drivers/bus/bus_pci.h
  /home/ethan/Vextryn_Air/drivers/bus/bus_xhci.h
+ /usr/include/bits/libc-header-start.h
+ /usr/include/bits/long-double.h
+ /usr/include/bits/timesize.h
+ /usr/include/bits/wordsize.h
+ /usr/include/features-time64.h
+ /usr/include/features.h
+ /usr/include/gnu/stubs-64.h
+ /usr/include/gnu/stubs.h
+ /usr/include/stdc-predef.h
+ /usr/include/string.h
+ /usr/include/sys/cdefs.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdarg.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint-gcc.h
@@ -174,6 +190,38 @@ CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint-gcc.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint.h
 
+CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o
+ /home/ethan/Vextryn_Air/drivers/usb/rtl8852a_fw.c
+ /home/ethan/Vextryn_Air/drivers/usb/rtl8852a_fw.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint-gcc.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint.h
+
+CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o
+ /home/ethan/Vextryn_Air/drivers/usb/usb.c
+ /home/ethan/Vextryn_Air/kernel/core/include/vxair_log.h
+ /home/ethan/Vextryn_Air/kernel/core/include/vxair_types.h
+ /home/ethan/Vextryn_Air/kernel/hal/hal_timer.h
+ /home/ethan/Vextryn_Air/drivers/usb/rtl8852_dle.h
+ /home/ethan/Vextryn_Air/drivers/usb/usb.h
+ /usr/include/bits/libc-header-start.h
+ /usr/include/bits/long-double.h
+ /usr/include/bits/timesize.h
+ /usr/include/bits/wordsize.h
+ /usr/include/features-time64.h
+ /usr/include/features.h
+ /usr/include/gnu/stubs-64.h
+ /usr/include/gnu/stubs.h
+ /usr/include/stdc-predef.h
+ /usr/include/string.h
+ /usr/include/sys/cdefs.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdarg.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint-gcc.h
+ /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint.h
+
 CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o
  /home/ethan/Vextryn_Air/drivers/wireless/ax200.c
  /home/ethan/Vextryn_Air/drivers/wireless/ax200.h
@@ -243,6 +291,7 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o
  /home/ethan/Vextryn_Air/gui/vxui/vxui.hpp
  /home/ethan/Vextryn_Air/gui/vxui/vxui_theme.hpp
  /home/ethan/Vextryn_Air/gui/compositor/app_icons.h
+ /home/ethan/Vextryn_Air/net/core/socket.h
  /home/ethan/Vextryn_Air/gui/vxui/vxui.hpp
  /home/ethan/Vextryn_Air/gui/vxui/vxui_advanced.hpp
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_about.hpp
@@ -264,6 +313,41 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o
  /home/ethan/Vextryn_Air/gui/compositor/font8x8.h
  /home/ethan/Vextryn_Air/gui/compositor/times_font.h
  /home/ethan/Vextryn_Air/gui/compositor/vxair_textinput.hpp
+ /usr/include/bits/atomic_wide_counter.h
+ /usr/include/bits/byteswap.h
+ /usr/include/bits/endian.h
+ /usr/include/bits/endianness.h
+ /usr/include/bits/long-double.h
+ /usr/include/bits/pthreadtypes-arch.h
+ /usr/include/bits/pthreadtypes.h
+ /usr/include/bits/select.h
+ /usr/include/bits/stdint-intn.h
+ /usr/include/bits/struct_mutex.h
+ /usr/include/bits/struct_rwlock.h
+ /usr/include/bits/thread-shared-types.h
+ /usr/include/bits/time64.h
+ /usr/include/bits/timesize.h
+ /usr/include/bits/types.h
+ /usr/include/bits/types/__sigset_t.h
+ /usr/include/bits/types/clock_t.h
+ /usr/include/bits/types/clockid_t.h
+ /usr/include/bits/types/sigset_t.h
+ /usr/include/bits/types/struct_timespec.h
+ /usr/include/bits/types/struct_timeval.h
+ /usr/include/bits/types/time_t.h
+ /usr/include/bits/types/timer_t.h
+ /usr/include/bits/typesizes.h
+ /usr/include/bits/uintn-identity.h
+ /usr/include/bits/wordsize.h
+ /usr/include/endian.h
+ /usr/include/features-time64.h
+ /usr/include/features.h
+ /usr/include/gnu/stubs-64.h
+ /usr/include/gnu/stubs.h
+ /usr/include/stdc-predef.h
+ /usr/include/sys/cdefs.h
+ /usr/include/sys/select.h
+ /usr/include/sys/types.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdbool.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stddef.h
  /usr/lib/gcc/x86_64-pc-linux-gnu/16/include/stdint-gcc.h
@@ -896,6 +980,8 @@ bin/vextryn_air.elf
  /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/net/virtio_net.c.o
  /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/storage/ahci.c.o
  /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/storage/nvme.c.o
+ /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/usb/rtl8852a_fw.c.o
+ /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/usb/usb.c.o
  /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/wireless/ax200.c.o
  /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/drivers/wireless/rtl8852.c.o
  /home/ethan/Vextryn_Air/build/CMakeFiles/vextryn_air.elf.dir/fs/ext2.c.o

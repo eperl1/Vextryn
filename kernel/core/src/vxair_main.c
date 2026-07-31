@@ -70,9 +70,11 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
     // bypassing the layer of bugs that blocked both virtio-net and e1000 RX.
     extern void vxair_bus_pci_init(void);
     extern void vxair_bus_pci_scan(void);
+    extern void vxair_bus_xhci_probe(void);
     extern void vxair_net_init(void);
     vxair_bus_pci_init();
     vxair_bus_pci_scan();
+    vxair_bus_xhci_probe();
     vxair_net_init();  // inits eth/arp/ip/udp + rtl8139 driver
 
     // Quick ARP probe: send one ARP request for QEMU's gateway (10.0.2.2) and

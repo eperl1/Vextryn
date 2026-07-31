@@ -21,11 +21,9 @@ void* vxair_hal_dma_alloc(uint32_t size, uint32_t* physical_addr) {
     
     void* virt_addr = &g_dma_pool[g_dma_offset];
     
-    // In our simplified model without paging implemented in this file,
-    // virtual address is assumed to correspond to some known physical mapping.
-    // For the sake of this stub, we pretend virt == phys for this static array.
+    // The kernel is mapped at 0xFFFFFFFF80000000, so we subtract that to get the real physical address.
     if (physical_addr) {
-        *physical_addr = (uint32_t)(uintptr_t)virt_addr; 
+        *physical_addr = (uint32_t)((uintptr_t)virt_addr - 0xFFFFFFFF80000000ull);
     }
     
     g_dma_offset += aligned_size;
