@@ -21,13 +21,17 @@ extern "C" {
         VX_APP_TERMINAL,
         VX_APP_SNAKE,
         VX_APP_BROWSER,
-        // V5 new apps
         VX_APP_MAIL,
         VX_APP_GALLERY,
         VX_APP_MEDIA_PLAYER,
         VX_APP_CLOCK,
         VX_APP_ABOUT,
-        VX_APP_TASKS
+        VX_APP_TASKS,
+        VX_APP_CODE_EDITOR,
+        VX_APP_DOC_VIEWER,
+        VX_APP_ARCHIVE,
+        VX_APP_STORE,
+        VX_APP_SHOT
     };
 
     struct VxWindow {
@@ -62,7 +66,7 @@ extern "C" {
         int exact_x_fp; // fixed point x256
         int exact_y_fp; // fixed point x256
         int focused_window;
-        VxWindow windows[16];
+        VxWindow windows[20];
 
         // RAM Storage
         RamFile ram_files[10];
@@ -128,7 +132,7 @@ extern "C" {
     static VxGuiState g_state;
     static VxTextInput g_launcher_search_input;
     static uint64_t g_frame = 0;
-    static int g_z_order[16] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+    static int g_z_order[20] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
 
     static inline int clamp(int v, int min_v, int max_v) {
         if (v < min_v) return min_v;
@@ -211,7 +215,6 @@ extern "C" {
     #include "apps/app_notes.hpp"
     #include "apps/app_calculator.hpp"
     #include "apps/app_sysmon.hpp"
-    // V5 new apps
     #include "apps/app_mail.hpp"
     #include "apps/app_gallery.hpp"
     #include "apps/app_media_player.hpp"
@@ -219,22 +222,26 @@ extern "C" {
     #include "apps/app_about.hpp"
     #include "apps/app_tasks.hpp"
     #include "apps/app_control_center.hpp"
+    #include "apps/app_code_editor.hpp"
+    #include "apps/app_doc_viewer.hpp"
+    #include "apps/app_archive_manager.hpp"
+    #include "apps/app_software_center.hpp"
+    #include "apps/app_screenshot.hpp"
 
-    // Compute the Start Menu layout as a real structure so drawing and input
-    // share the exact same bounds.  This is the structural fix that prevents
-    // the Browser icon (or any icon) from ever overflowing the menu.
-    // V5: 14 apps in the launcher — 2-column grid layout
-    const char* g_app_names[14] = {
+    const char* g_app_names[19] = {
         "Calculator", "Notes", "SysMon", "Files",
         "Settings", "Terminal", "Snake", "Browser",
         "Mail", "Gallery", "Media", "Clock",
-        "About", "Tasks"
+        "About", "Tasks", "Editor", "Docs",
+        "Archive", "Software", "Shot"
     };
-    VxAppId g_app_ids[14] = {
+    VxAppId g_app_ids[19] = {
         VX_APP_CALCULATOR, VX_APP_NOTES, VX_APP_SYSMON, VX_APP_FILES,
         VX_APP_SETTINGS, VX_APP_TERMINAL, VX_APP_SNAKE, VX_APP_BROWSER,
         VX_APP_MAIL, VX_APP_GALLERY, VX_APP_MEDIA_PLAYER,
-        VX_APP_CLOCK, VX_APP_ABOUT, VX_APP_TASKS
+        VX_APP_CLOCK, VX_APP_ABOUT, VX_APP_TASKS,
+        VX_APP_CODE_EDITOR, VX_APP_DOC_VIEWER, VX_APP_ARCHIVE,
+        VX_APP_STORE, VX_APP_SHOT
     };
     
     static bool match_search(const char* name, const char* search, int search_len) {
@@ -256,9 +263,9 @@ extern "C" {
 
     struct VxLauncherLayout {
         VxRect card;
-        VxRect items[16];
-        VxRect icon_cells[16];
-        int app_indices[16];
+        VxRect items[24];
+        VxRect icon_cells[24];
+        int app_indices[24];
         int item_count;
     };
     
@@ -266,7 +273,7 @@ extern "C" {
         VxLauncherLayout L;
         L.item_count = 0;
         
-        for (int i = 0; i < 14; i++) {
+        for (int i = 0; i < 19; i++) {
             if (match_search(g_app_names[i], search, search_len)) {
                 L.app_indices[L.item_count++] = i;
             }
@@ -1083,13 +1090,14 @@ extern "C" {
         // Separator under title bar
         vxr_fill_rect(w.x + 1, w.y + tb_h, w.w - 2, 1, VxTheme::BORDER_SUBTLE);
 
-        // Window title text — V5: 14 app titles
+        // Window title text — 19 app titles
         const char* titles[] = {
             "Calculator","Notes","SysMon","Files","Settings","Terminal","Snake","Browser",
-            "Mail","Gallery","Media","Clock","About","Tasks"
+            "Mail","Gallery","Media","Clock","About","Tasks","Code Editor","Doc Viewer",
+            "Archive Manager","Software Store","Screen Capture"
         };
         int title_idx = (int)w.app - 1;
-        if (title_idx >= 0 && title_idx < 14) {
+        if (title_idx >= 0 && title_idx < 19) {
             const char* tn = titles[title_idx];
             int tx = w.x + 16;
             for (int i = 0; tn[i]; i++) {
@@ -1163,6 +1171,16 @@ extern "C" {
             draw_app_about(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         } else if (w.app == VX_APP_TASKS) {
             draw_app_tasks(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+        } else if (w.app == VX_APP_CODE_EDITOR) {
+            draw_app_code_editor(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+        } else if (w.app == VX_APP_DOC_VIEWER) {
+            draw_app_doc_viewer(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+        } else if (w.app == VX_APP_ARCHIVE) {
+            draw_app_archive_manager(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+        } else if (w.app == VX_APP_STORE) {
+            draw_app_software_center(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
+        } else if (w.app == VX_APP_SHOT) {
+            draw_app_screenshot(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         }
 
         g_vxr_ctx.pop_clip(old_clip);
@@ -1465,13 +1483,6 @@ extern "C" {
         // V5: Initialize the VXRender graphics context
         g_vxr_ctx.init();
         vxair_log_info("VXRender: graphics context initialized (%dx%d)", W, H);
-        
-        // ---- SAFETY FALLBACK: if anything below fails, at least show visible color ----
-        // V2 Fallback: deep space background with sapphire accent bars
-        vxair_fb_clear(VxTheme::BASE_DEEP);
-        vxr_fill_rect(W / 4, H / 4, W / 4, H / 4, VxTheme::SURFACE);
-        vxr_fill_rect(W / 2, H / 2, W / 4, H / 4, VxTheme::accent());
-        vxair_fb_flip();
 
         g_state.launcher_open = false;
         g_state.control_center_open = false;
@@ -1522,22 +1533,26 @@ extern "C" {
             g_state.ram_files[i].name[0] = 0;
         }
 
-        g_state.windows[0] = {false, VX_APP_CALCULATOR, 160, 130, 300, 390, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[1] = {false, VX_APP_NOTES, 395, 110, 420, 420, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[2] = {false, VX_APP_SYSMON, 235, 170, 500, 330, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[3] = {false, VX_APP_FILES, 100, 100, 600, 400, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[4] = {false, VX_APP_SETTINGS, 150, 150, 640, 480, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[5] = {false, VX_APP_TERMINAL, 50, 50, 600, 400, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[6] = {false, VX_APP_SNAKE, 200, 200, 400, 428, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[7] = {false, VX_APP_BROWSER, 80, 80, 640, 480, false, 0, 0, false, false, false, 0,0,0,0};
-        // V5 new app windows
+        g_state.windows[0]  = {false, VX_APP_CALCULATOR,   160, 130, 300, 390, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[1]  = {false, VX_APP_NOTES,        395, 110, 420, 420, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[2]  = {false, VX_APP_SYSMON,       235, 170, 500, 330, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[3]  = {false, VX_APP_FILES,        100, 100, 600, 400, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[4]  = {false, VX_APP_SETTINGS,     150, 150, 640, 480, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[5]  = {false, VX_APP_TERMINAL,     50,  50,  600, 400, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[6]  = {false, VX_APP_SNAKE,        200, 200, 400, 428, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[7]  = {false, VX_APP_BROWSER,      80,  80,  640, 480, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[8]  = {false, VX_APP_MAIL,         120, 90,  720, 480, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[9]  = {false, VX_APP_GALLERY,      300, 100, 480, 380, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[10] = {false, VX_APP_MEDIA_PLAYER, 180, 120, 400, 400, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[11] = {false, VX_APP_CLOCK,        250, 80,  320, 340, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[12] = {false, VX_APP_ABOUT,        200, 100, 480, 400, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[13] = {false, VX_APP_TASKS,        300, 140, 360, 400, false, 0, 0, false, false, false, 0,0,0,0};
-        for (int i = 14; i < 16; i++) g_state.windows[i] = {false, VX_APP_NONE, 0, 0, 0, 0, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[14] = {false, VX_APP_CODE_EDITOR,  100, 80,  640, 480, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[15] = {false, VX_APP_DOC_VIEWER,   140, 100, 600, 460, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[16] = {false, VX_APP_ARCHIVE,      180, 120, 520, 380, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[17] = {false, VX_APP_STORE,        120, 90,  660, 480, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[18] = {false, VX_APP_SHOT,         220, 140, 420, 300, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[19] = {false, VX_APP_NONE,         0,   0,   0,   0,   false, 0, 0, false, false, false, 0,0,0,0};
         
         mouse_init();
 
@@ -1619,12 +1634,23 @@ extern "C" {
         vxair_log_info("GUI: compositor started at 60fps");
 
         g_frame = 0;
+        VxDamageTracker damage_tracker;
+        damage_tracker.reset();
+
         while (1) {
             handle_input(W, H);
             if (g_frame == 0) vxair_log_info("COMP MARK 3: immediately before first desktop render");
             draw_polished_desktop(W, H);
             if (g_frame == 0) vxair_log_info("COMP MARK 4: immediately after first desktop render");
-            vxair_fb_flip();
+
+            // Sub-region dirty rect presentation step
+            if (g_frame == 0 || damage_tracker.count == 0) {
+                vxair_fb_flip();
+            } else {
+                vxair_gpu_fb_present_rects(damage_tracker.rects, damage_tracker.count);
+                damage_tracker.reset();
+            }
+
             if (g_frame == 0) vxair_log_info("COMP MARK 5: immediately after first framebuffer flip/present");
             vxair_hpet_sleep_ms(3);
             g_frame++;

@@ -40,3 +40,26 @@ void vxair_gpu_fb_put_pixel(uint32_t x, uint32_t y, uint32_t color) {
     uint32_t* pixel = (uint32_t*)((uint8_t*)g_fb_info.backbuffer_base + y * g_fb_info.pitch + x * 4);
     *pixel = color;
 }
+
+void vxair_gpu_fb_present_rect(int32_t x, int32_t y, int32_t w, int32_t h) {
+    if (!g_fb_info.framebuffer_base || !g_fb_info.backbuffer_base) return;
+    if (x < 0) { w += x; x = 0; }
+    if (y < 0) { h += y; y = 0; }
+    if (x + w > (int32_t)g_fb_info.width) w = (int32_t)g_fb_info.width - x;
+    if (y + h > (int32_t)g_fb_info.height) h = (int32_t)g_fb_info.height - y;
+    if (w <= 0 || h <= 0) return;
+
+    uint32_t bytes_per_line = w * 4;
+    for (int32_t r = 0; r < h; r++) {
+        uint8_t* src = (uint8_t*)g_fb_info.backbuffer_base + (y + r) * g_fb_info.pitch + x * 4;
+        uint8_t* dst = (uint8_t*)g_fb_info.framebuffer_base + (y + r) * g_fb_info.pitch + x * 4;
+        memcpy(dst, src, bytes_per_line);
+    }
+}
+
+void vxair_gpu_fb_present_rects(const vxair_rect_t* rects, uint32_t count) {
+    if (!rects) return;
+    for (uint32_t i = 0; i < count; i++) {
+        vxair_gpu_fb_present_rect(rects[i].x, rects[i].y, rects[i].w, rects[i].h);
+    }
+}

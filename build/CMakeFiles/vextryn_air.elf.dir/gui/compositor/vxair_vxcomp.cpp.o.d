@@ -15,6 +15,9 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: \
  /home/ethan/Vextryn_Air/gui/compositor/../vxui/vxui.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/../vxui/vxui_theme.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/../vxui/../vxrender/vxrender.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxui/../vxrender/vxsurface.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxui/../vxrender/../../drivers/gpu/vxair_gpu_fb.h \
+ /home/ethan/Vextryn_Air/gui/compositor/../vxui/../vxrender/vxrhi.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_file_manager.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/../../vxui/vxui_advanced.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/../../vxui/vxui.hpp \
@@ -52,4 +55,10 @@ CMakeFiles/vextryn_air.elf.dir/gui/compositor/vxair_vxcomp.cpp.o: \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_clock.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_about.hpp \
  /home/ethan/Vextryn_Air/gui/compositor/apps/app_tasks.hpp \
- /home/ethan/Vextryn_Air/gui/compositor/apps/app_control_center.hpp
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_control_center.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_code_editor.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/../../vxui/vxui.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_doc_viewer.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_archive_manager.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_software_center.hpp \
+ /home/ethan/Vextryn_Air/gui/compositor/apps/app_screenshot.hpp

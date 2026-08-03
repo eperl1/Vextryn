@@ -26,16 +26,6 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
     vxair_fb_init(multiboot_info);
     vxair_fb_test();
 
-    // 3a. Minimal render test (proves pipeline before compositor loop runs)
-    {
-        uint32_t _W = vxair_fb_get_width();
-        uint32_t _H = vxair_fb_get_height();
-        vxair_fb_clear(0xFF1E293B);
-        vxair_fb_fill_rect(_W / 4, _H / 4, _W / 4, _H / 4, 0xFFFFFFFF);
-        vxair_fb_fill_rect(_W / 2, _H / 2, _W / 4, _H / 4, 0xFF0000FF);
-        vxair_fb_flip();
-    }
-
     // 3. ACPI initialization — must happen before any ACPI table lookups (HPET, MCFG, etc.)
     // The RSDP address may be provided by the bootloader in boot_info->rsdp_address,
     // or we scan the standard BIOS memory area (0xE0000–0xFFFFF) as a fallback.
@@ -66,15 +56,11 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
     vxair_log_info("Kernel Core initialized successfully.");
 
     // Networking: rtl8139 driver + quick ARP probe (non-blocking, <2s timeout).
-    // rtl8139 uses I/O ports exclusively (no MMIO/MMCONFIG/cacheability dependency),
-    // bypassing the layer of bugs that blocked both virtio-net and e1000 RX.
     extern void vxair_bus_pci_init(void);
     extern void vxair_bus_pci_scan(void);
-    extern void vxair_bus_xhci_probe(void);
     extern void vxair_net_init(void);
     vxair_bus_pci_init();
     vxair_bus_pci_scan();
-    vxair_bus_xhci_probe();
     vxair_net_init();  // inits eth/arp/ip/udp + rtl8139 driver
 
     // Quick ARP probe: send one ARP request for QEMU's gateway (10.0.2.2) and

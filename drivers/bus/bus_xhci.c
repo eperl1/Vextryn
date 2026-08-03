@@ -187,8 +187,11 @@ void vxair_xhci_submit_control_transfer(uint8_t slot_id, vxair_usb_setup_t* setu
     
     // 2. Data Stage TRB
     if (setup->wLength > 0) {
-        ep0_ring[ep0_enqueue].param_low = (uint32_t)(uintptr_t)data;
-        ep0_ring[ep0_enqueue].param_high = 0;
+        uint64_t data_phys = (uint64_t)(uintptr_t)data;
+        if (data_phys >= 0xFFFFFFFF80000000ull) data_phys -= 0xFFFFFFFF80000000ull;
+        
+        ep0_ring[ep0_enqueue].param_low = (uint32_t)data_phys;
+        ep0_ring[ep0_enqueue].param_high = (uint32_t)(data_phys >> 32);
         ep0_ring[ep0_enqueue].status = setup->wLength; // Transfer Length is bits 0:16
         ep0_ring[ep0_enqueue].control = (3 << 10) | (dir_in ? (1 << 16) : 0) | (ep0_cycle & 1); // Type 3 (Data)
         ep0_enqueue++;
@@ -258,17 +261,20 @@ int vxair_xhci_configure_endpoint(uint8_t slot_id, uint8_t ep_addr, uint16_t max
 }
 
 int vxair_xhci_queue_bulk_trb(uint8_t slot_id, uint8_t ep_addr, void* data, uint32_t len) {
-    uint8_t ep_num = ep_addr & 0x0F;
+    uint8_t ep_num = ep_addr & 0x7F;
     uint8_t dir_in = (ep_addr & 0x80) ? 1 : 0;
-    uint8_t dci = (ep_num * 2) + (dir_in ? 1 : 0);
+    uint8_t dci = (ep_num * 2) + dir_in;
     
     if (!ep_rings[dci]) return -1;
     
-    uint32_t enq = ep_enqueues[dci];
-    uint32_t cyc = ep_cycles[dci];
+    int enq = ep_enqueues[dci];
+    int cyc = ep_cycles[dci];
     
-    ep_rings[dci][enq].param_low = (uint32_t)(uintptr_t)data;
-    ep_rings[dci][enq].param_high = 0;
+    uint64_t data_phys = (uint64_t)(uintptr_t)data;
+    if (data_phys >= 0xFFFFFFFF80000000ull) data_phys -= 0xFFFFFFFF80000000ull;
+    
+    ep_rings[dci][enq].param_low = (uint32_t)data_phys;
+    ep_rings[dci][enq].param_high = (uint32_t)(data_phys >> 32);
     ep_rings[dci][enq].status = len;
     __asm__ volatile("mfence" ::: "memory");
     // TRB Type 1 (Normal), IOC = 1, Cycle bit
@@ -431,6 +437,8 @@ void vxair_bus_xhci_probe(void) {
                     ep0_ring = vxair_hal_dma_alloc(4096, &phys);
                     memset(ep0_ring, 0, 4096);
                     ep0_ring_phys = phys;
+                    ep0_enqueue = 0;
+                    ep0_cycle = 1;
                     
                     xhci_ep_ctx_t* ep0 = (xhci_ep_ctx_t*)((uint8_t*)input_ctx + xhci_ctx_size * 2);
                     ep0->info[1] = (3 << 1) | (4 << 3) | 8; // EP Type 4 (Control), Max Packet 8 (dummy for init)

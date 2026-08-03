@@ -37,6 +37,10 @@ vxair_fb_info_t* vxair_gpu_get_fb_info(void);
  */
 void vxair_gpu_fb_swap_buffers(void);
 
+typedef struct {
+    int32_t x, y, w, h;
+} vxair_rect_t;
+
 /**
  * @brief Draw a pixel to the back buffer
  * @param x X coordinate
@@ -44,6 +48,16 @@ void vxair_gpu_fb_swap_buffers(void);
  * @param color ARGB color
  */
 void vxair_gpu_fb_put_pixel(uint32_t x, uint32_t y, uint32_t color);
+
+/**
+ * @brief Present specific dirty rectangle from back buffer to front buffer
+ */
+void vxair_gpu_fb_present_rect(int32_t x, int32_t y, int32_t w, int32_t h);
+
+/**
+ * @brief Present multiple dirty rectangles
+ */
+void vxair_gpu_fb_present_rects(const vxair_rect_t* rects, uint32_t count);
 
 #ifdef __cplusplus
 }
