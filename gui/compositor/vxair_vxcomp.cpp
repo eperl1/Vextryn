@@ -134,6 +134,14 @@ extern "C" {
     static uint64_t g_frame = 0;
     static int g_z_order[20] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19};
 
+    // ===== Static wallpaper cache: the desktop wallpaper (gradient + glows + grid) is
+    // invariant across frames, so render it once and blit it each frame instead of
+    // recomputing per-pixel lerps and alpha-blended glow circles on every frame. =====
+    extern void* vxair_kmalloc(size_t size);
+    static uint32_t* g_wp_cache = nullptr;
+    static bool g_wp_cached = false;
+    static int g_wp_w = 0;
+
     static inline int clamp(int v, int min_v, int max_v) {
         if (v < min_v) return min_v;
         if (v > max_v) return max_v;
@@ -167,6 +175,7 @@ extern "C" {
     #include "ata_storage.hpp"
     #include "../vxrender/vxrender.hpp"
     #include "../vxui/vxui.hpp"
+    #include "../vxui/vx_text.hpp"
     #include "apps/app_file_manager.hpp"
 
     static inline void write_u32_le(uint8_t* p, uint32_t value) {
@@ -279,34 +288,46 @@ extern "C" {
             }
         }
         
-        int cols = 4;
+        int cols = 6;
         int rows = (L.item_count + cols - 1) / cols;
         if (rows == 0) rows = 1;
-        int item_w = 80;
-        int item_h = 90;
-        int gap_x = 24;
-        int gap_y = 24;
-        int pad = 32;
-        int header_h = 88;
-        
-        int menu_w = (item_w * cols) + (gap_x * (cols - 1)) + (pad * 2);
-        int menu_h = header_h + (rows * item_h) + (gap_y * (rows - 1)) + pad;
-        
+        int item_w = 96;
+        int item_h = 96;
+        int gap_x = 2;
+        int gap_y = 2;
+        int pad = 14;
+        int header_h = 68;
+        int footer_h = 58;
+        int footer_gap = 10;
+
+        int grid_w = (item_w * cols) + (gap_x * (cols - 1));
+        int menu_w = 660;
+        if (menu_w < grid_w + pad * 2) menu_w = grid_w + pad * 2;
+        int menu_h = header_h + (rows * item_h) + (gap_y * (rows - 1)) + footer_gap + footer_h + pad;
+
         // Centered above the dock
         int menu_x = (W - menu_w) / 2;
         int menu_y = H - 56 - 20 - menu_h - 20;
         if (menu_y < 40) menu_y = 40;
-        
+
         L.card = {menu_x, menu_y, menu_w, menu_h};
+        int grid_x = menu_x + (menu_w - grid_w) / 2;
         for (int i = 0; i < L.item_count; i++) {
             int r = i / cols;
             int c = i % cols;
-            int item_x = menu_x + pad + c * (item_w + gap_x);
+            int item_x = grid_x + c * (item_w + gap_x);
             int item_y = menu_y + header_h + r * (item_h + gap_y);
             L.items[i] = {item_x, item_y, item_w, item_h};
-            L.icon_cells[i] = {item_x + (item_w - 48)/2, item_y + 8, 48, 48};
+            L.icon_cells[i] = {item_x + (item_w - 44)/2, item_y + 6, 44, 44};
         }
         return L;
+    }
+
+    static int find_taskbar_window_idx(VxAppId app_id) {
+        for (int i = 0; i < 16; i++) {
+            if (g_state.windows[i].open && g_state.windows[i].app == app_id) return i;
+        }
+        return -1;
     }
 
     static void mouse_wait(uint8_t type) {
@@ -514,33 +535,14 @@ extern "C" {
                     
                     // V2 Mouse: precision-tuned scaling with acceleration.
                     // Low speed = precise, high speed = faster. No jitter.
-                    int lvl = g_state.mouse_sensitivity_level;
-                    if (lvl < 1) lvl = 1; if (lvl > 100) lvl = 100;
-                    // Quadratic scaling curve: 1 = ~0.125x, 50 = ~1.1x, 100 = ~4.0x
-                    int scale = 128 + (lvl * lvl * 400) / 1000;
-                    
-                    // Acceleration: small movements get less boost, large movements get more
-                    // This gives precision for small moves AND speed for large moves
-                    int32_t speed_sq = rdx * rdx + rdy * rdy;
-                    if (speed_sq > 256) {
-                        // Fast movement — boost scale
-                        scale = scale * 3 / 2;
-                    } else if (speed_sq < 25) {
-                        // Slow movement — reduce scale for precision
-                        scale = scale * 2 / 3;
-                    }
-                    
-                    // Sub-pixel accumulation with 10-bit precision for smoothness
-                    g_state.exact_x_fp += rdx * scale;
-                    g_state.exact_y_fp -= rdy * scale;
-                    
-                    // Use 10-bit fractional for smoother pixel rounding
+                    // Keep pointer movement 1:1 with PS/2 deltas so the visible
+                    // pointer stays aligned with hit targets in QEMU.
+                    (void)g_state.mouse_sensitivity_level;
+                    g_state.exact_x_fp += (rdx << 10);
+                    g_state.exact_y_fp -= (rdy << 10);
+
                     g_state.mouse_x = (g_state.exact_x_fp + 512) >> 10;
                     g_state.mouse_y = (g_state.exact_y_fp + 512) >> 10;
-                    
-                    // Re-sync fixed point to actual pixel to prevent drift
-                    g_state.exact_x_fp = g_state.mouse_x << 10;
-                    g_state.exact_y_fp = g_state.mouse_y << 10;
                     
                     if (g_state.mouse_x < 0) { g_state.mouse_x = 0; g_state.exact_x_fp = 0; }
                     if (g_state.mouse_y < 0) { g_state.mouse_y = 0; g_state.exact_y_fp = 0; }
@@ -575,6 +577,7 @@ extern "C" {
                         uint32_t tb_y = H - tb_h;
                         uint32_t mx = g_state.mouse_x;
                         uint32_t my = g_state.mouse_y;
+                        vxair_log_info("VX: click (%u,%u) cc_open=%d launcher=%d", mx, my, (int)g_state.control_center_open, (int)g_state.launcher_open);
 
                         // 0. Control Center button — top-right corner of top bar
                         uint32_t top_y = 12;
@@ -585,6 +588,20 @@ extern "C" {
                             g_state.control_center_open = !g_state.control_center_open;
                             g_state.active_menu = 0;
                             handled = true;
+                        }
+
+                        // 0.1 Tray WiFi button → Quick settings (Open Design: #btn-tray opens .popover).
+                        // Hit region spans the whole right tray icon cluster (WiFi/Bluetooth/Volume/Battery).
+                        {
+                            uint32_t dock_h = VxTheme::TASKBAR_H;
+                            uint32_t tray_y = H - dock_h + 8;
+                            uint32_t rx = W - 12 - 152;
+                            if (!handled && mx >= rx - 8 && mx <= rx + 92 && my >= tray_y + 2 && my <= tray_y + 42) {
+                                g_state.control_center_open = !g_state.control_center_open;
+                                g_state.active_menu = 0;
+                                handled = true;
+                                vxair_log_info("VX: tray click toggled CC -> %d", (int)g_state.control_center_open);
+                            }
                         }
                         
                         // Left Pill Menus
@@ -617,14 +634,11 @@ extern "C" {
                             }
                         }
                         // 1. Launcher button — must match draw code
-                        int open_count_dock = 0;
-                        for (int i = 0; i < 16; i++) if (g_state.windows[i].open) open_count_dock++;
-                        uint32_t dock_h = 56;
-                        uint32_t dock_w = 80 + (open_count_dock * 52);
-                        uint32_t dock_x = (W - dock_w) / 2;
-                        uint32_t dock_y = H - dock_h - 20;
-                        uint32_t lx_click = dock_x + 8;
+                        uint32_t dock_h = VxTheme::TASKBAR_H;
+                        uint32_t dock_y = H - dock_h;
+                        uint32_t lx_click = VxTheme::TASKBAR_PAD;
                         uint32_t ly_click = dock_y + 8;
+                        uint32_t app_x = lx_click + 52;
 
                         if (mx >= lx_click && mx <= lx_click + 40 && my >= ly_click && my <= ly_click + 40) {
                             g_state.launcher_open = !g_state.launcher_open;
@@ -649,18 +663,20 @@ extern "C" {
                             }
                         }
 
-                        // 2.5 Taskbar apps — centered, must match draw code
+                        // 2.5 Taskbar apps — fixed buttons, must match draw code
                         if (!handled) {
-                            uint32_t tx_base = lx_click + 64;
-                            for (int i=0; i<16; i++) {
-                                if (g_state.windows[i].open) {
-                                    if (mx >= tx_base && mx <= tx_base + 36 && my >= dock_y + 10 && my <= dock_y + 46) {
-                                        bring_to_front(i);
-                                        g_state.windows[i].is_minimized = false;
-                                        handled = true;
-                                    }
-                                    tx_base += 52;
+                            const VxAppId task_apps[6] = {
+                                VX_APP_FILES, VX_APP_TERMINAL, VX_APP_BROWSER,
+                                VX_APP_CODE_EDITOR, VX_APP_MAIL, VX_APP_MEDIA_PLAYER
+                            };
+                            uint32_t tx_base = app_x;
+                            for (int i = 0; i < 6; i++) {
+                                if (mx >= tx_base && mx <= tx_base + 40 && my >= ly_click && my <= ly_click + 40) {
+                                    open_app(task_apps[i]);
+                                    handled = true;
+                                    break;
                                 }
+                                tx_base += 48;
                             }
                         }
 
@@ -877,145 +893,126 @@ extern "C" {
         }
     }
 
-    // Draw a 32×32 app icon centered inside a cell of given size, clipping
-    // any part that would exceed the cell.  This is the structural guarantee
-    // that an icon can never overflow its container.
+    // Open Design launcher/taskbar icon: neutral surface-2 cell with a
+    // 1px border and a monochrome stroke glyph (.la-ic / .tb-app).
+    // Glyphs are authored in a 22×22 unit space and scaled to the cell.
     static void draw_generated_icon(int cx, int cy, int cw, int ch, int app_index, bool hover) {
-        if (app_index < 0 || app_index > 13) return;
-        
-        // Define base background gradients for all 14 apps
-        uint32_t bg_top[14] = {
-            0xFFFF9F0A, // 0 Calc (Orange)
-            0xFFFFD60A, // 1 Notes (Yellow)
-            0xFF333333, // 2 SysMon (Dark Grey)
-            0xFF0A84FF, // 3 Files (Blue)
-            0xFF8E8E93, // 4 Settings (Grey)
-            0xFF000000, // 5 Terminal (Black)
-            0xFF30D158, // 6 Snake (Green)
-            0xFF5AC8FA, // 7 Browser (Light Blue)
-            0xFF409CFF, // 8 Mail (Blue)
-            0xFFBF5AF2, // 9 Gallery (Purple)
-            0xFFFF375F, // 10 Media (Pink)
-            0xFF34C759, // 11 Clock (Emerald)
-            0xFFFF9F0A, // 12 About (Amber)
-            0xFF32ADE6  // 13 Tasks (Cyan)
+        if (app_index < 0 || app_index > 18) return;
+
+        int r = 8;                              // design radius (8px)
+        uint32_t bg = VxTheme::SURFACE_2;       // cell background (surface-2)
+        uint32_t cell_border = hover ? VxTheme::BORDER_STRONG_A : VxTheme::BORDER_ALPHA;
+        vxui_draw_rounded_rect(cx, cy, cw, ch, r, bg);
+        vxr_rounded_border(cx, cy, cw, ch, r, cell_border);
+
+        // Glyph: centered, ~cw/2 wide (design: 22px glyph in 44px cell)
+        int S = cw / 2;
+        if (S < 8) S = 8;
+        int u = S / 22; if (u < 1) u = 1;
+        int ox = cx + (cw - S) / 2;
+        int oy = cy + (ch - S) / 2;
+        uint32_t col = hover ? VxTheme::TEXT_PRIMARY : VxTheme::FG_SOFT;
+        uint32_t cyan = VxTheme::CYAN;
+
+        auto g = [&](int x, int y, int w, int h, uint32_t c) {
+            int rw = w * u; if (rw < 1) rw = 1;
+            int rh = h * u; if (rh < 1) rh = 1;
+            vxr_fill_rect(ox + x * u, oy + y * u, rw, rh, c);
         };
-        uint32_t bg_bot[14] = {
-            0xFFFF8C00, // 0 Calc
-            0xFFFFCC00, // 1 Notes
-            0xFF1C1C1E, // 2 SysMon
-            0xFF0066CC, // 3 Files
-            0xFF636366, // 4 Settings
-            0xFF111111, // 5 Terminal
-            0xFF28A745, // 6 Snake
-            0xFF007AFF, // 7 Browser
-            0xFF007AFF, // 8 Mail
-            0xFFAF52DE, // 9 Gallery
-            0xFFFF2D55, // 10 Media
-            0xFF28CD41, // 11 Clock
-            0xFFFF8C00, // 12 About
-            0xFF00A2FF  // 13 Tasks
+        auto gc = [&](int x, int y, int rad, uint32_t c) {
+            int rr = rad * u; if (rr < 1) rr = 1;
+            vxr_circle(ox + x * u, oy + y * u, rr, c);
         };
-        
-        // App icon background - soft rounded squircle
-        int r = cw / 4;
-        vxr_gradient_v(cx, cy, cw, ch, bg_top[app_index], bg_bot[app_index]);
-        // To make it rounded, we actually want to draw a rounded rect instead of a pure block
-        // We'll draw the rounded rect using vxui_draw_rounded_rect over black, but since we don't have a rounded gradient,
-        // we'll just draw a flat rounded rect for now.
-        vxr_fill_rect(cx, cy, cw, ch, 0x00000000); // clear
-        vxui_draw_rounded_rect(cx, cy, cw, ch, r, bg_bot[app_index]); // Base flat color
-        
-        // Draw the inner glyph
-        int center_x = cx + cw / 2;
-        int center_y = cy + ch / 2;
-        uint32_t fg = 0xFFFFFFFF; // White for most glyphs
 
         switch (app_index) {
-            case 0: // Calculator
-                vxr_fill_rect(center_x - 6, center_y - 2, 12, 4, fg); // -
-                vxr_fill_rect(center_x - 2, center_y - 6, 4, 12, fg); // |
+            case 0: // Calculator — display + keypad
+                g(4, 4, 14, 4, col);
+                g(4, 11, 4, 4, col); g(10, 11, 4, 4, col); g(16, 11, 4, 4, col);
+                g(4, 17, 4, 4, col); g(10, 17, 4, 4, col); g(16, 17, 4, 4, col);
                 break;
-            case 1: // Notes
-                vxr_fill_rect(cx + 8, cy + 8, cw - 16, 4, fg);
-                vxr_fill_rect(cx + 8, cy + 16, cw - 20, 4, fg);
-                vxr_fill_rect(cx + 8, cy + 24, cw - 24, 4, fg);
+            case 1: // Notes — ruled lines
+                g(4, 5, 14, 2, col); g(4, 9, 11, 2, col);
+                g(4, 13, 14, 2, col); g(4, 17, 8, 2, col);
                 break;
-            case 2: // SysMon
-                vxr_fill_rect(cx + 6, center_y, 4, 10, 0xFF30D158);
-                vxr_fill_rect(cx + 14, center_y - 6, 4, 16, 0xFF30D158);
-                vxr_fill_rect(cx + 22, center_y - 2, 4, 12, 0xFF30D158);
+            case 2: // SysMon — pulse line (cyan accent per design)
+                g(3, 16, 16, 2, col);
+                g(6, 16, 2, -3, col); g(8, 13, 2, -4, col);
+                g(10, 9, 2, 5, col); g(12, 14, 2, 2, col);
+                g(14, 12, 2, -6, cyan); g(16, 6, 2, 10, cyan);
                 break;
-            case 3: // Files
-                vxui_draw_rounded_rect(cx + 6, cy + 8, 12, 8, 2, fg);
-                vxui_draw_rounded_rect(cx + 4, cy + 12, cw - 8, 14, 2, fg);
+            case 3: // Files — folder
+                g(5, 5, 7, 3, col); g(3, 8, 16, 11, col);
                 break;
-            case 4: // Settings
-                vxr_circle(center_x, center_y, 8, fg);
-                vxr_circle(center_x, center_y, 4, bg_bot[4]); // hole
-                vxr_fill_rect(center_x - 2, cy + 4, 4, 6, fg);
-                vxr_fill_rect(center_x - 2, cy + ch - 10, 4, 6, fg);
-                vxr_fill_rect(cx + 4, center_y - 2, 6, 4, fg);
-                vxr_fill_rect(cx + cw - 10, center_y - 2, 6, 4, fg);
+            case 4: // Settings — three sliders
+                g(3, 5, 16, 2, col); gc(15, 6, 2, col);
+                g(3, 11, 16, 2, col); gc(8, 12, 2, col);
+                g(3, 17, 16, 2, col); gc(17, 18, 2, col);
                 break;
-            case 5: // Terminal
-                vxr_fill_rect(cx + 6, cy + 8, 4, 4, 0xFF30D158);
-                vxr_fill_rect(cx + 10, cy + 12, 4, 4, 0xFF30D158);
-                vxr_fill_rect(cx + 6, cy + 16, 4, 4, 0xFF30D158);
-                vxr_fill_rect(cx + 16, cy + 18, 10, 4, 0xFF30D158);
+            case 5: // Terminal — box + prompt
+                g(4, 4, 14, 2, col); g(4, 4, 2, 13, col);
+                g(16, 4, 2, 13, col); g(4, 16, 14, 2, col);
+                g(7, 8, 3, 2, cyan); g(9, 10, 3, 2, cyan); g(7, 12, 3, 2, cyan);
+                g(13, 14, 5, 2, col);
                 break;
-            case 6: // Snake
-                vxui_draw_rounded_rect(cx + 8, cy + 8, cw - 16, 6, 3, fg);
-                vxui_draw_rounded_rect(cx + cw - 14, cy + 8, 6, 16, 3, fg);
-                vxui_draw_rounded_rect(cx + 8, cy + 18, cw - 20, 6, 3, fg);
+            case 6: // Snake — three rounded segments
+                vxui_draw_rounded_rect(ox + 5*u, oy + 5*u, 4*u, 4*u, 2, col);
+                vxui_draw_rounded_rect(ox + 11*u, oy + 5*u, 4*u, 4*u, 2, col);
+                vxui_draw_rounded_rect(ox + 11*u, oy + 11*u, 4*u, 4*u, 2, col);
+                vxui_draw_rounded_rect(ox + 5*u, oy + 11*u, 4*u, 4*u, 2, col);
                 break;
-            case 7: // Browser
-                vxr_circle(center_x, center_y, 10, fg);
-                vxr_circle(center_x, center_y, 8, bg_bot[7]);
-                vxr_fill_rect(center_x - 1, cy + 6, 2, 20, fg);
-                vxr_fill_rect(cx + 6, center_y - 1, 20, 2, fg);
+            case 7: // Browser — globe
+                gc(11, 11, 6, col);
+                g(10, 3, 2, 16, col); g(3, 10, 16, 2, col);
                 break;
-            case 8: // Mail
-                vxui_draw_rounded_rect(cx + 4, cy + 8, cw - 8, 16, 2, fg);
-                // Simple V shape for envelope flap
-                for(int i=0; i<8; i++) {
-                    vxr_fill_rect(cx + 6 + i, cy + 10 + i, 2, 2, bg_bot[8]);
-                    vxr_fill_rect(cx + cw - 8 - i, cy + 10 + i, 2, 2, bg_bot[8]);
-                }
+            case 8: // Mail — envelope
+                g(3, 5, 16, 12, col);
+                g(4, 6, 2, 2, col); g(7, 8, 2, 2, col);
+                g(10, 9, 2, 1, col); g(13, 8, 2, 2, col); g(16, 6, 2, 2, col);
                 break;
-            case 9: // Gallery
-                vxr_circle(cx + 10, cy + 10, 3, 0xFFFFD60A);
-                for(int i=0; i<12; i++) {
-                    vxr_fill_rect(cx + 6 + i, cy + 24 - i, 2, i+2, fg);
-                    vxr_fill_rect(cx + 16 + i, cy + 24 - (8 - i), 2, (8-i)+2, fg);
-                }
+            case 9: // Gallery — photo frame + sun + mountain
+                g(3, 3, 16, 16, col);
+                gc(7, 8, 2, col);
+                g(3, 18, 16, 1, col); g(6, 14, 4, 2, col);
+                g(8, 11, 3, 2, col); g(11, 16, 3, 2, col); g(14, 12, 3, 2, col);
                 break;
-            case 10: // Media
-                vxr_circle(center_x, center_y, 10, fg);
-                // Triangle
-                for(int i=0; i<6; i++) {
-                    vxr_fill_rect(center_x - 2 + i, center_y - i, 2, i*2+2, bg_bot[10]);
-                }
+            case 10: // Media — music note
+                g(12, 4, 2, 12, col); g(12, 4, 6, 2, col);
+                g(8, 12, 5, 4, col);
                 break;
-            case 11: // Clock
-                vxr_circle(center_x, center_y, 12, fg);
-                vxr_circle(center_x, center_y, 10, bg_bot[11]);
-                vxr_fill_rect(center_x - 1, center_y - 6, 2, 7, fg);
-                vxr_fill_rect(center_x - 1, center_y - 1, 6, 2, fg);
+            case 11: // Clock — face + hands
+                gc(11, 11, 8, col);
+                g(10, 11, 2, 6, col); g(10, 10, 6, 2, col);
                 break;
-            case 12: // About
-                vxr_circle(center_x, center_y, 10, fg);
-                vxr_circle(center_x, center_y, 8, bg_bot[12]);
-                vxr_fill_rect(center_x - 1, center_y - 5, 2, 2, fg);
-                vxr_fill_rect(center_x - 1, center_y - 1, 2, 6, fg);
+            case 12: // About — info badge
+                gc(11, 11, 8, col);
+                g(10, 6, 2, 2, col); g(10, 10, 2, 7, col);
                 break;
-            case 13: // Tasks
-                vxr_fill_rect(cx + 8, cy + 8, 4, 4, fg);
-                vxr_fill_rect(cx + 14, cy + 8, 10, 4, fg);
-                vxr_fill_rect(cx + 8, cy + 16, 4, 4, fg);
-                vxr_fill_rect(cx + 14, cy + 16, 10, 4, fg);
-                vxr_fill_rect(cx + 8, cy + 24, 4, 4, fg);
-                vxr_fill_rect(cx + 14, cy + 24, 10, 4, fg);
+            case 13: // Tasks — checklist
+                g(4, 5, 10, 2, col); g(4, 11, 10, 2, col); g(4, 17, 10, 2, col);
+                g(16, 4, 2, 4, col); g(17, 7, 2, 2, col); g(18, 9, 2, 2, col);
+                g(16, 10, 2, 4, col); g(17, 13, 2, 2, col); g(18, 15, 2, 2, col);
+                g(16, 16, 2, 4, col); g(17, 19, 2, 2, col); g(18, 21, 2, 2, col);
+                break;
+            case 14: // Editor — </> code brackets
+                g(4, 4, 2, 14, col); g(6, 6, 2, 10, col);
+                g(16, 4, 2, 14, col); g(14, 6, 2, 10, col);
+                g(11, 3, 2, 16, cyan);
+                break;
+            case 15: // Docs — page with lines
+                g(5, 3, 10, 2, col); g(5, 5, 12, 16, col);
+                g(7, 9, 8, 2, col); g(7, 13, 8, 2, col); g(7, 17, 5, 2, col);
+                break;
+            case 16: // Archive — box
+                g(3, 5, 16, 3, col); g(3, 8, 16, 10, col);
+                g(3, 8, 16, 1, col); g(9, 8, 4, 4, col);
+                break;
+            case 17: // Software — store bag
+                g(4, 7, 14, 12, col); g(3, 6, 16, 2, col);
+                g(10, 4, 2, 3, col); g(7, 10, 3, 3, col);
+                break;
+            case 18: // Shot — camera
+                g(4, 6, 14, 3, col); g(3, 9, 16, 10, col);
+                gc(11, 13, 4, col); gc(11, 13, 2, VxTheme::SURFACE_2);
                 break;
         }
     }
@@ -1040,57 +1037,27 @@ extern "C" {
     }
 
     static void draw_window(VxWindow& w, bool clicked) {
-        int r = 6;
-        uint32_t accent = VxTheme::accent();
+        const int r = VxTheme::RADIUS_MD;
+        const int tb_h = VxTheme::TITLE_BAR_H;
+        const uint32_t accent = VxTheme::accent();
 
-        // V5: Window shadow via VXRender
         if (g_state.show_window_shadows) {
-            vxr_shadow(w.x, w.y + r, w.w, w.h - r, 20);
+            vxr_shadow(w.x, w.y, w.w, w.h, 18);
         }
 
-        // Window body with rounded top
-        fill_rounded_top(w.x, w.y, w.w, w.h, VxTheme::SURFACE);
-        // Bottom corners straight (simpler); draw bottom half as rectangle
-        vxr_fill_rect(w.x, w.y + r, w.w, w.h - r, VxTheme::SURFACE);
-        // Fill top corners again to ensure no holes
-        fill_rounded_top(w.x, w.y, w.w, w.h, VxTheme::SURFACE);
+        uint32_t body_bg = VxTheme::SURFACE_1;
+        vxui_draw_rounded_rect(w.x, w.y, w.w, w.h, r, body_bg);
 
-        // V4 1px premium border
-        uint32_t border_color = w.focused ? (g_state.high_contrast ? VxTheme::TEXT_PRIMARY : accent) : VxTheme::BORDER_SUBTLE;
-        // Top border
-        vxr_fill_rect(w.x + r, w.y, w.w - r * 2, 1, border_color);
-        // Bottom border
-        vxr_fill_rect(w.x, w.y + w.h - 1, w.w, 1, VxTheme::BORDER_SUBTLE);
-        // Sides
-        vxr_fill_rect(w.x, w.y + r, 1, w.h - r, VxTheme::BORDER_SUBTLE);
-        vxr_fill_rect(w.x + w.w - 1, w.y + r, 1, w.h - r, VxTheme::BORDER_SUBTLE);
-        // Top corners (rounded)
-        for (int i = 0; i < r; i++) {
-            vxr_fill_rect(w.x + r, w.y + i, i + 1, 1, border_color);
-            vxr_fill_rect(w.x + w.w - r - i - 1, w.y + i, i + 1, 1, border_color);
-        }
+        uint32_t border_color = w.focused ? 0xFF98E3EE : VxTheme::BORDER_ALPHA; // focused: mix(#00f0ff 30%,#d9dee7)
+        vxr_rounded_border(w.x, w.y, w.w, w.h, r, border_color);
 
-        // Focus glow: faint accent rim
         if (w.focused) {
-            uint32_t glow = 0x18000000 | (accent & 0xFFFFFF);
-            vxr_fill_rect(w.x + r, w.y - 1, w.w - r * 2, 1, glow);
-            vxr_fill_rect(w.x - 1, w.y + r, 1, w.h - r, glow);
-            vxr_fill_rect(w.x + w.w, w.y + r, 1, w.h - r, glow);
-            vxr_fill_rect(w.x, w.y + w.h, w.w, 1, glow);
+            vxr_rounded_border(w.x - 1, w.y - 1, w.w + 2, w.h + 2, r + 1, 0x6600F0FF); // 1px cyan ring
         }
 
-        // Title bar area
-        int tb_h = VxTheme::TITLE_BAR_H;
-        uint32_t title_bg = w.focused ? VxTheme::SURFACE : VxTheme::BASE_DEEP;
-        // Title bar rounded top
-        fill_rounded_top(w.x + 1, w.y + 1, w.w - 2, tb_h, title_bg);
-        // Accent indicator strip on the left
-        int strip_w = 4;
-        vxr_fill_rect(w.x + 1, w.y + 6, strip_w, tb_h - 12, w.focused ? accent : VxTheme::BORDER_SUBTLE);
-        // Separator under title bar
-        vxr_fill_rect(w.x + 1, w.y + tb_h, w.w - 2, 1, VxTheme::BORDER_SUBTLE);
+        fill_rounded_top(w.x + 1, w.y + 1, w.w - 2, tb_h, body_bg);
+        vxr_fill_rect(w.x + 1, w.y + tb_h, w.w - 2, 1, VxTheme::BORDER_ALPHA);
 
-        // Window title text — 19 app titles
         const char* titles[] = {
             "Calculator","Notes","SysMon","Files","Settings","Terminal","Snake","Browser",
             "Mail","Gallery","Media","Clock","About","Tasks","Code Editor","Doc Viewer",
@@ -1099,49 +1066,55 @@ extern "C" {
         int title_idx = (int)w.app - 1;
         if (title_idx >= 0 && title_idx < 19) {
             const char* tn = titles[title_idx];
-            int tx = w.x + 16;
-            for (int i = 0; tn[i]; i++) {
-                draw_abstract_char(tx + i * 10, w.y + 12, tn[i],
-                                   w.focused ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_MUTED);
-            }
+            int icon_x = w.x + 11;
+            int icon_y = w.y + 6;
+            draw_app_icon_in_cell(icon_x, icon_y, 16, 16, title_idx, false);
+
+            int tx = w.x + 33;
+            int ty = w.y + 9;
+            uint32_t title_col = w.focused ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_MUTED;
+            vx_text::draw(tx, w.y + 18, 14, tn, title_col, VxTheme::SURFACE_1);
         }
 
-        // Window Controls (Close, Maximize, Minimize)
-        int cx = w.x + w.w - 32;
-        int mx_btn = w.x + w.w - 62;
-        int mn_btn = w.x + w.w - 92;
-        int cy = w.y + 8;
-        
-        bool close_hover = (g_state.mouse_x >= cx && g_state.mouse_x <= cx + 24 &&
-                            g_state.mouse_y >= cy && g_state.mouse_y <= cy + 24);
-        bool max_hover = (g_state.mouse_x >= mx_btn && g_state.mouse_x <= mx_btn + 24 &&
-                          g_state.mouse_y >= cy && g_state.mouse_y <= cy + 24);
-        bool min_hover = (g_state.mouse_x >= mn_btn && g_state.mouse_x <= mn_btn + 24 &&
-                          g_state.mouse_y >= cy && g_state.mouse_y <= cy + 24);
-        
-        // Close Button
-        uint32_t close_bg = close_hover ? VxTheme::DANGER : VxTheme::SURFACE_HIGH;
-        vxr_fill_rect(cx, cy, 24, 24, close_bg);
-        uint32_t x_col = close_hover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY;
-        for (int i = 0; i < 10; i++) {
-            vxr_fill_rect(cx + 7 + i, cy + 7 + i, 2, 2, x_col);
-            vxr_fill_rect(cx + 16 - i, cy + 7 + i, 2, 2, x_col);
+        const int btn_sz = 28;
+        const int btn_gap = 2;
+        const int btn_y = w.y;
+        const int close_x = w.x + w.w - 8 - btn_sz;
+        const int max_x = close_x - btn_gap - btn_sz;
+        const int min_x = max_x - btn_gap - btn_sz;
+
+        bool close_hover = (g_state.mouse_x >= close_x && g_state.mouse_x < close_x + btn_sz &&
+                            g_state.mouse_y >= btn_y && g_state.mouse_y < btn_y + btn_sz);
+        bool max_hover = (g_state.mouse_x >= max_x && g_state.mouse_x < max_x + btn_sz &&
+                          g_state.mouse_y >= btn_y && g_state.mouse_y < btn_y + btn_sz);
+        bool min_hover = (g_state.mouse_x >= min_x && g_state.mouse_x < min_x + btn_sz &&
+                          g_state.mouse_y >= btn_y && g_state.mouse_y < btn_y + btn_sz);
+
+        uint32_t btn_base = 0x00000000;
+        uint32_t close_bg = close_hover ? 0xFF363636 : btn_base; // mix(#f7f8fa 16%, #111)
+        uint32_t max_bg = max_hover ? VxTheme::SURFACE_2 : btn_base;
+        uint32_t min_bg = min_hover ? VxTheme::SURFACE_2 : btn_base;
+
+        vxui_draw_rounded_rect(min_x, btn_y, btn_sz, btn_sz, r, min_bg);
+        vxui_draw_rounded_rect(max_x, btn_y, btn_sz, btn_sz, r, max_bg);
+        vxui_draw_rounded_rect(close_x, btn_y, btn_sz, btn_sz, r, close_bg);
+
+        uint32_t icon_col = w.focused ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY;
+        if (min_hover) icon_col = VxTheme::TEXT_PRIMARY;
+        if (max_hover) icon_col = VxTheme::TEXT_PRIMARY;
+        if (close_hover) icon_col = 0xFFFFFFFF;
+
+        vxr_fill_rect(min_x + 9, btn_y + 15, 10, 1, icon_col);
+        vxr_fill_rect(max_x + 9, btn_y + 9, 10, 1, icon_col);
+        vxr_fill_rect(max_x + 9, btn_y + 9, 1, 10, icon_col);
+        vxr_fill_rect(max_x + 18, btn_y + 9, 1, 10, icon_col);
+        vxr_fill_rect(max_x + 9, btn_y + 18, 10, 1, icon_col);
+        for (int i = 0; i < 8; i++) {
+            vxr_fill_rect(close_x + 10 + i, btn_y + 10 + i, 1, 1, icon_col);
+            vxr_fill_rect(close_x + 17 - i, btn_y + 10 + i, 1, 1, icon_col);
         }
 
-        // Maximize Button
-        uint32_t max_bg = max_hover ? VxTheme::SURFACE : VxTheme::SURFACE_HIGH;
-        vxr_fill_rect(mx_btn, cy, 24, 24, max_bg);
-        uint32_t max_col = max_hover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY;
-        vxr_fill_rect(mx_btn + 7, cy + 7, 10, 10, max_col); // square outline
-        vxr_fill_rect(mx_btn + 9, cy + 9, 6, 6, max_bg);    // inner hole
-
-        // Minimize Button
-        uint32_t min_bg = min_hover ? VxTheme::SURFACE : VxTheme::SURFACE_HIGH;
-        vxr_fill_rect(mn_btn, cy, 24, 24, min_bg);
-        uint32_t min_col = min_hover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY;
-        vxr_fill_rect(mn_btn + 7, cy + 15, 10, 2, min_col);
-
-        VxClipRect old_clip = g_vxr_ctx.push_clip(w.x, w.y + VxTheme::TITLE_BAR_H, w.w, w.h - VxTheme::TITLE_BAR_H);
+        VxClipRect old_clip = g_vxr_ctx.push_clip(w.x, w.y + tb_h, w.w, w.h - tb_h);
 
         if (w.app == VX_APP_CALCULATOR) {
             draw_app_calculator(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
@@ -1191,143 +1164,129 @@ extern "C" {
         return VxColor::lerp(c1, c2, t, max_t);
     }
 
-    static void draw_polished_desktop(uint32_t W, uint32_t H) {
-        // V6 Premium Shell Overhaul - Survives Grayscale
-        // Deep elegant gradient background
+    // Alpha blend one pixel (src OVER dst) exactly matching the GOP backbuffer blend:
+    //   r_out = (r_src*a + r_bg*(255-a)) / 255, output alpha forced to 0xFF.
+    static inline uint32_t wp_blend(uint32_t dst, uint32_t color) {
+        uint32_t a = (color >> 24) & 0xFF;
+        if (a == 255) return color;
+        if (a == 0) return dst;
+        uint32_t rs = (color >> 16) & 0xFF, gs = (color >> 8) & 0xFF, bs = color & 0xFF;
+        uint32_t rd = (dst >> 16) & 0xFF, gd = (dst >> 8) & 0xFF, bd = dst & 0xFF;
+        uint32_t ro = (rs * a + rd * (255 - a)) / 255;
+        uint32_t go = (gs * a + gd * (255 - a)) / 255;
+        uint32_t bo = (bs * a + bd * (255 - a)) / 255;
+        return (0xFFu << 24) | (ro << 16) | (go << 8) | bo;
+    }
+
+    // Fill a horizontal run in the cache (blended). Mirrors vxr_fill_rect clipping semantics.
+    static void wp_row_fill(int x, int y, int w, uint32_t color) {
+        if (y < 0 || y >= 768) return;
+        uint32_t a = (color >> 24) & 0xFF;
+        uint32_t* row = g_wp_cache + (uint32_t)y * (uint32_t)g_wp_w;
+        for (int i = 0; i < w; i++) {
+            int px = x + i;
+            if (px >= 0 && px < g_wp_w) row[px] = wp_blend(row[px], color);
+        }
+    }
+
+    // Filled circle directly into the cache — same geometry as vxr_circle.
+    static void wp_circle(int cx, int cy, int radius, uint32_t color) {
+        if (radius < 0) return;
+        for (int dy = -radius; dy <= radius; dy++) {
+            int half = 0;
+            for (int dx = -radius; dx <= radius; dx++) {
+                if (dx * dx + dy * dy <= radius * radius) half = dx;
+            }
+            if (half >= 0) wp_row_fill(cx - half, cy + dy, half * 2 + 1, color);
+        }
+    }
+
+    static void build_wallpaper_cache(uint32_t W, uint32_t H) {
+        // Gradient (identical math to the runtime path in draw_polished_desktop)
+        const uint32_t wp_top = 0xFF121E30;
+        const uint32_t wp_mid = 0xFF111111;
+        const uint32_t wp_br  = 0xFF12243E;
         for (uint32_t y = 0; y < H; y++) {
-            uint32_t color = VxColor::lerp(0xFF0F1115, 0xFF1A1D24, y, H);
+            uint32_t t100 = 25u + (50u * y) / H;
+            if (t100 > 100) t100 = 100;
+            uint32_t color;
+            if (t100 <= 52) color = VxColor::lerp(wp_top, wp_mid, t100 * 100u / 52u, 100u);
+            else color = VxColor::lerp(wp_mid, wp_br, (t100 - 52u) * 100u / 48u, 100u);
+            wp_row_fill(0, (int)y, (int)W, color);
+        }
+        // Radial glows (same order as the draw path)
+        if (g_state.show_desktop_glow) {
+            const int gcx = (int)(W * 20u / 100u);
+            const int gcy = (int)(H * 8u / 100u);
+            const int gR = (int)(W * 90u / 100u);
+            wp_circle(gcx, gcy, gR, VxColor::with_alpha(0x001677FF, 8));
+            wp_circle(gcx, gcy, gR * 8 / 10, VxColor::with_alpha(0x001677FF, 12));
+            wp_circle(gcx, gcy, gR * 55 / 100, VxColor::with_alpha(0x001677FF, 25));
+            const int ccx = (int)(W * 86u / 100u);
+            const int ccy = (int)(H * 98u / 100u);
+            const int cR = (int)(W * 60u / 100u);
+            wp_circle(ccx, ccy, cR, VxColor::with_alpha(0xFF00F0FF, 3));
+            wp_circle(ccx, ccy, cR * 8 / 10, VxColor::with_alpha(0xFF00F0FF, 4));
+            wp_circle(ccx, ccy, cR * 5 / 10, VxColor::with_alpha(0xFF00F0FF, 9));
+        }
+        // Faint 56px grid
+        for (uint32_t gx = 0; gx < W; gx += 56) wp_row_fill((int)gx, 0, 1, 0x04D9DEE7);
+        for (uint32_t gy = 0; gy < H; gy += 56) wp_row_fill(0, (int)gy, (int)W, 0x04D9DEE7);
+    }
+
+    static void draw_polished_desktop(uint32_t W, uint32_t H) {
+        // ===== Workspace wallpaper (Open Design: 163deg tint over #111 + glows + grid) =====
+        // Fast path: blit the cached wallpaper, drawn once by build_wallpaper_cache().
+        if (!g_wp_cached) {
+            if (g_wp_cache == nullptr) {
+                g_wp_cache = (uint32_t*)vxair_kmalloc(W * H * 4);
+                if (g_wp_cache) g_wp_w = (int)W;
+            }
+            if (g_wp_cache) {
+                build_wallpaper_cache(W, H);
+                g_wp_cached = true;
+            }
+        }
+        if (g_wp_cached) {
+            vxair_fb_blit(g_wp_cache, 0, 0, (int)W, (int)H);
+        } else {
+        const uint32_t wp_top = 0xFF121E30;  // mix(#1677ff 13%, #111111)
+        const uint32_t wp_mid = 0xFF111111;  // midpoint
+        const uint32_t wp_br  = 0xFF12243E;  // mix(#1677ff 19%, #111111)
+        // Diagonal-ish: sample gradient at each row's midpoint along the 163deg axis
+        for (uint32_t y = 0; y < H; y++) {
+            uint32_t t100 = 25u + (50u * y) / H; // 0..100 along diagonal at row midpoint
+            if (t100 > 100) t100 = 100;
+            uint32_t color;
+            if (t100 <= 52) {
+                color = VxColor::lerp(wp_top, wp_mid, t100 * 100u / 52u, 100u);
+            } else {
+                color = VxColor::lerp(wp_mid, wp_br, (t100 - 52u) * 100u / 48u, 100u);
+            }
             vxr_fill_rect(0, y, W, 1, color);
         }
-        
-        // Ambient soft light in center (Disabled - too slow for CPU rendering)
-        if (false && g_state.show_desktop_glow) {
-            uint32_t cx = W / 2, cy = H / 2;
-            for (int r = 0; r < 400; r += 10) {
-                uint32_t a = (40 - r / 10);
-                if (a > 255) a = 0; // Prevent underflow
-                uint32_t c = VxColor::with_alpha(VxTheme::accent(), a);
-                vxr_circle(cx, cy, r, c);
-            }
+        // Radial blue glow at 20%/8% (mix #1677ff 16% peak) — 3-stop fade
+        if (g_state.show_desktop_glow) {
+            const int gcx = (int)(W * 20u / 100u);
+            const int gcy = (int)(H * 8u / 100u);
+            const int gR = (int)(W * 90u / 100u);
+            vxr_circle(gcx, gcy, gR, VxColor::with_alpha(0x001677FF, 8));   // outer soft halo
+            vxr_circle(gcx, gcy, gR * 8 / 10, VxColor::with_alpha(0x001677FF, 12));
+            vxr_circle(gcx, gcy, gR * 55 / 100, VxColor::with_alpha(0x001677FF, 25)); // core ~16%
+            // Cyan glow at 86%/98% (mix #00f0ff 5% peak)
+            const int ccx = (int)(W * 86u / 100u);
+            const int ccy = (int)(H * 98u / 100u);
+            const int cR = (int)(W * 60u / 100u);
+            vxr_circle(ccx, ccy, cR, VxColor::with_alpha(0xFF00F0FF, 3));
+            vxr_circle(ccx, ccy, cR * 8 / 10, VxColor::with_alpha(0xFF00F0FF, 4));
+            vxr_circle(ccx, ccy, cR * 5 / 10, VxColor::with_alpha(0xFF00F0FF, 9));
         }
+        // Faint 56px grid (mix #d9dee7 1.8%, transparent)
+        for (uint32_t gx = 0; gx < W; gx += 56) vxr_fill_rect(gx, 0, 1, H, 0x04D9DEE7);
+        for (uint32_t gy = 0; gy < H; gy += 56) vxr_fill_rect(0, gy, W, 1, 0x04D9DEE7);
+        } // else: fallback when wallpaper cache is unavailable
 
-        // ===== STRUCTURAL TOP BAR (Floating Pills) =====
-        if (g_state.show_top_bar) {
-            uint32_t top_y = 12;
-            uint32_t pill_h = 32;
-            
-            // Left Pill: Logo & Menus
-            int left_pill_w = 340;
-            vxui_draw_shadow(20, top_y, left_pill_w, pill_h, 8);
-            vxui_draw_rounded_rect(20, top_y, left_pill_w, pill_h, pill_h/2, VxTheme::SURFACE_HIGH);
-            vxr_rounded_rect(20, top_y, left_pill_w, pill_h, pill_h/2, VxTheme::BORDER_SUBTLE);
-            
-            const char* logo = "Vextryn";
-            for (int i = 0; logo[i]; i++) draw_abstract_char(40 + i * 10, top_y + 8, logo[i], VxTheme::TEXT_PRIMARY);
-            vxr_fill_rect(120, top_y + 8, 2, 16, VxTheme::BORDER_STRONG);
-            
-            const char* menus[4] = {"File", "Edit", "View", "Help"};
-            int menu_x = 136;
-            for (int m = 0; m < 4; m++) {
-                uint32_t txt_color = (g_state.active_menu == m + 1) ? VxTheme::accent() : VxTheme::TEXT_SECONDARY;
-                for (int i = 0; menus[m][i]; i++) draw_abstract_char(menu_x + i * 10, top_y + 8, menus[m][i], txt_color);
-                menu_x += 52;
-            }
-
-            // Center Pill: Clock
-            int center_pill_w = 120;
-            int center_x = (W - center_pill_w) / 2;
-            vxui_draw_shadow(center_x, top_y, center_pill_w, pill_h, 8);
-            vxui_draw_rounded_rect(center_x, top_y, center_pill_w, pill_h, pill_h/2, VxTheme::SURFACE_HIGH);
-            vxr_rounded_rect(center_x, top_y, center_pill_w, pill_h, pill_h/2, VxTheme::BORDER_SUBTLE);
-            
-            char topclock[16];
-            if (g_state.show_seconds) {
-                for (int i = 0; i < 9; i++) topclock[i] = "14:30:45"[i]; topclock[9] = 0;
-            } else {
-                for (int i = 0; i < 6; i++) topclock[i] = "14:30"[i]; topclock[6] = 0;
-            }
-            int tcw = 0; for (int i = 0; topclock[i]; i++) tcw += 10;
-            int tcx = center_x + (center_pill_w - tcw) / 2;
-            for (int i = 0; topclock[i]; i++) draw_abstract_char(tcx + i * 10, top_y + 8, topclock[i], VxTheme::TEXT_PRIMARY);
-
-            // Right Pill: System Status & Control Center
-            int right_pill_w = 160;
-            int right_x = W - right_pill_w - 20;
-            bool cc_hover = (g_state.mouse_x >= right_x && g_state.mouse_x <= right_x + right_pill_w && g_state.mouse_y >= (int)top_y && g_state.mouse_y <= (int)(top_y + pill_h));
-            
-            vxui_draw_shadow(right_x, top_y, right_pill_w, pill_h, 8);
-            vxui_draw_rounded_rect(right_x, top_y, right_pill_w, pill_h, pill_h/2, cc_hover ? VxTheme::OVERLAY : VxTheme::SURFACE_HIGH);
-            vxr_rounded_rect(right_x, top_y, right_pill_w, pill_h, pill_h/2, VxTheme::BORDER_SUBTLE);
-            
-            // WiFi
-            vxr_fill_rect(right_x + 30, top_y + 16, 4, 6, VxTheme::TEXT_PRIMARY);
-            vxr_fill_rect(right_x + 36, top_y + 12, 4, 10, VxTheme::TEXT_PRIMARY);
-            vxr_fill_rect(right_x + 42, top_y + 8, 4, 14, VxTheme::TEXT_PRIMARY);
-            
-            // Battery
-            vxr_fill_rect(right_x + 60, top_y + 10, 20, 12, VxTheme::TEXT_PRIMARY);
-            vxr_fill_rect(right_x + 82, top_y + 13, 3, 6, VxTheme::TEXT_PRIMARY);
-            vxr_fill_rect(right_x + 62, top_y + 12, 16, 8, VxTheme::SUCCESS);
-            
-            // Control Center Sliders
-            vxr_fill_rect(right_x + 110, top_y + 8, 3, 16, VxTheme::TEXT_PRIMARY);
-            vxr_fill_rect(right_x + 118, top_y + 12, 3, 12, VxTheme::TEXT_PRIMARY);
-            vxr_circle(right_x + 111, top_y + 12, 3, VxTheme::accent());
-            vxr_circle(right_x + 119, top_y + 18, 3, VxTheme::accent());
-        }
-
-        // ===== STRUCTURAL FLOATING DOCK =====
-        int open_count = 0;
-        for (int i = 0; i < 16; i++) if (g_state.windows[i].open) open_count++;
-        
-        uint32_t dock_h = 56;
-        uint32_t dock_w = 80 + (open_count * 52); // Launcher + separator + icons
-        uint32_t dock_x = (W - dock_w) / 2;
-        uint32_t dock_y = H - dock_h - 20;
-
-        // Dock Background
-        vxui_draw_shadow(dock_x, dock_y, dock_w, dock_h, 12);
-        vxui_draw_rounded_rect(dock_x, dock_y, dock_w, dock_h, dock_h/2, VxTheme::SURFACE_HIGH);
-        vxr_rounded_rect(dock_x, dock_y, dock_w, dock_h, dock_h/2, VxTheme::BORDER_SUBTLE);
-        
-        // Launcher Button (Left aligned in dock)
-        uint32_t lx = dock_x + 8;
-        uint32_t ly = dock_y + 8;
-        bool launcher_hover = (g_state.mouse_x >= (int)lx && g_state.mouse_x <= (int)lx + 40 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 40);
-        
-        vxui_draw_rounded_rect(lx, ly, 40, 40, 20, launcher_hover ? VxTheme::accent_soft() : VxTheme::SURFACE);
-        for (int dx = 0; dx < 2; dx++) {
-            for (int dy = 0; dy < 2; dy++) {
-                uint32_t dc = launcher_hover ? VxTheme::accent_glow() : VxTheme::TEXT_PRIMARY;
-                vxr_fill_rect(lx + 12 + dx * 12, ly + 12 + dy * 12, 6, 6, dc);
-            }
-        }
-        
-        // Separator
-        vxr_fill_rect(lx + 52, dock_y + 12, 2, dock_h - 24, VxTheme::BORDER_STRONG);
-
-        // Taskbar Apps (Right of separator)
-        uint32_t tx_base = lx + 64;
-        for (int i=0; i<16; i++) {
-            if (g_state.windows[i].open) {
-                bool ihover = (g_state.mouse_x >= (int)tx_base && g_state.mouse_x <= (int)tx_base + 36 && g_state.mouse_y >= (int)dock_y + 10 && g_state.mouse_y <= (int)dock_y + 46);
-                // Hover effect: subtle lift
-                if (ihover) {
-                    vxui_draw_rounded_rect(tx_base, dock_y + 8, 40, 40, 12, VxTheme::SURFACE);
-                }
-                
-                // Focused indicator (small dot under icon)
-                if (g_state.windows[i].focused) {
-                    vxr_fill_rect(tx_base + 18, dock_y + 50, 4, 4, VxTheme::accent());
-                }
-
-                // Convert VxAppId (1-based) to app_index (0-based) for the icon generator
-                draw_app_icon_in_cell(tx_base + 4, dock_y + 12, 32, 32, g_state.windows[i].app - 1, ihover);
-                tx_base += 52;
-            }
-        }
-
-        // Windows
+        // Draw windows on stage
         for (int z = 0; z < 16; z++) {
             int i = g_z_order[z];
             if (g_state.windows[i].open && !g_state.windows[i].is_minimized) {
@@ -1335,7 +1294,6 @@ extern "C" {
             }
         }
 
-        // Focus dim: darken inactive windows to emphasize focused one
         if (g_state.focus_dim) {
             for (int i = 0; i < 16; i++) {
                 VxWindow& ww = g_state.windows[i];
@@ -1345,97 +1303,156 @@ extern "C" {
             }
         }
 
-        // Top Bar Dropdown Menus
-        if (g_state.active_menu > 0 && g_state.active_menu <= 4) {
-            int menu_w = 160;
-            int menu_h = 130;
-            int menu_x = 130 + (g_state.active_menu - 1) * 52;
-            int menu_y = 52; // Just below top bar
+        // ===== FULL-WIDTH BOTTOM TASKBAR (56px) =====
+        uint32_t dock_h = VxTheme::TASKBAR_H;
+        uint32_t dock_y = H - dock_h;
+        vxr_fill_rect(0, dock_y, W, dock_h, VxTheme::BG);
+        vxr_fill_rect(0, dock_y, W, 1, 0x6600F0FF); // 1px translucent cyan top border
 
-            vxui_draw_shadow(menu_x, menu_y, menu_w, menu_h, 12);
-            vxui_draw_rounded_rect(menu_x, menu_y, menu_w, menu_h, 8, VxTheme::SURFACE_HIGH);
-            vxr_rounded_rect(menu_x, menu_y, menu_w, menu_h, 8, VxTheme::BORDER_SUBTLE);
-            
-            const char* dummy_items[4][4] = {
-                {"New Window", "Open...", "Save", "Exit"},
-                {"Undo", "Cut", "Copy", "Paste"},
-                {"Zoom In", "Zoom Out", "Reset", "Full Screen"},
-                {"Search", "Tutorial", "Release Notes", "About"}
-            };
-            
-            for (int i=0; i<4; i++) {
-                int item_y = menu_y + 8 + i * 30;
-                bool ihover = (g_state.mouse_x >= menu_x + 8 && g_state.mouse_x <= menu_x + menu_w - 16 &&
-                               g_state.mouse_y >= item_y && g_state.mouse_y <= item_y + 26);
-                if (ihover) {
-                    vxui_draw_rounded_rect(menu_x + 8, item_y, menu_w - 16, 26, 4, VxTheme::accent_soft());
-                }
-                const char* item_text = dummy_items[g_state.active_menu - 1][i];
-                for (int c=0; item_text[c]; c++) {
-                    draw_abstract_char(menu_x + 20 + c * 8, item_y + 8, item_text[c], ihover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY);
-                }
+        // --- ZONE 1: LEFT (Launcher & Apps) ---
+        uint32_t lx = VxTheme::TASKBAR_PAD;
+        uint32_t ly = dock_y + 8;
+        bool launcher_hover = (g_state.mouse_x >= (int)lx && g_state.mouse_x <= (int)lx + 40 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 40);
+        // Open Design: launcher button (.tb-start) always carries a surface-2 background
+        vxui_draw_rounded_rect(lx, ly, 40, 40, 8, launcher_hover ? VxTheme::SURFACE_3 : VxTheme::SURFACE_2);
+        uint32_t cyan = VxTheme::CYAN;
+        vxr_fill_rect(lx + 13, ly + 13, 6, 6, cyan);
+        vxr_fill_rect(lx + 21, ly + 13, 6, 6, cyan);
+        vxr_fill_rect(lx + 13, ly + 21, 6, 6, cyan);
+        vxr_fill_rect(lx + 21, ly + 21, 6, 6, cyan);
+        // Separator after launcher (tb-sep)
+        vxr_fill_rect(lx + 48, dock_y + 17, 1, 22, 0x6BD9DEE7);
+
+        const VxAppId task_apps[6] = {
+            VX_APP_FILES, VX_APP_TERMINAL, VX_APP_BROWSER,
+            VX_APP_CODE_EDITOR, VX_APP_MAIL, VX_APP_MEDIA_PLAYER
+        };
+        uint32_t tx_base = lx + 60;
+        for (int i = 0; i < 6; i++) {
+            int win_idx = find_taskbar_window_idx(task_apps[i]);
+            bool is_open = (win_idx != -1);
+            bool is_focused = is_open && g_state.windows[win_idx].focused;
+            bool ihover = (g_state.mouse_x >= (int)tx_base && g_state.mouse_x <= (int)tx_base + 40 && g_state.mouse_y >= (int)ly && g_state.mouse_y <= (int)ly + 40);
+            uint32_t item_bg = (is_open || ihover) ? VxTheme::SURFACE_2 : 0x00000000;
+            if (item_bg != 0) {
+                vxui_draw_rounded_rect(tx_base, ly, 40, 40, 8, item_bg);
             }
+            // Running indicator: 16x2 bottom bar (dim cyan / active cyan)
+            if (is_focused) {
+                vxr_fill_rect(tx_base + 12, ly + 38, 16, 2, cyan);
+            } else if (is_open) {
+                vxr_fill_rect(tx_base + 12, ly + 38, 16, 2, 0x6600F0FF);
+            }
+            draw_app_icon_in_cell(tx_base + 4, ly + 4, 32, 32, task_apps[i] - 1, ihover);
+            tx_base += 48;
         }
 
-        // V5: Draw Control Center overlay if open
+        // --- ZONE 2: CENTER (Workspaces) ---
+        uint32_t cx = (W - 36) / 2;
+        uint32_t cy = dock_y + 26;
+        vxui_draw_rounded_rect(cx, cy, 14, 4, 2, cyan); // active pill
+        vxr_circle(cx + 24, cy + 2, 2, VxTheme::MUTED_DIM);
+        vxr_circle(cx + 32, cy + 2, 2, VxTheme::MUTED_DIM);
+
+        // --- ZONE 3: RIGHT (Tray & Clock) ---
+        // Separator
+        vxr_fill_rect(W - 12 - 168, dock_y + 17, 1, 22, 0x6BD9DEE7);
+        uint32_t rx = W - 12 - 152;
+        uint32_t ry = dock_y + 8;
+        // Tray wifi button hover (design: .tb-app.tb-tray:hover → surface-2)
+        bool tray_hover = (g_state.mouse_x >= (int)rx - 8 && g_state.mouse_x <= (int)rx + 40 && g_state.mouse_y >= (int)ry && g_state.mouse_y <= (int)ry + 40);
+        if (tray_hover) {
+            vxui_draw_rounded_rect(rx - 8, ry - 2, 48, 44, 8, VxTheme::SURFACE_2);
+        }
+        // Wi-Fi (cyan arcs)
+        vxr_fill_rect(rx + 6, ry + 26, 6, 2, cyan);
+        vxr_fill_rect(rx + 7, ry + 22, 4, 1, cyan);
+        vxr_fill_rect(rx + 8, ry + 18, 2, 1, cyan);
+        vxr_fill_rect(rx + 9, ry + 30, 2, 1, 0x00F0FF);
+        // Bluetooth (cyan "B" glyph)
+        vxr_fill_rect(rx + 24, ry + 14, 1, 20, cyan);
+        vxr_fill_rect(rx + 24, ry + 14, 6, 6, cyan);
+        vxr_fill_rect(rx + 24, ry + 21, 6, 6, cyan);
+        // Volume (speaker + waves)
+        vxr_fill_rect(rx + 44, ry + 15, 2, 15, VxTheme::FG_SOFT);
+        vxr_fill_rect(rx + 44, ry + 15, 6, 6, VxTheme::FG_SOFT);
+        vxr_fill_rect(rx + 44, ry + 24, 6, 6, VxTheme::FG_SOFT);
+        vxr_fill_rect(rx + 52, ry + 19, 1, 7, VxTheme::FG_SOFT);
+        vxr_fill_rect(rx + 53, ry + 17, 1, 11, VxTheme::FG_SOFT);
+        // Battery (outline + fill)
+        vxr_rounded_rect(rx + 64, ry + 14, 18, 16, 3, VxTheme::FG_SOFT);
+        vxr_fill_rect(rx + 83, ry + 19, 2, 6, VxTheme::FG_SOFT);
+        vxr_fill_rect(rx + 66, ry + 16, 12, 12, VxTheme::SUCCESS);
+
+        uint32_t clock_x = W - 12 - 50;
+        uint32_t clock_y_text = dock_y + 14;
+        const char* clock_str = "14:30";
+        vx_text::draw(clock_x, dock_y + 26, 16, clock_str, VxTheme::FG, VxTheme::BG);
+        const char* date_str = "Aug 3";
+        vx_text::draw(clock_x, dock_y + 41, 12, date_str, VxTheme::MUTED, VxTheme::BG);
+
+        // Launcher Overlay
+        if (g_state.launcher_open) {
+            VxLauncherLayout L = compute_launcher_layout(W, H, g_state.launcher_search, g_state.launcher_search_len);
+            vxui_draw_rounded_rect(L.card.x, L.card.y, L.card.w, L.card.h, 8, VxTheme::SURFACE_1);
+            vxr_rounded_border(L.card.x, L.card.y, L.card.w, L.card.h, 8, VxTheme::BORDER_STRONG_A);
+            vxr_rounded_border(L.card.x - 1, L.card.y - 1, L.card.w + 2, L.card.h + 2, 9, 0x2900F0FF); // design cyan ring
+
+            // Search field
+            int sx = L.card.x + 14;
+            int sy = L.card.y + 14;
+            int sw = L.card.w - 28;
+            int sh = 44;
+            vxui_draw_rounded_rect(sx, sy, sw, sh, 8, VxTheme::SURFACE_2);
+            vxr_rounded_border(sx, sy, sw, sh, 8, VxTheme::BORDER_ALPHA);
+            vxr_circle(sx + 16, sy + 22, 6, VxTheme::MUTED);
+            vxr_fill_rect(sx + 21, sy + 27, 6, 2, VxTheme::MUTED);
+            const char* search_txt = (g_state.launcher_search_len > 0) ? g_state.launcher_search : "Search apps...";
+            uint32_t search_col = (g_state.launcher_search_len > 0) ? VxTheme::FG : VxTheme::MUTED;
+            vx_text::draw(sx + 36, sy + 29, 14, search_txt, search_col, VxTheme::SURFACE_2);
+            if (g_state.launcher_search_len > 0) {
+                int caret_x = sx + 36 + vx_text::text_width(14, g_state.launcher_search);
+                vxr_fill_rect(caret_x, sy + 12, 2, 22, VxTheme::accent());
+            }
+
+            for (int i = 0; i < L.item_count; i++) {
+                int ax = L.items[i].x;
+                int ay = L.items[i].y;
+                bool ihover = L.items[i].contains(g_state.mouse_x, g_state.mouse_y);
+                if (ihover) {
+                    vxui_draw_rounded_rect(ax, ay, L.items[i].w, L.items[i].h, 8, VxTheme::SURFACE_2);
+                }
+                draw_app_icon_in_cell(L.icon_cells[i].x, L.icon_cells[i].y, L.icon_cells[i].w, L.icon_cells[i].h, g_app_ids[L.app_indices[i]] - 1, ihover);
+
+                const char* name = g_app_names[L.app_indices[i]];
+                int name_w = vx_text::text_width(12, name);
+                int name_x = ax + (L.items[i].w - name_w) / 2;
+                vx_text::draw(name_x, ay + 78, 12, name, VxTheme::FG_SOFT, ihover ? VxTheme::SURFACE_2 : VxTheme::SURFACE_1);
+            }
+
+            // Footer / identity row
+            int footer_y = L.card.y + L.card.h - 58 - 14;
+            vxr_fill_rect(L.card.x + 14, footer_y, L.card.w - 28, 1, VxTheme::BORDER_ALPHA);
+            vxr_circle(L.card.x + 34, footer_y + 18, 13, VxTheme::SURFACE_2);
+            draw_abstract_char(L.card.x + 29, footer_y + 12, 'e', VxTheme::FG);
+            vx_text::draw(L.card.x + 56, footer_y + 24, 13, "ethan", VxTheme::FG, VxTheme::SURFACE_1);
+            vx_text::draw(L.card.x + 56, footer_y + 38, 11, "vextryn@air", VxTheme::MUTED, VxTheme::SURFACE_1);
+            int power_x = L.card.x + L.card.w - 120;
+            for (int i = 0; i < 3; i++) {
+                vxui_draw_rounded_rect(power_x + i * 38, footer_y + 8, 30, 30, 8, VxTheme::SURFACE_2);
+                vxr_rounded_border(power_x + i * 38, footer_y + 8, 30, 30, 8, VxTheme::BORDER_ALPHA);
+            }
+            draw_abstract_char(power_x + 10, footer_y + 17, 'L', 0xFFF7F8FA);
+            draw_abstract_char(power_x + 48, footer_y + 17, 'R', 0xFFF7F8FA);
+            draw_abstract_char(power_x + 86, footer_y + 17, 'S', 0xFFF7F8FA);
+        }
+
+        // Control Center overlay (drawn after the launcher, before the cursor)
         if (g_state.control_center_open) {
             draw_control_center(W, H, g_state.mouse_x, g_state.mouse_y, false);
         }
 
-        if (g_state.launcher_open) {
-            VxLauncherLayout L = compute_launcher_layout(W, H, g_state.launcher_search, g_state.launcher_search_len);
-
-            // ---- Massive frosted-glass drawer ----
-            vxui_draw_shadow(L.card.x, L.card.y, L.card.w, L.card.h, 24);
-            vxui_draw_rounded_rect(L.card.x, L.card.y, L.card.w, L.card.h, 24, VxTheme::SURFACE_HIGH);
-            vxr_rounded_rect(L.card.x, L.card.y, L.card.w, L.card.h, 24, VxTheme::BORDER_SUBTLE);
-            
-            // Search Bar at Top
-            int search_w = L.card.w - 64;
-            int search_x = L.card.x + 32;
-            int search_y = L.card.y + 24;
-            vxui_draw_rounded_rect(search_x, search_y, search_w, 40, 20, VxTheme::BASE_DEEP);
-            vxr_rounded_rect(search_x, search_y, search_w, 40, 20, VxTheme::accent());
-            
-            if (g_state.launcher_search_len == 0) {
-                const char* hint = "Search Vextryn...";
-                for (int i = 0; hint[i]; i++) {
-                    draw_abstract_char(search_x + 20 + i * 8, search_y + 16, hint[i], VxTheme::TEXT_MUTED);
-                }
-            } else {
-                for (int i = 0; i < g_state.launcher_search_len; i++) {
-                    draw_abstract_char(search_x + 20 + i * 8, search_y + 16, g_state.launcher_search[i], VxTheme::TEXT_PRIMARY);
-                }
-            }
-            if (g_frame % 60 < 30) {
-                vxr_fill_rect(search_x + 20 + g_launcher_search_input.caret_pos * 8, search_y + 16, 2, 12, VxTheme::accent());
-            }
-
-            // ---- App list with real layout bounds ----
-            for (int i = 0; i < L.item_count; i++) {
-                int real_app_idx = L.app_indices[i];
-                const VxRect& item = L.items[i];
-                bool hover = item.contains(g_state.mouse_x, g_state.mouse_y);
-                if (hover) {
-                    vxui_draw_rounded_rect(item.x, item.y, item.w, item.h, 16, VxTheme::SURFACE);
-                }
-                
-                // Draw icon (centered in 48x48 cell)
-                draw_app_icon_in_cell(L.icon_cells[i].x, L.icon_cells[i].y, L.icon_cells[i].w, L.icon_cells[i].h, real_app_idx, hover);
-                
-                // Centered Label
-                const char* aname = g_app_names[real_app_idx];
-                int label_len = 0; for (; aname[label_len]; label_len++);
-                int tx = item.x + (item.w - label_len * 8) / 2;
-                int ty = item.y + item.h - 20;
-                for (int j = 0; aname[j]; j++) {
-                    draw_abstract_char(tx + j * 8, ty, aname[j], hover ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY);
-                }
-            }
-        }
-
-        // V2 Final Cursor: crisp, bright, electric blue tip
-        // Clamp so the 20×34 arrow bounding box never exceeds the framebuffer.
+        // Cursor
         int max_ptr_x = (int)W - 24;
         int max_ptr_y = (int)H - 36;
         if (max_ptr_x < 0) max_ptr_x = 0;
@@ -1443,35 +1460,25 @@ extern "C" {
         uint32_t ptr_x = (g_state.mouse_x < 0) ? 0 : (g_state.mouse_x > max_ptr_x ? (uint32_t)max_ptr_x : (uint32_t)g_state.mouse_x);
         uint32_t ptr_y = (g_state.mouse_y < 0) ? 0 : (g_state.mouse_y > max_ptr_y ? (uint32_t)max_ptr_y : (uint32_t)g_state.mouse_y);
         if (g_state.large_cursor) {
-            // Large cursor: 24x24 arrow, high visibility
-            // Shadow
             for (int i = 0; i < 18; i++) vxr_fill_rect(ptr_x + 2 + i, ptr_y + 3 + i, 2, 2, 0x88000000);
             vxr_fill_rect(ptr_x + 2, ptr_y + 4, 2, 30, 0x88000000);
-            // Outline
             for (int i = 0; i < 18; i++) vxr_fill_rect(ptr_x + i, ptr_y + i, 2, 2, 0xFF000000);
             vxr_fill_rect(ptr_x, ptr_y, 2, 30, 0xFF000000);
-            // White fill
             for (int i = 0; i < 24; i++) vxr_fill_rect(ptr_x + 2, ptr_y + 2 + i, 2, 2, 0xFFFFFFFF);
             for (int i = 1; i < 14; i++) vxr_fill_rect(ptr_x + 2 + i, ptr_y + 2 + i, 2, 2, 0xFFFFFFFF);
             vxr_fill_rect(ptr_x + 2, ptr_y + 26, 6, 2, 0xFFFFFFFF);
             vxr_fill_rect(ptr_x + 6, ptr_y + 26, 2, 6, 0xFFFFFFFF);
-            // Accent tip
             vxr_fill_rect(ptr_x, ptr_y, 4, 4, VxTheme::accent());
         } else {
-            // Normal cursor
-            // Drop shadow
             vxr_fill_rect(ptr_x + 2, ptr_y + 3, 1, 18, 0x88000000);
             for (int i = 0; i < 12; i++) vxr_fill_rect(ptr_x + 2 + i, ptr_y + 3 + i, 1, 1, 0x88000000);
-            // Black outline
             vxr_fill_rect(ptr_x - 1, ptr_y - 1, 1, 18, 0xFF000000);
             for (int i = 0; i < 12; i++) vxr_fill_rect(ptr_x - 1 + i, ptr_y - 1 + i, 1, 1, 0xFF000000);
-            // Pure white fill
             for (int i = 0; i < 16; i++) vxr_fill_rect(ptr_x, ptr_y + i, 1, 1, 0xFFFFFFFF);
             for (int i = 1; i < 10; i++) vxr_fill_rect(ptr_x + i, ptr_y + i, 1, 1, 0xFFFFFFFF);
             vxr_fill_rect(ptr_x + 1, ptr_y + 10, 5, 1, 0xFFFFFFFF);
             vxr_fill_rect(ptr_x + 5, ptr_y + 11, 2, 5, 0xFFFFFFFF);
             vxr_fill_rect(ptr_x + 7, ptr_y + 9, 3, 6, 0xFFFFFFFF);
-            // Electric blue tip
             vxr_fill_rect(ptr_x, ptr_y, 3, 3, VxTheme::accent());
         }
     }
@@ -1501,6 +1508,10 @@ extern "C" {
         g_state.shift_down = false;
         g_state.e0_prefix = false;
         g_state.ctrl_down = false;
+        g_state.wifi_enabled = true;      // Open Design: WiFi switch is ON by default
+        g_state.bluetooth_enabled = true; // Open Design: Bluetooth switch is ON by default
+        g_state.airdrop_enabled = false;
+        g_state.dnd_enabled = false;
         
         g_state.accent_color = VxTheme::ACCENT;
         VxTheme::set_accent(g_state.accent_color);
@@ -1536,8 +1547,8 @@ extern "C" {
         g_state.windows[0]  = {false, VX_APP_CALCULATOR,   160, 130, 300, 390, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[1]  = {false, VX_APP_NOTES,        395, 110, 420, 420, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[2]  = {false, VX_APP_SYSMON,       235, 170, 500, 330, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[3]  = {false, VX_APP_FILES,        100, 100, 600, 400, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[4]  = {false, VX_APP_SETTINGS,     150, 150, 640, 480, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[3]  = {false, VX_APP_FILES,         36,  96, 420, 560, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[4]  = {false, VX_APP_SETTINGS,     500,  96, 488, 560, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[5]  = {false, VX_APP_TERMINAL,     50,  50,  600, 400, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[6]  = {false, VX_APP_SNAKE,        200, 200, 400, 428, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[7]  = {false, VX_APP_BROWSER,      80,  80,  640, 480, false, 0, 0, false, false, false, 0,0,0,0};
@@ -1654,8 +1665,7 @@ extern "C" {
             if (g_frame == 0) vxair_log_info("COMP MARK 5: immediately after first framebuffer flip/present");
             vxair_hpet_sleep_ms(3);
             g_frame++;
-            if (g_frame == 1) vxair_log_info("COMP MARK 6: first loop iteration reached");
-            if (g_frame % 60 == 0) vxair_log_info("COMPOSITOR FRAME %u", (uint32_t)g_frame);
+            if (g_frame == 60) vxair_log_info("COMPOSITOR RUNNING (one-time log; periodic logs disabled to avoid serial throttling)");
         }
     }
 }

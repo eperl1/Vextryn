@@ -1,213 +1,133 @@
 #pragma once
-// V5 Control Center — Premium quick-settings overlay panel
-// This is the "wow" surface: a glassmorphic panel with toggle tiles,
-// brightness/volume sliders, accent color picker, and quick actions.
+// Vextryn Air Control Center — "Quick settings" popover, matching the Open Design
+// vextryn-desktop-shell.html `.popover` spec: 300px wide, bottom-right above the
+// taskbar, surface-1 body, switch rows (WiFi + Bluetooth), brightness/volume
+// sliders with cyan fill.
 #include <stdint.h>
 
 struct VxCCLayout {
     VxRect panel;
-    VxRect tiles[6];
-    VxRect sliders[2];
-    VxRect accent_swatch[6];
-    VxRect close_btn;
+    VxRect sw_wifi;
+    VxRect sw_bt;
+    VxRect slider_bright;
+    VxRect slider_vol;
 };
 
 static VxCCLayout compute_cc_layout(uint32_t W, uint32_t H) {
     VxCCLayout L;
-    int pw = 340;
-    int ph = 420;
-    int px = W - pw - 16;
-    int py = VxTheme::TOPBAR_H + 8;
+    int pw = 300;
+    int ph = 244;
+    int px = W - pw - 8;   // right: 8px
+    int py = H - 64 - ph;  // bottom: 64px (above the 56px taskbar)
     L.panel = {px, py, pw, ph};
 
-    // 3×2 grid of toggle tiles
-    int tile_w = (pw - 48) / 3;
-    int tile_h = 72;
-    int tile_gap = 12;
-    int grid_x = px + 16;
-    int grid_y = py + 56;
-    for (int i = 0; i < 6; i++) {
-        int r = i / 3;
-        int c = i % 3;
-        L.tiles[i] = {grid_x + c * (tile_w + tile_gap),
-                       grid_y + r * (tile_h + tile_gap),
-                       tile_w, tile_h};
-    }
+    // Switch rows (WiFi y=40, Bluetooth y=78) — 40x22 switches right-aligned
+    L.sw_wifi = {px + pw - 12 - 40, py + 40, 40, 22};
+    L.sw_bt   = {px + pw - 12 - 40, py + 78, 40, 22};
 
-    // Sliders below tiles
-    int slider_y = grid_y + 2 * (tile_h + tile_gap) + 12;
-    int slider_w = pw - 32;
-    L.sliders[0] = {px + 16, slider_y, slider_w, 40};
-    L.sliders[1] = {px + 16, slider_y + 52, slider_w, 40};
-
-    // Accent color swatches
-    int swatch_y = slider_y + 116;
-    int swatch_size = 28;
-    int swatch_gap = 8;
-    int swatch_total = 6 * (swatch_size + swatch_gap) - swatch_gap;
-    int swatch_x = px + (pw - swatch_total) / 2;
-    for (int i = 0; i < 6; i++) {
-        L.accent_swatch[i] = {swatch_x + i * (swatch_size + swatch_gap), swatch_y, swatch_size, swatch_size};
-    }
-
-    // Close button
-    L.close_btn = {px + pw - 36, py + 8, 24, 24};
+    // Slider rows (brightness y=130, volume y=176) — track areas
+    L.slider_bright = {px + 12, py + 130, pw - 24, 44};
+    L.slider_vol    = {px + 12, py + 176, pw - 24, 44};
     return L;
 }
 
-// Draw the Control Center overlay. Returns true if a click was consumed.
+// Draw the Quick-settings popover. Returns true if a click was consumed inside.
 static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool clicked) {
     VxCCLayout L = compute_cc_layout(W, H);
     uint32_t accent = VxTheme::accent();
+    uint32_t cyan = VxTheme::CYAN;
 
-    // Backdrop dim
-    vxr_fill_rect(0, 0, W, H, 0x40000000);
-
-    // Panel shadow
+    // Panel body — surface-1, 1px border-strong, 8px radius, floating shadow
     vxui_draw_shadow(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 20);
+    vxui_draw_rounded_rect(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 8, VxTheme::SURFACE_1);
+    vxr_rounded_border(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 8, VxTheme::BORDER_STRONG_A);
 
-    // Panel body — frosted glass
-    vxr_fill_rect(L.panel.x, L.panel.y, L.panel.w, L.panel.h, VxTheme::GLASS_TINT);
-    vxr_fill_rect(L.panel.x, L.panel.y, L.panel.w, 1, VxTheme::BORDER_BRIGHT);
-    vxr_fill_rect(L.panel.x, L.panel.y + L.panel.h - 1, L.panel.w, 1, VxTheme::BORDER_STRONG);
-    vxr_fill_rect(L.panel.x, L.panel.y, 1, L.panel.h, VxTheme::BORDER_STRONG);
-    vxr_fill_rect(L.panel.x + L.panel.w - 1, L.panel.y, 1, L.panel.h, VxTheme::BORDER_STRONG);
+    // Title
+    vx_text::draw(L.panel.x + 16, L.panel.y + 23, 13, "Quick settings", VxTheme::TEXT_PRIMARY, VxTheme::SURFACE_1);
 
-    // Header
-    const char* title = "Control Center";
-    for (int i = 0; title[i]; i++)
-        draw_abstract_char(L.panel.x + 16, L.panel.y + 16, title[i], VxTheme::TEXT_PRIMARY);
-    vxr_fill_rect(L.panel.x + 16, L.panel.y + 32, 100, 2, accent);
+    // ---- Switch rows ----
+    struct SwRow { const char* label; bool* state; };
+    SwRow rows[2] = { {"WiFi", &g_state.wifi_enabled}, {"Bluetooth", &g_state.bluetooth_enabled} };
+    VxRect sw_rects[2] = { L.sw_wifi, L.sw_bt };
+    int row_y[2] = { L.panel.y + 38, L.panel.y + 76 };
 
-    // Close button
-    bool close_hover = L.close_btn.contains(mx, my);
-    vxr_fill_rect(L.close_btn.x, L.close_btn.y, L.close_btn.w, L.close_btn.h,
-                       close_hover ? VxTheme::DANGER : VxTheme::SURFACE_HIGH);
-    for (int i = 0; i < 10; i++) {
-        vxr_fill_rect(L.close_btn.x + 7 + i, L.close_btn.y + 7 + i, 2, 2, VxTheme::TEXT_PRIMARY);
-        vxr_fill_rect(L.close_btn.x + 16 - i, L.close_btn.y + 7 + i, 2, 2, VxTheme::TEXT_PRIMARY);
-    }
-
-    // Toggle tiles
-    struct TileInfo { const char* label; bool* state; uint32_t icon_color; };
-    TileInfo tiles[6] = {
-        {"WiFi",      &g_state.wifi_enabled,      accent},
-        {"Bluetooth", &g_state.bluetooth_enabled, VxTheme::SUCCESS},
-        {"AirDrop",   &g_state.airdrop_enabled,   VxTheme::WARNING},
-        {"DND",       &g_state.dnd_enabled,       VxTheme::DANGER},
-        {"Dark Mode", &g_state.high_contrast,      VxTheme::TEXT_PRIMARY},
-        {"Large Ptr", &g_state.large_cursor,       VxTheme::TEXT_SECONDARY},
-    };
-
-    for (int i = 0; i < 6; i++) {
-        const VxRect& t = L.tiles[i];
-        bool hover = t.contains(mx, my);
-        bool on = *tiles[i].state;
-
-        // Tile background
-        uint32_t bg = on ? VxTheme::accent_soft() : VxTheme::SURFACE_HIGH;
-        if (hover) bg = on ? VxTheme::OVERLAY : VxTheme::SURFACE;
-        vxr_fill_rect(t.x, t.y, t.w, t.h, bg);
-        // Border
-        vxr_fill_rect(t.x, t.y, t.w, 1, VxTheme::BORDER_BRIGHT);
-        vxr_fill_rect(t.x, t.y + t.h - 1, t.w, 1, VxTheme::BORDER_SUBTLE);
-        vxr_fill_rect(t.x, t.y, 1, t.h, VxTheme::BORDER_SUBTLE);
-        vxr_fill_rect(t.x + t.w - 1, t.y, 1, t.h, VxTheme::BORDER_SUBTLE);
-
-        // Toggle indicator (top-right)
-        uint32_t ind = on ? accent : VxTheme::BORDER_STRONG;
-        vxr_fill_rect(t.x + t.w - 16, t.y + 8, 8, 8, ind);
-        if (on) {
-            // Checkmark
-            for (int j = 0; j < 4; j++)
-                vxr_fill_rect(t.x + t.w - 14 + j, t.y + 11 + j, 2, 2, VxTheme::TEXT_PRIMARY);
-            for (int j = 0; j < 5; j++)
-                vxr_fill_rect(t.x + t.w - 11 + j, t.y + 13 - j, 2, 2, VxTheme::TEXT_PRIMARY);
-        }
-
+    for (int r = 0; r < 2; r++) {
+        // Row divider
+        vxr_fill_rect(L.panel.x + 16, row_y[r] - 2, L.panel.w - 32, 1, VxTheme::BORDER_ALPHA);
         // Label
-        for (int j = 0; tiles[i].label[j]; j++)
-            draw_abstract_char(t.x + 10 + j * 8, t.y + t.h - 18, tiles[i].label[j],
-                               on ? VxTheme::TEXT_PRIMARY : VxTheme::TEXT_SECONDARY);
+        vx_text::draw(L.panel.x + 16, row_y[r] + 16, 13, rows[r].label, VxTheme::TEXT_PRIMARY, VxTheme::SURFACE_1);
 
-        if (clicked && hover) {
-            *tiles[i].state = !(*tiles[i].state);
-        }
-    }
-
-    // Sliders — brightness and volume (visual only, click-to-set position)
-    const char* slider_labels[2] = {"Brightness", "Volume"};
-    for (int s = 0; s < 2; s++) {
-        const VxRect& sl = L.sliders[s];
-        // Background
-        vxr_fill_rect(sl.x, sl.y, sl.w, sl.h, VxTheme::SURFACE_HIGH);
-        vxr_fill_rect(sl.x, sl.y, sl.w, 1, VxTheme::BORDER_BRIGHT);
-        vxr_fill_rect(sl.x, sl.y + sl.h - 1, sl.w, 1, VxTheme::BORDER_SUBTLE);
-        vxr_fill_rect(sl.x, sl.y, 1, sl.h, VxTheme::BORDER_SUBTLE);
-        vxr_fill_rect(sl.x + sl.w - 1, sl.y, 1, sl.h, VxTheme::BORDER_SUBTLE);
-
-        // Label
-        for (int j = 0; slider_labels[s][j]; j++)
-            draw_abstract_char(sl.x + 12, sl.y + 8, slider_labels[s][j], VxTheme::TEXT_SECONDARY);
-
-        // Slider track
-        int track_x = sl.x + 12;
-        int track_y = sl.y + 26;
-        int track_w = sl.w - 24;
-        vxr_fill_rect(track_x, track_y, track_w, 6, VxTheme::BASE_DARK);
-
-        // Fill (static at ~70%)
-        int fill_pct = 70;
-        if (clicked && my >= track_y - 4 && my <= track_y + 10 && mx >= track_x && mx <= track_x + track_w) {
-            fill_pct = (mx - track_x) * 100 / track_w;
-        }
-        int fill_w = track_w * fill_pct / 100;
-        vxr_fill_rect(track_x, track_y, fill_w, 6, accent);
-        // Knob
-        int knob_x = track_x + fill_w - 6;
-        if (knob_x < track_x) knob_x = track_x;
-        vxr_fill_rect(knob_x, track_y - 4, 14, 14, VxTheme::TEXT_PRIMARY);
-        vxr_fill_rect(knob_x + 2, track_y - 2, 10, 10, accent);
-    }
-
-    // Accent color picker
-    const char* ac_label = "Accent Color";
-    int acy = L.accent_swatch[0].y - 16;
-    for (int j = 0; ac_label[j]; j++)
-        draw_abstract_char(L.panel.x + 16, acy, ac_label[j], VxTheme::TEXT_SECONDARY);
-
-    uint32_t accent_options[6] = {
-        0xFF3B8CFF, // Ice Blue (default)
-        0xFF8B5CF6, // Purple
-        0xFF10B981, // Emerald
-        0xFFF59E0B, // Amber
-        0xFFEF4444, // Red
-        0xFFEC4899, // Pink
-    };
-
-    for (int i = 0; i < 6; i++) {
-        const VxRect& sw = L.accent_swatch[i];
-        bool sel = (VxTheme::accent() == accent_options[i]);
+        bool on = *rows[r].state;
+        const VxRect& sw = sw_rects[r];
         bool hover = sw.contains(mx, my);
 
-        // Selection ring
-        if (sel || hover) {
-            vxr_fill_rect(sw.x - 3, sw.y - 3, sw.w + 6, sw.h + 6, sel ? accent : VxTheme::BORDER_BRIGHT);
+        // Chip for WiFi
+        if (r == 0) {
+            const char* ssid = "vextryn-5G";
+            int cw = 9 * 8 + 18; // text width + wifi glyph + padding
+            vxui_draw_rounded_rect(sw.x - cw - 8, sw.y, cw, 22, 11, VxTheme::SURFACE_2);
+            vxr_rounded_border(sw.x - cw - 8, sw.y, cw, 22, 11, VxTheme::BORDER_ALPHA);
+            // wifi glyph (cyan arcs) at chip left
+            int gx = sw.x - cw - 8 + 8, gy = sw.y + 5;
+            vxr_fill_rect(gx, gy + 8, 6, 2, cyan);
+            vxr_fill_rect(gx + 1, gy + 5, 4, 1, cyan);
+            vxr_fill_rect(gx + 2, gy + 2, 2, 1, cyan);
+            vx_text::draw(sw.x - cw - 8 + 18, sw.y + 16, 11, ssid, VxTheme::FG_SOFT, VxTheme::SURFACE_2);
         }
-        // Swatch
-        vxr_fill_rect(sw.x, sw.y, sw.w, sw.h, accent_options[i]);
 
-        if (clicked && hover) {
-            g_state.accent_color = accent_options[i];
-            VxTheme::set_accent(accent_options[i]);
-        }
+        // Switch track
+        uint32_t track = on ? 0xFF134B4F : VxTheme::SURFACE_3;
+        uint32_t track_border = on ? 0x8C00F0FF : VxTheme::BORDER_ALPHA;
+        uint32_t knob_col = on ? cyan : VxTheme::MUTED;
+        if (hover) track = on ? 0xFF15595E : VxTheme::SURFACE_2;
+        vxui_draw_rounded_rect(sw.x, sw.y, sw.w, sw.h, 11, track);
+        vxr_rounded_border(sw.x, sw.y, sw.w, sw.h, 11, track_border);
+        int knob_x = on ? sw.x + sw.w - 18 : sw.x + 2;
+        vxr_circle(knob_x + 8, sw.y + 11, 8, knob_col);
+
+        if (clicked && hover) *rows[r].state = !(*rows[r].state);
     }
 
-    // Close button actually closes the CC
-    if (clicked && close_hover) {
-        g_state.control_center_open = false;
+    // ---- Sliders ----
+    const char* slider_labels[2] = { "Brightness", "Volume" };
+    static int slider_val[2] = { 72, 61 };
+    VxRect sl_rects[2] = { L.slider_bright, L.slider_vol };
+    for (int s = 0; s < 2; s++) {
+        const VxRect& sl = sl_rects[s];
+        int y = sl.y;
+        if (s == 1) vxr_fill_rect(L.panel.x + 16, y - 14, L.panel.w - 32, 1, VxTheme::BORDER_ALPHA);
+
+        // Labels
+        vx_text::draw(sl.x, y + 12, 12, slider_labels[s], VxTheme::TEXT_SECONDARY, VxTheme::SURFACE_1);
+        char pct[8] = {0};
+        int v = slider_val[s];
+        pct[0] = '0' + v / 10 % 10;
+        pct[1] = '0' + v % 10;
+        pct[2] = '%';
+        int pct_w = vx_text::text_width(12, pct);
+        vx_text::draw(sl.x + sl.w - pct_w, y + 12, 12, pct, VxTheme::TEXT_SECONDARY, VxTheme::SURFACE_1);
+
+        // Track
+        int track_x = sl.x;
+        int track_y = y + 22;
+        int track_w = sl.w;
+        vxr_fill_rect(track_x, track_y, track_w, 4, 0x2ED9DEE7);
+        int fill_w = track_w * v / 100;
+        vxr_fill_rect(track_x, track_y, fill_w, 4, cyan);
+        // Thumb
+        int knob_x = track_x + fill_w - 8;
+        if (knob_x < track_x) knob_x = track_x;
+        vxr_circle(knob_x + 8, track_y + 2, 8, VxTheme::FG);
+        vxr_rounded_border(knob_x, track_y - 6, 16, 16, 8, 0xB300F0FF);
+
+        // Click-to-set
+        if (clicked && my >= track_y - 8 && my <= track_y + 12 && mx >= track_x && mx <= track_x + track_w) {
+            slider_val[s] = (mx - track_x) * 100 / track_w;
+            if (slider_val[s] < 0) slider_val[s] = 0;
+            if (slider_val[s] > 100) slider_val[s] = 100;
+        }
     }
 
     // Return whether the click was inside the panel
-    return clicked && (L.panel.contains(mx, my) || close_hover);
+    return clicked && L.panel.contains(mx, my);
 }

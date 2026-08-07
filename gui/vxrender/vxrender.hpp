@@ -34,14 +34,20 @@ namespace VxColor {
     }
 
     // Linear interpolation between two colors (integer-only)
+    // NOTE: differences must be computed in SIGNED arithmetic — unsigned
+    // subtraction wraps when c2 channel < c1 channel (e.g. 17 - 18 = 0xFFFFFFFF),
+    // which corrupts the blend into warm garbage colors.
     inline uint32_t lerp(uint32_t c1, uint32_t c2, uint32_t t, uint32_t max_t) {
         if (max_t == 0) return c1;
-        uint32_t r1 = (c1 >> 16) & 0xFF, g1 = (c1 >> 8) & 0xFF, b1 = c1 & 0xFF;
-        uint32_t r2 = (c2 >> 16) & 0xFF, g2 = (c2 >> 8) & 0xFF, b2 = c2 & 0xFF;
-        uint32_t r = r1 + (r2 - r1) * t / max_t;
-        uint32_t g = g1 + (g2 - g1) * t / max_t;
-        uint32_t b = b1 + (b2 - b1) * t / max_t;
-        return 0xFF000000 | (r << 16) | (g << 8) | b;
+        int32_t r1 = (c1 >> 16) & 0xFF, g1 = (c1 >> 8) & 0xFF, b1 = c1 & 0xFF;
+        int32_t r2 = (c2 >> 16) & 0xFF, g2 = (c2 >> 8) & 0xFF, b2 = c2 & 0xFF;
+        int32_t r = r1 + (r2 - r1) * (int32_t)t / (int32_t)max_t;
+        int32_t g = g1 + (g2 - g1) * (int32_t)t / (int32_t)max_t;
+        int32_t b = b1 + (b2 - b1) * (int32_t)t / (int32_t)max_t;
+        if (r < 0) r = 0; else if (r > 255) r = 255;
+        if (g < 0) g = 0; else if (g > 255) g = 255;
+        if (b < 0) b = 0; else if (b > 255) b = 255;
+        return 0xFF000000 | ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
     }
 
     // Apply opacity to a color (returns a color with alpha channel set)
@@ -204,6 +210,34 @@ inline void vxr_rounded_top(int x, int y, int w, int h, int radius, uint32_t col
                 vxr_pixel(x + w - radius + dx, y + radius - 1 - dy, color);
             }
         }
+    }
+}
+
+// ===== Rounded rectangle outline (1px border only, NOT a fill) =====
+// Draws just the outer edge of a rounded rectangle so translucent borders
+// don't overpaint the surface they enclose.
+inline void vxr_rounded_border(int x, int y, int w, int h, int radius, uint32_t color) {
+    if (radius <= 0) { vxr_fill_rect(x, y, w, 1, color); vxr_fill_rect(x, y + h - 1, w, 1, color); vxr_fill_rect(x, y, 1, h, color); vxr_fill_rect(x + w - 1, y, 1, h, color); return; }
+    if (radius > w / 2) radius = w / 2;
+    if (radius > h / 2) radius = h / 2;
+    // Straight segments
+    vxr_fill_rect(x + radius, y, w - radius * 2, 1, color);              // top
+    vxr_fill_rect(x + radius, y + h - 1, w - radius * 2, 1, color);      // bottom
+    vxr_fill_rect(x, y + radius, 1, h - radius * 2, color);              // left
+    vxr_fill_rect(x + w - 1, y + radius, 1, h - radius * 2, color);      // right
+    // Corner arcs (outermost filled pixel of each quadrant per row)
+    for (int dy = 0; dy < radius; dy++) {
+        int dx = 0;
+        while ((dx + 1) * (dx + 1) + dy * dy <= radius * radius && dx + 1 < radius) dx++;
+        if (dx * dx + dy * dy > radius * radius) continue;
+        // Top-left
+        vxr_pixel(x + radius - 1 - dx, y + radius - 1 - dy, color);
+        // Top-right
+        vxr_pixel(x + w - radius + dx, y + radius - 1 - dy, color);
+        // Bottom-left
+        vxr_pixel(x + radius - 1 - dx, y + h - radius + dy, color);
+        // Bottom-right
+        vxr_pixel(x + w - radius + dx, y + h - radius + dy, color);
     }
 }
 

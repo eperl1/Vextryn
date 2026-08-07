@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vextryn Air — Desktop Shell</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#111111;
+  --surface:#111111;
+  --surface-1:color-mix(in srgb,#f7f8fa 5%,#111111);
+  --surface-2:color-mix(in srgb,#f7f8fa 10%,#111111);
+  --surface-3:color-mix(in srgb,#f7f8fa 17%,#111111);
+  --fg:#f7f8fa;
+  --fg-strong:#ffffff;
+  --fg-soft:color-mix(in srgb,#d9dee7 78%,#f7f8fa);
+  --muted:color-mix(in srgb,#6b7280 55%,#f7f8fa);
+  --muted-dim:color-mix(in srgb,#6b7280 40%,#f7f8fa);
+  --border:color-mix(in srgb,#d9dee7 26%,transparent);
+  --border-strong:color-mix(in srgb,#d9dee7 45%,transparent);
+  --accent:#1677ff;
+  --accent-hover:color-mix(in srgb,#1677ff 78%,#ffffff);
+  --cyan:#00f0ff;
+  --cyan-ring:color-mix(in srgb,#00f0ff 40%,transparent);
+  --radius:8px;
+  --shadow-window:0 16px 44px -20px color-mix(in srgb,#111111 60%,transparent),0 2px 10px -4px color-mix(in srgb,#111111 45%,transparent);
+  --shadow-focused:0 0 0 1px var(--cyan-ring),0 32px 90px -26px color-mix(in srgb,#111111 80%,transparent),0 10px 28px -12px color-mix(in srgb,#111111 55%,transparent);
+  --font-display:Inter,system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --font-body:Inter,system-ui,-apple-system,"Segoe UI","Helvetica Neue",Arial,sans-serif;
+  --font-mono:SFMono-Regular,Consolas,"Liberation Mono",Menlo,Courier,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:#111111;color:var(--fg);font-family:var(--font-body);font-size:14px;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+svg{display:block}
+.use{fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.c-cyan{color:var(--cyan)}
+.c-soft{color:var(--fg-soft)}
+
+.desktop{position:relative;width:100vw;height:100vh;overflow:hidden}
+.wallpaper{position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(90% 70% at 20% 8%,color-mix(in srgb,#1677ff 16%,transparent),transparent 60%),
+    radial-gradient(60% 40% at 86% 98%,color-mix(in srgb,#00f0ff 5%,transparent),transparent 55%),
+    linear-gradient(163deg,color-mix(in srgb,#1677ff 13%,#111111) 0%,#111111 52%,color-mix(in srgb,#1677ff 19%,#111111) 100%);
+}
+.wallpaper::after{content:"";position:absolute;inset:0;
+  background-image:
+    linear-gradient(color-mix(in srgb,#d9dee7 1.8%,transparent) 1px,transparent 1px),
+    linear-gradient(90deg,color-mix(in srgb,#d9dee7 1.8%,transparent) 1px,transparent 1px);
+  background-size:56px 56px;
+}
+
+.stage{position:absolute;inset:0;z-index:10}
+
+.window,.panel{
+  position:absolute;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:var(--shadow-window);
+}
+.window{animation:rise .26s cubic-bezier(.2,.75,.2,1) backwards;transition:transform .22s cubic-bezier(.2,.75,.2,1),opacity .22s,box-shadow .2s,border-color .2s}
+.panel{animation:rise .26s .04s cubic-bezier(.2,.75,.2,1) backwards}
+@keyframes rise{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
+.window.focused{border-color:color-mix(in srgb,#00f0ff 30%,#d9dee7);box-shadow:var(--shadow-focused)}
+.window.minimized{opacity:0;transform:translateY(120vh);pointer-events:none}
+
+.titlebar,.p-head{height:28px;flex:none;display:flex;align-items:center;gap:8px;padding:0 6px 0 12px;border-bottom:1px solid var(--border);user-select:none}
+.ttl{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:500;color:var(--fg);letter-spacing:.01em}
+.ttl svg{width:15px;height:15px;color:var(--cyan)}
+.wc{width:28px;height:28px;flex:none;display:grid;place-items:center;border-radius:var(--radius);color:var(--muted);cursor:pointer}
+.wc svg{width:14px;height:14px}
+.wc:hover{background:var(--surface-2);color:var(--fg)}
+.wc.x:hover{background:color-mix(in srgb,#f7f8fa 16%,#111111)}
+
+.term-tabs{height:30px;flex:none;display:flex;align-items:flex-end;gap:2px;padding:0 8px;border-bottom:1px solid var(--border);background:color-mix(in srgb,#f7f8fa 3%,#111111)}
+.ttab{position:relative;height:30px;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:11.5px;font-weight:500;color:var(--muted);border-radius:var(--radius) var(--radius) 0 0;letter-spacing:.01em}
+.ttab svg{width:12px;height:12px;color:var(--cyan)}
+.ttab::after{content:"";position:absolute;left:10px;right:10px;bottom:0;height:2px;border-radius:2px 2px 0 0;background:transparent;transition:background .15s}
+.ttab.on{color:var(--fg)}
+.ttab.on::after{background:var(--cyan)}
+.ttab:hover{color:var(--fg)}
+.ttab-add{margin-left:auto;width:26px;height:26px;align-self:center;display:grid;place-items:center;border-radius:var(--radius);color:var(--muted)}
+.ttab-add svg{width:13px;height:13px}
+.ttab-add:hover{color:var(--fg);background:var(--surface-2)}
+.term{flex:1;padding:14px 18px 16px;background:color-mix(in srgb,#f7f8fa 2%,#111111);font-family:var(--font-mono);font-size:13px;line-height:1.65;font-variant-numeric:tabular-nums;overflow:hidden;color:var(--fg)}
+.term p{white-space:pre;min-height:1.65em}
+.term .p{color:var(--cyan)}
+.term .cmd{color:var(--fg-strong)}
+.term .out{color:var(--fg-soft)}
+.term .dim{color:var(--muted-dim)}
+.term .ok{color:color-mix(in srgb,#00f0ff 75%,#f7f8fa)}
+.term .caret{display:inline-block;width:8px;height:15px;margin-left:2px;vertical-align:-2px;background:color-mix(in srgb,#00f0ff 70%,transparent);animation:blink 1.1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+.panel{width:264px;right:12px;bottom:64px;z-index:11}
+.p-head .live{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:600;letter-spacing:.12em;color:var(--cyan)}
+.p-head .live i{width:5px;height:5px;border-radius:999px;background:var(--cyan);animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.p-body{display:flex;flex-direction:column;padding:2px 0 10px;overflow:hidden}
+.p-sec{padding:10px 14px;border-top:1px solid var(--border)}
+.stat{padding:10px 14px 8px}
+.stat+.stat{border-top:1px solid var(--border)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.row .k{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.row .v{font-size:11.5px;font-weight:500;color:var(--fg-soft);font-variant-numeric:tabular-nums}
+.bar{height:4px;margin-top:7px;border-radius:999px;background:var(--surface-3);overflow:hidden}
+.bar i{display:block;height:100%;width:var(--w,0%);border-radius:999px;background:var(--cyan);transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border:1px solid var(--border);border-radius:999px;background:var(--surface-2);font-size:11px;color:var(--fg-soft);white-space:nowrap}
+.chip svg{width:13px;height:13px;color:var(--cyan)}
+.net-tx{display:flex;justify-content:space-between;margin-top:9px;font-size:11px;color:var(--muted-dim);font-variant-numeric:tabular-nums}
+.confirm-tx{font-size:12.5px;color:var(--fg-soft);margin-bottom:10px}
+.confirm-row{display:flex;gap:8px}
+.confirm-row .btn{flex:1;height:44px}
+.confirm-row .btn-primary{width:auto}
+.slider-row{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--fg-soft);margin:2px 0 6px}
+.slider-row b{font-weight:500;color:var(--fg-soft);font-variant-numeric:tabular-nums}
+.rng{appearance:none;-webkit-appearance:none;width:100%;height:22px;background:transparent;cursor:pointer;display:block;margin:2px 0 10px}
+.rng::-webkit-slider-runnable-track{height:4px;border-radius:999px;background:linear-gradient(90deg,var(--cyan) var(--val,50%),color-mix(in srgb,#d9dee7 18%,transparent) var(--val,50%))}
+.rng::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:999px;background:var(--fg);border:1px solid color-mix(in srgb,#00f0ff 70%,transparent);box-shadow:0 1px 3px color-mix(in srgb,#111111 45%,transparent)}
+.rng::-moz-range-track{height:4px;border-radius:999px;background:color-mix(in srgb,#d9dee7 18%,transparent)}
+.rng::-moz-range-progress{height:4px;border-radius:999px;background:var(--cyan)}
+.rng::-moz-range-thumb{width:16px;height:16px;border-radius:999px;background:var(--fg);border:1px solid color-mix(in srgb,#00f0ff 70%,transparent)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:32px;padding:0 14px;border:1px solid var(--border-strong);border-radius:var(--radius);background:transparent;color:var(--fg);font-size:13px;font-weight:500;letter-spacing:.02em}
+.btn:hover{background:var(--surface-2)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{height:44px;width:100%;border:none;background:var(--accent);color:#ffffff;box-shadow:0 6px 20px -8px color-mix(in srgb,#1677ff 60%,transparent)}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary:focus-visible{outline:none;box-shadow:0 0 0 2px #111111,0 0 0 4px color-mix(in srgb,#00f0ff 80%,transparent)}
+
+.taskbar{position:absolute;left:0;right:0;bottom:0;height:56px;z-index:70;display:flex;align-items:center;gap:14px;padding:0 12px;background:var(--surface);border-top:1px solid color-mix(in srgb,#00f0ff 40%,transparent)}
+.tb-left,.tb-right{display:flex;align-items:center;gap:4px}
+.tb-center{flex:1;display:flex;justify-content:center;align-items:center}
+.tb-sep{width:1px;height:22px;margin:0 6px;background:linear-gradient(180deg,transparent,color-mix(in srgb,#d9dee7 42%,transparent) 42%,color-mix(in srgb,#d9dee7 42%,transparent) 58%,transparent)}
+.tb-app{position:relative;width:40px;height:40px;display:grid;place-items:center;border-radius:var(--radius);color:var(--fg-soft);cursor:pointer}
+.tb-app svg{width:22px;height:22px}
+.tb-app .use{stroke-width:1.8}
+.tb-start{background:var(--surface-2)}
+.tb-app.tb-start:hover{background:var(--surface-3)}
+.tb-tray svg{width:19px;height:19px}
+.tb-tray .use{stroke-width:1.6}
+.tb-app:hover{background:var(--surface-2);color:var(--fg)}
+.tb-app::after{content:"";position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:16px;height:2px;border-radius:999px;background:transparent;transition:background .15s}
+.tb-app.running::after{background:color-mix(in srgb,#00f0ff 40%,transparent)}
+.tb-app.active::after{background:var(--cyan)}
+.tb-app.open{background:var(--surface-2);color:var(--cyan)}
+.pager{display:flex;gap:6px;align-items:center}
+.pager .dot{width:4px;height:4px;border-radius:999px;background:color-mix(in srgb,#d9dee7 32%,transparent);transition:.2s}
+.pager .dot.on{width:14px;background:var(--cyan)}
+.clock{height:44px;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;padding:0 6px 0 12px;border-radius:var(--radius);cursor:pointer;line-height:1.2}
+.clock:hover{background:var(--surface-2)}
+.clock .t{font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--fg)}
+.clock .d{font-size:10.5px;color:var(--muted-dim);font-variant-numeric:tabular-nums}
+
+.tip{position:relative}
+.tip::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) scale(.96);background:var(--surface);color:var(--fg);font-size:11px;font-weight:500;letter-spacing:.01em;padding:5px 10px;border:1px solid var(--border-strong);border-radius:var(--radius);white-space:nowrap;opacity:0;pointer-events:none;transition:.12s;z-index:90}
+.tip:hover::after{opacity:1;transform:translateX(-50%) scale(1)}
+
+.launcher{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(.98);width:min(660px,calc(100vw - 48px));background:var(--surface-1);border:1px solid var(--border-strong);border-radius:var(--radius);box-shadow:var(--shadow-window),0 0 0 1px color-mix(in srgb,#00f0ff 16%,transparent);z-index:40;opacity:0;pointer-events:none;transition:opacity .16s,transform .16s}
+.launcher.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.la-inner{padding:14px}
+.search{position:relative}
+.search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+.search input{width:100%;height:44px;padding:0 14px 0 42px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);color:var(--fg);font:inherit;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s}
+.search input::placeholder{color:var(--muted)}
+.search input:focus{border-color:color-mix(in srgb,#00f0ff 55%,transparent);box-shadow:0 0 0 1px var(--cyan-ring)}
+.la-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:2px;max-height:348px;overflow-y:auto;padding:10px 2px 4px}
+.la-app{display:flex;flex-direction:column;align-items:center;gap:7px;padding:10px 4px;border-radius:var(--radius);cursor:pointer;color:var(--fg)}
+.la-app.hide{display:none}
+.la-app:hover{background:var(--surface-2)}
+.la-app .la-ic{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface-2);color:var(--fg-soft)}
+.la-app .la-ic svg{width:22px;height:22px}
+.la-app:hover .la-ic{border-color:var(--border-strong);color:var(--fg)}
+.la-app .la-n{font-size:11.5px;font-weight:500;color:var(--fg-soft);letter-spacing:.01em}
+.la-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 6px 2px;border-top:1px solid var(--border);margin-top:4px}
+.la-user{display:flex;align-items:center;gap:10px;font-size:12.5px}
+.la-user .av{width:32px;height:32px;border-radius:999px;display:grid;place-items:center;background:color-mix(in srgb,#1677ff 32%,#111111);color:var(--cyan);font-size:12px;font-weight:600}
+.la-user small{display:block;color:var(--muted-dim);font-size:10.5px;margin-top:1px}
+.power{display:flex;gap:2px}
+.power .tb-app{width:40px;height:40px}
+
+.popover{position:absolute;right:8px;bottom:64px;width:300px;background:var(--surface-1);border:1px solid var(--border-strong);border-radius:var(--radius);box-shadow:var(--shadow-window);z-index:50;padding:12px;display:none}
+.popover.open{display:block}
+.po-title{font-size:12.5px;font-weight:500;color:var(--fg);margin-bottom:10px}
+.po-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border);font-size:13px}
+.po-row:first-of-type{border-top:none}
+.po-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.switch{position:relative;width:40px;height:22px;flex:none;border-radius:999px;background:var(--surface-3);border:1px solid var(--border);cursor:pointer;transition:.18s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:var(--muted);transition:.18s}
+.switch.on{background:color-mix(in srgb,#00f0ff 26%,#111111);border-color:color-mix(in srgb,#00f0ff 55%,transparent)}
+.switch.on::after{left:calc(100% - 18px);background:var(--cyan)}
+.po-sec{padding-top:10px;margin-top:10px;border-top:1px solid var(--border)}
+.cal{width:264px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:6px;text-align:center;font-size:12px}
+.cal-grid .wd{padding:6px 0 4px;color:var(--muted-dim);font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.cal-grid .d{padding:6px 0;border-radius:var(--radius);color:var(--fg-soft);font-variant-numeric:tabular-nums}
+.cal-grid .d.other{color:color-mix(in srgb,#6b7280 55%,transparent)}
+.cal-grid .d.today{background:color-mix(in srgb,#00f0ff 18%,transparent);color:var(--cyan);font-weight:600}
+
+.toast{position:absolute;left:50%;bottom:72px;transform:translateX(-50%) translateY(8px);background:var(--surface-2);border:1px solid var(--border-strong);color:var(--fg);font-size:13px;font-weight:500;padding:10px 18px;border-radius:var(--radius);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media (max-width:900px){
+  .window{width:calc(100vw - 32px);left:16px!important}
+  .panel{right:16px}
+  .launcher{width:calc(100vw - 32px)}
+  .tb-center{display:none}
+}
+</style>
+</head>
+<body>
+<div class="desktop" data-od-id="desktop">
+  <div class="wallpaper" data-od-id="wallpaper"></div>
+
+  <main class="stage">
+
+    <section class="window" id="window-terminal" data-od-id="window-terminal" style="width:700px;max-width:calc(100vw - 40px);height:402px;z-index:12">
+      <header class="titlebar" data-od-id="window-terminal-titlebar">
+        <span class="ttl"><svg class="use"><use href="#i-terminal"/></svg>Terminal <span style="color:var(--muted-dim);font-weight:400">· zsh</span></span>
+        <div class="win-controls" style="display:flex;gap:2px;margin-left:auto" data-od-id="window-terminal-controls">
+          <button class="wc" id="win-min" data-od-id="window-terminal-minimize" aria-label="Minimize"><svg class="use"><use href="#i-minus"/></svg></button>
+          <button class="wc" id="win-max" data-od-id="window-terminal-maximize" aria-label="Maximize"><svg class="use"><use href="#i-maximize"/></svg></button>
+          <button class="wc x" id="win-close" data-od-id="window-terminal-close" aria-label="Close"><svg class="use"><use href="#i-close"/></svg></button>
+        </div>
+      </header>
+      <div class="term-tabs" data-od-id="window-terminal-tabs">
+        <button class="ttab on"><svg class="use"><use href="#i-terminal"/></svg>vextryn@air: ~</button>
+        <button class="ttab-add" id="term-newtab" data-od-id="window-terminal-newtab" aria-label="New tab"><svg class="use"><use href="#i-plus"/></svg></button>
+      </div>
+      <div class="term" data-od-id="window-terminal-content">
+        <p><span class="p">vextryn@air:~$</span> <span class="cmd">uptime</span></p>
+        <p class="out">&nbsp;10:14&nbsp; up 2 days, 4:11,&nbsp; 2 users,&nbsp; load average: 0.42, 0.35, 0.31</p>
+        <p><span class="p">vextryn@air:~$</span> <span class="cmd">ls -la</span></p>
+        <p class="dim">&nbsp;-rw-r--r--&nbsp; vextryn&nbsp; vextryn&nbsp;&nbsp; 812B&nbsp; Jul 31 11:20&nbsp; README.md</p>
+        <p class="dim">&nbsp;-rw-r--r--&nbsp; vextryn&nbsp; vextryn&nbsp;&nbsp; 2.1K&nbsp; Jul 31 11:22&nbsp; main.cpp</p>
+        <p class="dim">&nbsp;drwxr-xr-x&nbsp; vextryn&nbsp; vextryn&nbsp;&nbsp; 4.0K&nbsp; Aug 1 14:02&nbsp; src/</p>
+        <p class="dim">&nbsp;-rw-r--r--&nbsp; vextryn&nbsp; vextryn&nbsp;&nbsp; 1.8K&nbsp; Aug 1 14:02&nbsp; shell.cpp</p>
+        <p><span class="p">vextryn@air:~$</span> <span class="cmd">./build</span></p>
+        <p class="dim">&nbsp;[1/4]&nbsp; Compiling shell.cpp&nbsp; … done</p>
+        <p class="dim">&nbsp;[2/4]&nbsp; Linking air-shell&nbsp;&nbsp; … done</p>
+        <p class="ok">&nbsp;✓ build complete · 2.41s</p>
+        <p><span class="p">vextryn@air:~$</span><span class="caret"></span></p>
+      </div>
+    </section>
+
+    <aside class="panel" id="panel-system" data-od-id="panel-system">
+      <header class="p-head" data-od-id="panel-system-header">
+        <span class="ttl"><svg class="use"><use href="#i-pulse"/></svg>System Monitor</span>
+        <span class="live"><i></i>LIVE</span>
+        <button class="wc" id="panel-close" data-od-id="panel-system-close" aria-label="Close"><svg class="use"><use href="#i-close"/></svg></button>
+      </header>
+      <div class="p-body" id="panel-body">
+        <section class="stat" data-od-id="panel-system-cpu">
+          <div class="row"><span class="k">CPU</span><span class="v" id="cpu-val">12%</span></div>
+          <div class="bar"><i id="cpu-bar" style="--w:12%"></i></div>
+        </section>
+        <section class="stat" data-od-id="panel-system-mem">
+          <div class="row"><span class="k">Memory</span><span class="v" id="mem-val">116 MB / 4 GB</span></div>
+          <div class="bar"><i id="mem-bar" style="--w:2.8%"></i></div>
+        </section>
+        <section class="stat" data-od-id="panel-system-disk">
+          <div class="row"><span class="k">Disk</span><span class="v" id="disk-val">12.4 GB / 64 GB</span></div>
+          <div class="bar"><i id="disk-bar" style="--w:19%"></i></div>
+        </section>
+        <section class="stat" data-od-id="panel-system-network">
+          <div class="row"><span class="k">Network</span><span class="chip"><svg class="use"><use href="#i-wifi"/></svg>vextryn-5G · 54 Mbps</span></div>
+          <div class="net-tx"><span>↓ 1.8 MB/s</span><span>↑ 0.4 MB/s</span></div>
+        </section>
+        <div class="p-sec" data-od-id="panel-system-sliders">
+          <div class="slider-row"><span>Brightness</span><b id="br-val">72%</b></div>
+          <input type="range" class="rng" id="rng-brightness" min="0" max="100" value="72" style="--val:72%">
+          <div class="slider-row"><span>Volume</span><b id="vol-val">61%</b></div>
+          <input type="range" class="rng" id="rng-volume" min="0" max="100" value="61" style="--val:61%">
+        </div>
+        <div class="p-sec">
+          <button class="btn" id="btn-end" data-od-id="panel-system-end-session">End session…</button>
+        </div>
+        <div class="p-sec" id="end-confirm" hidden>
+          <p class="confirm-tx">Sign out of vextryn@air?</p>
+          <div class="confirm-row">
+            <button class="btn" id="end-cancel">Cancel</button>
+            <button class="btn btn-primary" id="end-ok" data-od-id="panel-system-end-confirm">End session</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </main>
+
+  <div class="launcher" id="launcher" data-od-id="launcher">
+    <div class="la-inner">
+      <div class="search" data-od-id="launcher-search">
+        <svg class="use"><use href="#i-search"/></svg>
+        <input type="text" id="la-search" placeholder="Search apps…" autocomplete="off">
+      </div>
+      <div class="la-grid" id="la-grid" data-od-id="launcher-grid">
+        <button class="la-app" data-od-id="launcher-app-files" data-name="files" data-app="files"><span class="la-ic"><svg class="use"><use href="#i-folder"/></svg></span><span class="la-n">Files</span></button>
+        <button class="la-app" data-od-id="launcher-app-terminal" data-name="terminal" data-app="terminal"><span class="la-ic"><svg class="use"><use href="#i-terminal"/></svg></span><span class="la-n">Terminal</span></button>
+        <button class="la-app" data-od-id="launcher-app-browser" data-name="browser vextryn" data-app="browser"><span class="la-ic"><svg class="use"><use href="#i-globe"/></svg></span><span class="la-n">Browser</span></button>
+        <button class="la-app" data-od-id="launcher-app-code" data-name="code editor" data-app="code"><span class="la-ic"><svg class="use"><use href="#i-code"/></svg></span><span class="la-n">Code</span></button>
+        <button class="la-app" data-od-id="launcher-app-mail" data-name="mail" data-app="mail"><span class="la-ic"><svg class="use"><use href="#i-mail"/></svg></span><span class="la-n">Mail</span></button>
+        <button class="la-app" data-od-id="launcher-app-music" data-name="music" data-app="music"><span class="la-ic"><svg class="use"><use href="#i-music"/></svg></span><span class="la-n">Music</span></button>
+        <button class="la-app" data-od-id="launcher-app-photos" data-name="photos" data-app="photos"><span class="la-ic"><svg class="use"><use href="#i-photo"/></svg></span><span class="la-n">Photos</span></button>
+        <button class="la-app" data-od-id="launcher-app-settings" data-name="settings" data-app="settings"><span class="la-ic"><svg class="use"><use href="#i-sliders"/></svg></span><span class="la-n">Settings</span></button>
+        <button class="la-app" data-od-id="launcher-app-monitor" data-name="system monitor" data-app="monitor"><span class="la-ic"><svg class="use"><use href="#i-pulse"/></svg></span><span class="la-n">System Monitor</span></button>
+        <button class="la-app" data-od-id="launcher-app-notes" data-name="notes text" data-app="notes"><span class="la-ic"><svg class="use"><use href="#i-note"/></svg></span><span class="la-n">Notes</span></button>
+      </div>
+      <div class="la-footer">
+        <div class="la-user">
+          <span class="av">e</span>
+          <span>ethan<small>vextryn@air</small></span>
+        </div>
+        <div class="power">
+          <button class="tb-app tip" data-od-id="launcher-power-lock" data-tip="Lock"><svg class="use"><use href="#i-lock"/></svg></button>
+          <button class="tb-app tip" data-od-id="launcher-power-restart" data-tip="Restart"><svg class="use"><use href="#i-restart"/></svg></button>
+          <button class="tb-app tip" data-od-id="launcher-power-shutdown" data-tip="Shut down"><svg class="use"><use href="#i-shutdown"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="popover" id="pop-quick" data-od-id="popover-quick">
+    <div class="po-title">Quick settings</div>
+    <div class="po-row"><span>WiFi</span><span class="po-right"><span class="chip"><svg class="use"><use href="#i-wifi"/></svg>vextryn-5G</span><span class="switch on" data-sw="wifi"></span></span></div>
+    <div class="po-row"><span>Bluetooth</span><span class="po-right"><span class="switch on" data-sw="bt"></span></span></div>
+    <div class="po-sec">
+      <div class="slider-row"><span>Brightness</span><b id="qb-val">72%</b></div>
+      <input type="range" class="rng" id="rng-brightness-q" min="0" max="100" value="72" style="--val:72%">
+      <div class="slider-row"><span>Volume</span><b id="qv-val">61%</b></div>
+      <input type="range" class="rng" id="rng-volume-q" min="0" max="100" value="61" style="--val:61%">
+    </div>
+  </div>
+
+  <div class="popover cal" id="pop-cal" data-od-id="popover-calendar">
+    <div class="po-title" id="cal-title">August 2026</div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+
+  <div class="toast" id="toast" data-od-id="toast"></div>
+
+  <nav class="taskbar" data-od-id="taskbar">
+    <div class="tb-left">
+      <button class="tb-app tb-start tip" id="btn-launcher" data-od-id="taskbar-launcher" data-tip="Launcher">
+        <svg style="width:22px;height:22px"><use href="#i-mark"/></svg>
+      </button>
+      <span class="tb-sep"></span>
+      <button class="tb-app tip" data-od-id="taskbar-app-files" data-tip="Files"><svg class="use"><use href="#i-folder"/></svg></button>
+      <button class="tb-app tip running active" id="tb-terminal" data-od-id="taskbar-app-terminal" data-tip="Terminal"><svg class="use"><use href="#i-terminal"/></svg></button>
+      <button class="tb-app tip" data-od-id="taskbar-app-browser" data-tip="Vextryn Browser"><svg class="use"><use href="#i-globe"/></svg></button>
+      <button class="tb-app tip" data-od-id="taskbar-app-code" data-tip="Code"><svg class="use"><use href="#i-code"/></svg></button>
+      <button class="tb-app tip" data-od-id="taskbar-app-mail" data-tip="Mail"><svg class="use"><use href="#i-mail"/></svg></button>
+      <button class="tb-app tip" data-od-id="taskbar-app-music" data-tip="Music"><svg class="use"><use href="#i-music"/></svg></button>
+    </div>
+    <div class="tb-center" data-od-id="taskbar-workspaces">
+      <div class="pager"><span class="dot on"></span><span class="dot"></span><span class="dot"></span></div>
+    </div>
+    <div class="tb-right" data-od-id="taskbar-tray">
+      <span class="tb-sep"></span>
+      <button class="tb-app tb-tray tip c-cyan" id="btn-tray" data-od-id="taskbar-tray-wifi" data-tip="WiFi · vextryn-5G"><svg class="use"><use href="#i-wifi"/></svg></button>
+      <button class="tb-app tb-tray tip" data-od-id="taskbar-tray-bluetooth" data-tip="Bluetooth"><svg class="use"><use href="#i-bluetooth"/></svg></button>
+      <button class="tb-app tb-tray tip" data-od-id="taskbar-tray-volume" data-tip="Volume"><svg class="use"><use href="#i-volume"/></svg></button>
+      <button class="tb-app tb-tray tip" data-od-id="taskbar-tray-battery" data-tip="Battery · 86%"><svg class="use"><use href="#i-battery"/></svg></button>
+      <span class="tb-sep"></span>
+      <button class="clock tip" id="btn-clock" data-od-id="taskbar-clock" data-tip="Calendar">
+        <span class="t" id="clock-time">--:--</span>
+        <span class="d" id="clock-date">—</span>
+      </button>
+    </div>
+  </nav>
+
+</div>
+
+<svg hidden xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <symbol id="i-mark" viewBox="0 0 24 24"><g fill="#00f0ff" stroke="none"><circle cx="7.2" cy="7.2" r="2.9"/><circle cx="16.8" cy="7.2" r="2.9"/><circle cx="7.2" cy="16.8" r="2.9"/><circle cx="16.8" cy="16.8" r="2.9"/></g></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24" class="use"><path d="M3.5 7a1.8 1.8 0 0 1 1.8-1.8h3.6l2.2 2.3h7.6A1.8 1.8 0 0 1 20.5 9.3v8.1a1.8 1.8 0 0 1-1.8 1.8H5.3a1.8 1.8 0 0 1-1.8-1.8Z"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24" class="use"><path d="M5 7.5 9 11.5 5 15.5"/><path d="M11.5 15.5h7"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24" class="use"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17"/><path d="M12 3.5c2.7 3 2.7 14 0 17-2.7-3-2.7-14 0-17Z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24" class="use"><path d="m8.5 6.5-5.5 5.5 5.5 5.5"/><path d="m15.5 6.5 5.5 5.5-5.5 5.5"/></symbol>
+    <symbol id="i-mail" viewBox="0 0 24 24" class="use"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24" class="use"><path d="M9.5 16.5V6.8l8-1.8v9.5"/><circle cx="7.2" cy="16.5" r="2.2"/><circle cx="15.2" cy="14.5" r="2.2"/></symbol>
+    <symbol id="i-photo" viewBox="0 0 24 24" class="use"><rect x="3.5" y="5" width="17" height="14" rx="2"/><circle cx="8.7" cy="9.3" r="1.4"/><path d="m3.5 16.5 4.6-4.4 4 3.4 3.4-2.8 4.9 3.8"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24" class="use"><path d="M5 6.5h14"/><path d="M5 12h14"/><path d="M5 17.5h14"/><circle cx="9.6" cy="6.5" r="1.7"/><circle cx="15.2" cy="12" r="1.7"/><circle cx="11.6" cy="17.5" r="1.7"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 24 24" class="use"><path d="M3 12h4l2-5 3.5 10 2.5-7 1.2 2H21"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24" class="use"><path d="M6 3.5h8l4 4V20.5H6Z"/><path d="M14 3.5v4h4"/><path d="M9 12h6"/><path d="M9 15.5h6"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24" class="use"><rect x="5.5" y="10" width="13" height="9.5" rx="2"/><path d="M9 10V8.2a3 3 0 0 1 6 0V10"/></symbol>
+    <symbol id="i-restart" viewBox="0 0 24 24" class="use"><path d="M19.5 12a7.5 7.5 0 1 1-2.2-5.3"/><path d="M19.5 4v3.5H16"/></symbol>
+    <symbol id="i-shutdown" viewBox="0 0 24 24" class="use"><path d="M12 3.5v8"/><path d="M6.8 6.6a7.5 7.5 0 1 0 10.4 0"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24" class="use"><path d="M3.5 9.6a11.5 11.5 0 0 1 17 0"/><path d="M6.8 12.7a7.3 7.3 0 0 1 10.4 0"/><path d="M10 15.8a2.9 2.9 0 0 1 4 0"/><circle cx="12" cy="18.6" r="0.9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-bluetooth" viewBox="0 0 24 24" class="use"><path d="M7 7.5 17 16 12 20V4l5 4-10 8.5"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24" class="use"><path d="M4 9.5v5h3.2L11 17.5V6.5L7.2 9.5Z"/><path d="M14.5 9.8a3.2 3.2 0 0 1 0 4.4"/><path d="M16.8 7.5a6 6 0 0 1 0 9"/></symbol>
+    <symbol id="i-battery" viewBox="0 0 24 24" class="use"><rect x="3" y="8" width="16.5" height="8" rx="1.8"/><path d="M21.5 10.8v2.4"/><rect x="5.2" y="10" width="6" height="4" rx="1" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24" class="use"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24" class="use"><path d="M5.5 12h13"/></symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24" class="use"><rect x="6" y="6" width="12" height="12" rx="1.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" class="use"><path d="M12 5.5v13"/><path d="M5.5 12h13"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24" class="use"><path d="m6.5 6.5 11 11"/><path d="m17.5 6.5-11 11"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24" class="use"><path d="m6 9.5 6 6 6-6"/></symbol>
+  </defs>
+</svg>
+
+<script>
+const $=(s,c=document)=>c.querySelector(s),$$=(s,c=document)=>[...c.querySelectorAll(s)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+let zTop=12;
+let toastTimer;
+
+function toast(msg){
+  const t=$('#toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+const clockT=$('#clock-time'),clockD=$('#clock-date');
+function tickClock(){
+  const d=new Date();
+  clockT.textContent=d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  clockD.textContent=d.toLocaleDateString([],{weekday:'short',day:'numeric',month:'short'}).replace(/,/g,'');
+}
+tickClock();setInterval(tickClock,20000);
+
+const calGrid=$('#cal-grid');
+function buildCal(){
+  const now=new Date();
+  $('#cal-title').textContent=now.toLocaleDateString([],{month:'long',year:'numeric'});
+  const wd=['MO','TU','WE','TH','FR','SA','SU'];
+  calGrid.innerHTML=wd.map(w=>`<span class="wd">${w}</span>`).join('');
+  const y=now.getFullYear(),m=now.getMonth();
+  const first=new Date(y,m,1);
+  const start=(first.getDay()+6)%7;
+  const days=new Date(y,m+1,0).getDate();
+  const prev=new Date(y,m,0).getDate();
+  const cells=[];
+  for(let i=start-1;i>=0;i--)cells.push({d:prev-i,other:true});
+  for(let d=1;d<=days;d++)cells.push({d});
+  for(let i=cells.length%7;i>0;i--)cells.push({d:i,other:true});
+  cells.forEach(c=>{
+    const today=c.d===now.getDate()&&!c.other;
+    const el=document.createElement('span');
+    el.className='d'+(c.other?' other':'')+(today?' today':'');
+    el.textContent=c.d;
+    calGrid.appendChild(el);
+  });
+}
+buildCal();
+
+const launcher=$('#launcher'),btnLauncher=$('#btn-launcher'),laSearch=$('#la-search');
+let launcherOpen=false;
+function setLauncher(open){
+  launcherOpen=open;
+  launcher.classList.toggle('open',open);
+  btnLauncher.classList.toggle('open',open);
+  if(open){laSearch.value='';filterApps('');laSearch.focus();}
+}
+function filterApps(q){
+  q=q.toLowerCase();
+  $$('.la-app').forEach(a=>a.classList.toggle('hide',!!q&&!a.dataset.name.includes(q)));
+}
+laSearch.addEventListener('input',e=>filterApps(e.target.value));
+btnLauncher.addEventListener('click',e=>{e.stopPropagation();setLauncher(!launcherOpen);});
+$$('.la-app').forEach(a=>{
+  a.addEventListener('click',()=>{
+    const app=a.dataset.app;
+    setLauncher(false);
+    if(app==='terminal'){restoreTerminal();}
+    else if(app==='monitor'){panel.style.display='flex';}
+    else{toast('Opening '+a.querySelector('.la-n').textContent+'…');}
+  });
+});
+$$('.power .tb-app').forEach(b=>b.addEventListener('click',()=>{setLauncher(false);toast('Signed out — this is a prototype');}));
+
+const popQuick=$('#pop-quick'),popCal=$('#pop-cal'),btnTray=$('#btn-tray'),btnClock=$('#btn-clock');
+function closePops(){popQuick.classList.remove('open');popCal.classList.remove('open');}
+btnTray.addEventListener('click',e=>{e.stopPropagation();popCal.classList.remove('open');popQuick.classList.toggle('open');});
+btnClock.addEventListener('click',e=>{e.stopPropagation();popQuick.classList.remove('open');popCal.classList.toggle('open');});
+document.addEventListener('pointerdown',e=>{
+  if(!e.target.closest('.popover')&&!e.target.closest('#btn-tray')&&!e.target.closest('#btn-clock'))closePops();
+});
+
+$$('.switch').forEach(s=>s.addEventListener('click',e=>{
+  e.stopPropagation();
+  s.classList.toggle('on');
+  const on=s.classList.contains('on');
+  if(s.dataset.sw==='wifi'){btnTray.classList.toggle('c-cyan',on);btnTray.dataset.tip=on?'WiFi · vextryn-5G':'WiFi · off';}
+}));
+
+const bindSlider=(input,labelEl)=>{
+  const sync=()=>{const v=input.value;input.style.setProperty('--val',v+'%');labelEl.textContent=v+'%';};
+  input.addEventListener('input',sync);sync();
+};
+const brA=$('#rng-brightness'),brB=$('#rng-brightness-q'),voA=$('#rng-volume'),voB=$('#rng-volume-q');
+bindSlider(brA,$('#br-val'));bindSlider(brB,$('#qb-val'));bindSlider(voA,$('#vol-val'));bindSlider(voB,$('#qv-val'));
+[brA,brB].forEach(r=>r.addEventListener('input',()=>{const v=r.value;[brA,brB].forEach(x=>{x.value=v;x.style.setProperty('--val',v+'%');});$('#br-val').textContent=v+'%';$('#qb-val').textContent=v+'%';}));
+[voA,voB].forEach(r=>r.addEventListener('input',()=>{const v=r.value;[voA,voB].forEach(x=>{x.value=v;x.style.setProperty('--val',v+'%');});$('#vol-val').textContent=v+'%';$('#qv-val').textContent=v+'%';}));
+
+const win=$('#window-terminal'),panel=$('#panel-system');
+const tbTerminal=$('#tb-terminal');
+let winMin=false;
+function focusWin(el){
+  $$('.window').forEach(w=>w.classList.remove('focused'));
+  el.classList.add('focused');
+  el.style.zIndex=++zTop;
+}
+function restoreTerminal(){
+  win.classList.remove('minimized');
+  tbTerminal.classList.add('running','active');
+  focusWin(win);
+  winMin=false;
+}
+function minimizeTerminal(keepRunning){
+  winMin=true;
+  win.classList.add('minimized');
+  tbTerminal.classList.remove('active');
+  if(!keepRunning)tbTerminal.classList.remove('running');
+}
+$('#win-min').addEventListener('click',e=>{e.stopPropagation();minimizeTerminal(true);});
+$('#win-close').addEventListener('click',e=>{e.stopPropagation();minimizeTerminal(false);});
+$('#term-newtab').addEventListener('click',e=>{e.stopPropagation();toast('New tab');});
+let maxed=false,maxRect=null;
+$('#win-max').addEventListener('click',e=>{
+  e.stopPropagation();
+  if(!maxed){maxRect={l:win.style.left,t:win.style.top,w:win.style.width,h:win.style.height,mw:win.style.maxWidth};
+    win.style.maxWidth='none';win.style.left='0';win.style.top='0';win.style.width='100vw';win.style.height='calc(100vh - 56px)';maxed=true;}
+  else{win.style.left=maxRect.l;win.style.top=maxRect.t;win.style.width=maxRect.w;win.style.height=maxRect.h;win.style.maxWidth=maxRect.mw;maxed=false;}
+});
+tbTerminal.addEventListener('click',()=>{
+  const running=tbTerminal.classList.contains('running');
+  if(!running){restoreTerminal();}
+  else if(winMin){restoreTerminal();}
+  else{minimizeTerminal(true);}
+});
+
+win.addEventListener('pointerdown',()=>focusWin(win));
+$('#panel-close').addEventListener('click',()=>{panel.style.display='none';});
+
+$('#btn-end').addEventListener('click',()=>{$('#end-confirm').hidden=false;});
+$('#end-cancel').addEventListener('click',()=>{$('#end-confirm').hidden=true;});
+$('#end-ok').addEventListener('click',()=>{$('#end-confirm').hidden=true;toast('Ending session…');setTimeout(()=>toast('Signed out — this is a prototype'),1100);});
+
+let drag=null;
+const titlebar=$('#window-terminal-titlebar');
+titlebar.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.wc'))return;
+  drag={ox:e.clientX-win.offsetLeft,oy:e.clientY-win.offsetTop};
+  titlebar.setPointerCapture(e.pointerId);
+  focusWin(win);
+});
+titlebar.addEventListener('pointermove',e=>{
+  if(!drag)return;
+  if(maxed)return;
+  win.style.left=clamp(e.clientX-drag.ox,-win.offsetWidth+140,innerWidth-140)+'px';
+  win.style.top=clamp(e.clientY-drag.oy,0,innerHeight-56-40)+'px';
+});
+titlebar.addEventListener('pointerup',()=>drag=null);
+titlebar.addEventListener('pointercancel',()=>drag=null);
+
+const cpuBar=$('#cpu-bar'),cpuVal=$('#cpu-val'),memBar=$('#mem-bar'),memVal=$('#mem-val');
+let cpuBase=12,memBase=116;
+function liveStats(){
+  cpuBase=clamp(cpuBase+(Math.random()-0.5)*4,6,26);
+  const c=Math.round(cpuBase);
+  cpuVal.textContent=c+'%';cpuBar.style.setProperty('--w',c+'%');
+  memBase=clamp(memBase+Math.round((Math.random()-0.5)*6),108,130);
+  memVal.textContent=memBase+' MB / 4 GB';
+  memBar.style.setProperty('--w',(memBase/4096*100).toFixed(1)+'%');
+}
+setInterval(liveStats,1600);
+
+const desktop=$('.desktop');
+desktop.addEventListener('pointerdown',e=>{
+  if(e.target===desktop||e.target.classList.contains('wallpaper')){
+    $$('.window').forEach(w=>w.classList.remove('focused'));
+  }
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    if(launcherOpen)setLauncher(false);
+    closePops();
+  }
+  if(e.key==='Meta'||e.key==='Win'){e.preventDefault();setLauncher(!launcherOpen);}
+});
+
+const w=win.offsetWidth;
+win.style.left=Math.max(16,Math.round(innerWidth/2 - w/2 - 36))+'px';
+win.style.top='44px';
+focusWin(win);
+</script>
+</body>
+</html>
