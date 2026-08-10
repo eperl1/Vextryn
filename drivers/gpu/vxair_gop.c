@@ -69,6 +69,12 @@ uint32_t vxair_fb_get_width(void) {
 uint32_t vxair_fb_get_height(void) {
     return fb_height;
 }
+uint32_t* vxair_fb_get_backbuffer(void) {
+    return fb_back ? fb_back : fb_front;
+}
+uint32_t vxair_fb_get_pitch(void) {
+    return fb_pitch;
+}
 
 /**
  * @brief Put a single pixel (writes to back buffer)

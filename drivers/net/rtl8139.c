@@ -23,6 +23,13 @@ static inline void* phys_to_virt(uint64_t paddr) {
     return (void*)(uintptr_t)paddr;
 }
 
+static inline uint64_t virt_to_phys(const void *virt) {
+    uint64_t v = (uint64_t)(uintptr_t)virt;
+    if (v >= 0xFFFFFFFF80000000ULL) return v - 0xFFFFFFFF80000000ULL;
+    if (v >= 0x80000000ULL && v < 0x90000000ULL) return v - 0x80000000ULL;
+    return v;
+}
+
 // Static TX buffers (one per descriptor slot) — avoids stack-buffer DMA issues
 // where the buffer could cross page boundaries.
 static uint8_t tx_bufs[RTL8139_NUM_TX_DESC][RTL8139_MAX_FRAME_SIZE + 4] __attribute__((aligned(16)));
@@ -78,7 +85,8 @@ int vxair_rtl8139_init(void) {
     uint32_t cmd_after = vxair_hal_pci_read_config(bus, slot, func, 0x04);
     vxair_log_info("RTL8139: PCI CMD after = 0x%x", cmd_after);
 
-    // ---- Software reset ----
+    // ---- Power on + software reset ----
+    rtl_out8(io_base, RTL8139_CONFIG1, 0x00);
     rtl_out8(io_base, RTL8139_CR, RTL8139_CR_RST);
     // Wait for RST bit to clear (hardware clears it when reset completes)
     for (int i = 0; i < 10000; i++) {
@@ -165,7 +173,7 @@ int vxair_rtl8139_send(const uint8_t *data, uint16_t len) {
 
     // Use a static per-descriptor buffer (avoids stack page-boundary DMA issues)
     memcpy(tx_bufs[idx], data, len);
-    uint32_t tx_phys = (uint32_t)(uintptr_t)tx_bufs[idx];
+    uint32_t tx_phys = (uint32_t)virt_to_phys(tx_bufs[idx]);
     rtl_out32(io, RTL8139_TSAD0 + idx * 4, tx_phys);
 
     // Write size + early TX threshold to TSD
@@ -201,24 +209,19 @@ uint16_t vxair_rtl8139_receive(uint8_t *out_buf, uint16_t max_len) {
 
     uint16_t io = g_rtl8139.io_base;
 
-    // Read CAPR (where hardware is currently writing in the ring buffer)
-    uint16_t capr = rtl_in16(io, RTL8139_CAPR);
-    uint16_t rx_offset = g_rtl8139.rx_offset;
-
-    // Normalize: CAPR is 16-bit and wraps at buffer size
-    uint16_t capr_norm = capr % RTL8139_RX_BUF_SIZE;
-    uint16_t offset_norm = rx_offset % RTL8139_RX_BUF_SIZE;
-
-    // Nothing to read if our position equals hardware's write position
-    // But we need to handle wrapping carefully
-    if (capr_norm == offset_norm) {
+    uint8_t cr = rtl_in8(io, RTL8139_CR);
+    if (cr & RTL8139_CR_BUFE) {
         static int rx_empty_count = 0;
         if (++rx_empty_count <= 3 || rx_empty_count % 128 == 0) {
-            vxair_log_info("RTL8139: RX empty #%d CAPR=0x%x (norm=%u) our_off=%u",
-                           rx_empty_count, capr, capr_norm, offset_norm);
+            vxair_log_info("RTL8139: RX empty #%d CR=0x%x CAPR=0x%x CBR=0x%x our_off=%u",
+                           rx_empty_count, cr, rtl_in16(io, RTL8139_CAPR),
+                           rtl_in16(io, RTL8139_CBR), g_rtl8139.rx_offset);
         }
         return 0;
     }
+
+    uint16_t rx_offset = g_rtl8139.rx_offset;
+    uint16_t offset_norm = rx_offset % RTL8139_RX_BUF_SIZE;
 
     // Read the 4-byte header at our current position
     // Header format: status[2] (little-endian) | length[2] (little-endian)
@@ -228,8 +231,8 @@ uint16_t vxair_rtl8139_receive(uint8_t *out_buf, uint16_t max_len) {
 
     // Check for valid packet (ROK bit set)
     if (!(status & RTL8139_INT_ROK)) {
-        vxair_log_info("RTL8139: RX bad status=0x%x at offset=%u (CAPR=%u capr_norm=%u)",
-                       status, offset_norm, capr, capr_norm);
+        vxair_log_info("RTL8139: RX bad status=0x%x at offset=%u (CR=0x%x CBR=0x%x)",
+                       status, offset_norm, cr, rtl_in16(io, RTL8139_CBR));
         // CAPR may report a spurious non-zero value before any data arrives
         // (hardware offset quirk). Don't advance rx_offset — instead, tell the
         // hardware we've consumed up to our current position.
@@ -239,7 +242,8 @@ uint16_t vxair_rtl8139_receive(uint8_t *out_buf, uint16_t max_len) {
 
     if (pkt_len < 64 || pkt_len > RTL8139_MAX_FRAME_SIZE) {
         vxair_log_info("RTL8139: RX bad length=%u at offset=%u", pkt_len, offset_norm);
-        g_rtl8139.rx_offset = capr_norm;
+        g_rtl8139.rx_offset = (rx_offset + 4) % RTL8139_RX_BUF_SIZE;
+        rtl_out16(io, RTL8139_CAPR, (g_rtl8139.rx_offset - 16) & 0xFFFF);
         return 0;
     }
 
@@ -268,8 +272,8 @@ uint16_t vxair_rtl8139_receive(uint8_t *out_buf, uint16_t max_len) {
 
     g_rtl8139.rx_offset = new_offset;
 
-    vxair_log_info("RTL8139: RX pkt_len=%u status=0x%x off=%u->%u capr_old=%u capr_new=%u",
-                   pkt_len, status, rx_offset, new_offset, capr, new_capr);
+    vxair_log_info("RTL8139: RX pkt_len=%u status=0x%x off=%u->%u cbr=%u capr_new=%u",
+                   pkt_len, status, rx_offset, new_offset, rtl_in16(io, RTL8139_CBR), new_capr);
 
     return copy_len;
 }

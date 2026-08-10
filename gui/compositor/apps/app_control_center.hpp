@@ -38,12 +38,12 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
     uint32_t cyan = VxTheme::CYAN;
 
     // Panel body — surface-1, 1px border-strong, 8px radius, floating shadow
-    vxui_draw_shadow(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 20);
-    vxui_draw_rounded_rect(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 8, VxTheme::SURFACE_1);
-    vxr_rounded_border(L.panel.x, L.panel.y, L.panel.w, L.panel.h, 8, VxTheme::BORDER_STRONG_A);
+    vxui_draw_dual_shadow(L.panel.x, L.panel.y, L.panel.w, L.panel.h, VxTheme::RADIUS_LG);
+    vxui_draw_frosted_panel(L.panel.x, L.panel.y, L.panel.w, L.panel.h, VxTheme::RADIUS_LG, 6, VxColor::with_alpha(VxTheme::SURFACE_1, 186));
+    vxr_rounded_border(L.panel.x, L.panel.y, L.panel.w, L.panel.h, VxTheme::RADIUS_LG, VxTheme::BORDER_STRONG_A);
 
     // Title
-    vx_text::draw(L.panel.x + 16, L.panel.y + 23, 13, "Quick settings", VxTheme::TEXT_PRIMARY, VxTheme::SURFACE_1);
+    vx_text::draw_bold(L.panel.x + 16, L.panel.y + 24, 13, "Quick settings", VxTheme::TEXT_PRIMARY, VxTheme::GLASS_TINT);
 
     // ---- Switch rows ----
     struct SwRow { const char* label; bool* state; };
@@ -55,7 +55,7 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
         // Row divider
         vxr_fill_rect(L.panel.x + 16, row_y[r] - 2, L.panel.w - 32, 1, VxTheme::BORDER_ALPHA);
         // Label
-        vx_text::draw(L.panel.x + 16, row_y[r] + 16, 13, rows[r].label, VxTheme::TEXT_PRIMARY, VxTheme::SURFACE_1);
+        vx_text::draw_bold(L.panel.x + 16, row_y[r] + 16, 13, rows[r].label, VxTheme::TEXT_PRIMARY, VxTheme::GLASS_TINT);
 
         bool on = *rows[r].state;
         const VxRect& sw = sw_rects[r];
@@ -98,7 +98,7 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
         if (s == 1) vxr_fill_rect(L.panel.x + 16, y - 14, L.panel.w - 32, 1, VxTheme::BORDER_ALPHA);
 
         // Labels
-        vx_text::draw(sl.x, y + 12, 12, slider_labels[s], VxTheme::TEXT_SECONDARY, VxTheme::SURFACE_1);
+        vx_text::draw_bold(sl.x, y + 12, 12, slider_labels[s], VxTheme::TEXT_SECONDARY, VxTheme::SURFACE_1);
         char pct[8] = {0};
         int v = slider_val[s];
         pct[0] = '0' + v / 10 % 10;
@@ -111,7 +111,7 @@ static bool draw_control_center(uint32_t W, uint32_t H, int mx, int my, bool cli
         int track_x = sl.x;
         int track_y = y + 22;
         int track_w = sl.w;
-        vxr_fill_rect(track_x, track_y, track_w, 4, 0x2ED9DEE7);
+        vxr_fill_rect(track_x, track_y, track_w, 4, 0x25D5DBE4);
         int fill_w = track_w * v / 100;
         vxr_fill_rect(track_x, track_y, fill_w, 4, cyan);
         // Thumb

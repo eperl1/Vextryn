@@ -24,6 +24,104 @@ static inline void vxui_draw_shadow(int x, int y, int w, int h, int depth) {
     vxr_shadow(x, y, w, h, depth);
 }
 
+extern void* vxair_kmalloc(size_t size);
+
+static inline void vxui_draw_dual_shadow(int x, int y, int w, int h, int radius) {
+    if (w <= 0 || h <= 0) return;
+    vxr_soft_shadow(x + 1, y + 5, w - 2, h - 2, 12, radius);
+    vxr_soft_shadow(x + 2, y + 2, w - 4, h - 4, 5, radius);
+}
+
+static inline void vxui_draw_frosted_panel(int x, int y, int w, int h, int radius, int blur_radius, uint32_t tint) {
+    if (w <= 0 || h <= 0) return;
+    const uint32_t* src = vxair_fb_get_backbuffer();
+    if (!src) {
+        vxui_draw_rounded_rect(x, y, w, h, radius, tint);
+        return;
+    }
+
+    int fb_w = (int)vxair_fb_get_width();
+    int fb_h = (int)vxair_fb_get_height();
+    int pitch_words = (int)(vxair_fb_get_pitch() / 4u);
+    if (fb_w <= 0 || fb_h <= 0 || pitch_words <= 0) return;
+
+    int x0 = x < 0 ? 0 : x;
+    int y0 = y < 0 ? 0 : y;
+    int x1 = x + w;
+    int y1 = y + h;
+    if (x1 > fb_w) x1 = fb_w;
+    if (y1 > fb_h) y1 = fb_h;
+    int rw = x1 - x0;
+    int rh = y1 - y0;
+    if (rw <= 0 || rh <= 0) return;
+
+    static uint32_t* blur_a = nullptr;
+    static uint32_t* blur_b = nullptr;
+    static int blur_cap = 0;
+    int count = rw * rh;
+    if (count > blur_cap) {
+        blur_a = (uint32_t*)vxair_kmalloc((size_t)count * sizeof(uint32_t));
+        blur_b = (uint32_t*)vxair_kmalloc((size_t)count * sizeof(uint32_t));
+        blur_cap = count;
+    }
+    if (!blur_a || !blur_b) {
+        vxui_draw_rounded_rect(x, y, w, h, radius, tint);
+        return;
+    }
+
+    int radius_px = blur_radius < 1 ? 1 : blur_radius;
+    for (int yy = 0; yy < rh; yy++) {
+        for (int xx = 0; xx < rw; xx++) {
+            int r = 0, g = 0, b = 0, a = 0, samples = 0;
+            for (int ky = -radius_px; ky <= radius_px; ky++) {
+                int sy = y0 + yy + ky;
+                if (sy < 0) sy = 0;
+                if (sy >= fb_h) sy = fb_h - 1;
+                for (int kx = -radius_px; kx <= radius_px; kx++) {
+                    int sx = x0 + xx + kx;
+                    if (sx < 0) sx = 0;
+                    if (sx >= fb_w) sx = fb_w - 1;
+                    uint32_t c = src[sy * pitch_words + sx];
+                    a += (c >> 24) & 0xFF;
+                    r += (c >> 16) & 0xFF;
+                    g += (c >> 8) & 0xFF;
+                    b += c & 0xFF;
+                    samples++;
+                }
+            }
+            blur_a[yy * rw + xx] = VxColor::rgba((uint8_t)(r / samples), (uint8_t)(g / samples), (uint8_t)(b / samples), (uint8_t)(a / samples));
+        }
+    }
+
+    for (int yy = 0; yy < rh; yy++) {
+        for (int xx = 0; xx < rw; xx++) {
+            int r = 0, g = 0, b = 0, a = 0, samples = 0;
+            for (int ky = -1; ky <= 1; ky++) {
+                int sy = yy + ky;
+                if (sy < 0) sy = 0;
+                if (sy >= rh) sy = rh - 1;
+                for (int kx = -1; kx <= 1; kx++) {
+                    int sx = xx + kx;
+                    if (sx < 0) sx = 0;
+                    if (sx >= rw) sx = rw - 1;
+                    uint32_t c = blur_a[sy * rw + sx];
+                    a += (c >> 24) & 0xFF;
+                    r += (c >> 16) & 0xFF;
+                    g += (c >> 8) & 0xFF;
+                    b += c & 0xFF;
+                    samples++;
+                }
+            }
+            blur_b[yy * rw + xx] = VxColor::rgba((uint8_t)(r / samples), (uint8_t)(g / samples), (uint8_t)(b / samples), (uint8_t)(a / samples));
+        }
+    }
+
+    vxair_fb_blit(blur_b, x0, y0, rw, rh);
+    vxui_draw_rounded_rect(x, y, w, h, radius, tint);
+    vxr_rounded_border(x, y, w, h, radius, VxTheme::BORDER_ALPHA);
+    vxr_fill_rect(x + 1, y + 1, w - 2, 1, VxColor::with_alpha(VxTheme::FG, 14));
+}
+
 // System Abstract Character & Font Drawing
 extern "C" void draw_abstract_char(int x, int y, char c, uint32_t color);
 

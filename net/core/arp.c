@@ -1,5 +1,5 @@
 #include "arp.h"
-#include "../../drivers/net/e1000.h"
+#include "../../drivers/net/rtl8139.h"
 #include "ethernet.h"
 #include <string.h>
 
@@ -50,7 +50,7 @@ int vxair_arp_request(uint32_t target_ip) {
     arp_req.hardware_len = 6;
     arp_req.protocol_len = 4;
     arp_req.opcode = ARP_OP_REQUEST;
-    memcpy(arp_req.sender_mac, g_e1000.mac_addr, 6);
+    memcpy(arp_req.sender_mac, g_rtl8139.mac_addr, 6);
     arp_req.sender_ip = 0x0F02000A; // 10.0.2.15 in network byte order
     memset(arp_req.target_mac, 0, 6);
     arp_req.target_ip = target_ip;

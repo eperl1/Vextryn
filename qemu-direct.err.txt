@@ -1,0 +1,1 @@
+C:\Program Files\qemu\qemu-system-x86_64.exe: Error loading uncompressed kernel without PVH ELF Note

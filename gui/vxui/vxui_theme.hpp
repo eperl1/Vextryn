@@ -8,36 +8,36 @@
 namespace VxTheme {
 
 // Vextryn Air "Open Design" Dark Palette (spec: vextryn-desktop-shell.html)
-constexpr uint32_t BG           = 0xFF111111;   // Taskbar / shell base
-constexpr uint32_t SURFACE_0    = 0xFF181818;  // mix(#f7f8fa 3%, #111)
-constexpr uint32_t SURFACE_1    = 0xFF1C1C1C;  // mix(#f7f8fa 5%, #111) — window body
-constexpr uint32_t SURFACE_2    = 0xFF282828;  // mix(#f7f8fa 10%, #111) — hover / input
-constexpr uint32_t SURFACE_3    = 0xFF383838;  // mix(#f7f8fa 17%, #111) — raised
+constexpr uint32_t BG           = 0xFF0F1217;   // Shell base
+constexpr uint32_t SURFACE_0    = 0xFF151922;  // mix(#f7f8fa 3%, #111)
+constexpr uint32_t SURFACE_1    = 0xFF191D26;  // mix(#f7f8fa 5%, #111) — window body
+constexpr uint32_t SURFACE_2    = 0xFF232833;  // mix(#f7f8fa 10%, #111) — hover / input
+constexpr uint32_t SURFACE_3    = 0xFF303642;  // mix(#f7f8fa 17%, #111) — raised
 constexpr uint32_t FG           = 0xFFF7F8FA;  // Primary foreground
 constexpr uint32_t FG_STRONG    = 0xFFFFFFFF;  // Strong foreground
-constexpr uint32_t FG_SOFT      = 0xFFDFE3EB;  // Soft foreground (fg-soft)
-constexpr uint32_t MUTED        = 0xFFAAAEB6;  // Muted (secondary)
-constexpr uint32_t MUTED_DIM    = 0xFFBFC2C9;  // Dimmer caption
-constexpr uint32_t ACCENT       = 0xFF1677FF;  // Primary accent (#1677ff)
-constexpr uint32_t ACCENT_HOVER = 0xFF4995FF;  // mix(#1677ff 78%, #fff)
-constexpr uint32_t CYAN         = 0xFF00F0FF;  // Shell cyan highlight
+constexpr uint32_t FG_SOFT      = 0xFFE3E7EE;  // Soft foreground (fg-soft)
+constexpr uint32_t MUTED        = 0xFFABB1BB;  // Muted (secondary)
+constexpr uint32_t MUTED_DIM    = 0xFFC1C7D0;  // Dimmer caption
+constexpr uint32_t ACCENT       = 0xFF0A84FF;  // Primary accent
+constexpr uint32_t ACCENT_HOVER = 0xFF4C9FFF;  // mix(accent 78%, #fff)
+constexpr uint32_t CYAN         = 0xFF7ACBFF;  // Soft highlight blue
 // Borders as translucent d9dee7 lines (alpha-blended by the GPU backend)
-constexpr uint32_t BORDER_ALPHA    = 0x42D9DEE7; // mix(d9dee7 26%, transparent)
-constexpr uint32_t BORDER_STRONG_A = 0x73D9DEE7; // mix(d9dee7 45%, transparent)
+constexpr uint32_t BORDER_ALPHA    = 0x40D5DBE4; // mix(d9dee7 25%, transparent)
+constexpr uint32_t BORDER_STRONG_A = 0x6ED5DBE4; // mix(d9dee7 43%, transparent)
 
 // Legacy Slate Dark Palette (still used by some widgets)
 constexpr uint32_t BASE_DEEP     = 0xFF111111;  // Deepest background (Desktop / Shell)
 constexpr uint32_t BASE_DARK     = 0xFF181818;  // Desktop panel / base background
 constexpr uint32_t BASE_MID      = 0xFF282828;  // Mid background
-constexpr uint32_t SURFACE       = 0xFF1C1C1C;  // Card / Window body surface
-constexpr uint32_t SURFACE_HIGH  = 0xFF282828;  // Raised container / header surface
-constexpr uint32_t OVERLAY       = 0x44FFFFFF;  // Subtle hover lift
-constexpr uint32_t GLASS_TINT    = 0xEE1C1C1C;  // Translucent frosted glass tint
+constexpr uint32_t SURFACE       = 0xFF191D26;  // Card / Window body surface
+constexpr uint32_t SURFACE_HIGH  = 0xFF232833;  // Raised container / header surface
+constexpr uint32_t OVERLAY       = 0x2CFFFFFF;  // Subtle hover lift
+constexpr uint32_t GLASS_TINT    = 0xEA191D26;  // Translucent frosted glass tint
 
 // Accent Palette (Vivid Ice / Electric Blue)
-constexpr uint32_t ACCENT_DIM    = 0xFF1258C4;  // Pressed / Active accent
-constexpr uint32_t ACCENT_GLOW   = 0xFF58A6FF;  // Focus ring & highlight glow
-constexpr uint32_t ACCENT_SOFT   = 0x211677FF;  // Muted accent container (13% alpha)
+constexpr uint32_t ACCENT_DIM    = 0xFF0B61D0;  // Pressed / Active accent
+constexpr uint32_t ACCENT_GLOW   = 0xFF7CCBFF;  // Focus ring & highlight glow
+constexpr uint32_t ACCENT_SOFT   = 0x1A0A84FF;  // Muted accent container (10% alpha)
 
 // Semantic Colors
 constexpr uint32_t SUCCESS       = 0xFF3FB950;  // Green success
@@ -51,10 +51,10 @@ constexpr uint32_t TEXT_SECONDARY = 0xFFDFE3EB;  // Subdued secondary text
 constexpr uint32_t TEXT_MUTED    = 0xFFAAAEB6;  // Muted caption / disabled text
 
 // Border System
-constexpr uint32_t BORDER_SUBTLE = 0xFF282828;  // Quiet container divider
-constexpr uint32_t BORDER_STRONG = 0xFF30363D;  // Strong control / window edge
-constexpr uint32_t BORDER_ACCENT = 0xFF1677FF;  // Active focus border
-constexpr uint32_t BORDER_BRIGHT = 0xFF3A3A3A;  // Highlight top border edge
+constexpr uint32_t BORDER_SUBTLE = 0xFF232833;  // Quiet container divider
+constexpr uint32_t BORDER_STRONG = 0xFF343B46;  // Strong control / window edge
+constexpr uint32_t BORDER_ACCENT = 0xFF0A84FF;  // Active focus border
+constexpr uint32_t BORDER_BRIGHT = 0xFF404754;  // Highlight top border edge
 
 // Spacing Scale (4px grid system)
 constexpr int SP_XS   = 4;
@@ -81,9 +81,9 @@ constexpr int SHADOW_ELEVATED = 20;
 
 // Radii
 constexpr int RADIUS_NONE    = 0;
-constexpr int RADIUS_SM      = 4;
-constexpr int RADIUS_MD      = 8;
-constexpr int RADIUS_LG      = 12;
+constexpr int RADIUS_SM      = 6;
+constexpr int RADIUS_MD      = 10;
+constexpr int RADIUS_LG      = 14;
 constexpr int RADIUS_FULL    = 999;
 
 // Shell Component Dimensions
@@ -92,8 +92,8 @@ constexpr int BTN_HEIGHT_MD  = 34;
 constexpr int BTN_HEIGHT_LG  = 42;
 
 constexpr int INPUT_HEIGHT   = 34;
-constexpr int TITLE_BAR_H    = 28;
-constexpr int TASKBAR_H      = 56;
+constexpr int TITLE_BAR_H    = 30;
+constexpr int TASKBAR_H      = 58;
 constexpr int TOPBAR_H       = 28;
 constexpr int TASKBAR_ICON   = 40;
 constexpr int TASKBAR_PAD    = 12;

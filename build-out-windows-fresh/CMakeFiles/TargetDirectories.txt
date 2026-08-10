@@ -1,0 +1,6 @@
+C:/Users/eperlinovitch/Documents/Vextryn-Air/build-out-windows-fresh/CMakeFiles/vextryn_air.elf.dir
+C:/Users/eperlinovitch/Documents/Vextryn-Air/build-out-windows-fresh/CMakeFiles/vxair_libc.dir
+C:/Users/eperlinovitch/Documents/Vextryn-Air/build-out-windows-fresh/CMakeFiles/init.elf.dir
+C:/Users/eperlinovitch/Documents/Vextryn-Air/build-out-windows-fresh/CMakeFiles/shell.elf.dir
+C:/Users/eperlinovitch/Documents/Vextryn-Air/build-out-windows-fresh/CMakeFiles/edit_cache.dir
+C:/Users/eperlinovitch/Documents/Vextryn-Air/build-out-windows-fresh/CMakeFiles/rebuild_cache.dir

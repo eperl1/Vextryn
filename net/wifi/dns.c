@@ -3,7 +3,6 @@
 #include <string.h>
 
 static uint16_t vxair_htons(uint16_t v) { return __builtin_bswap16(v); }
-static uint32_t vxair_htonl(uint32_t v) { return __builtin_bswap32(v); }
 static uint16_t vxair_ntohs(uint16_t v) { return __builtin_bswap16(v); }
 
 int vxair_dns_init(vxair_dns_context_t *ctx, uint32_t server_ip) {
@@ -59,8 +58,7 @@ int vxair_dns_query_ipv4(vxair_dns_context_t *ctx, const char *hostname) {
     buffer[offset++] = VXAIR_DNS_CLASS_IN;
     
     /* Send via UDP to DNS server port 53 */
-    uint32_t server_ip_net = vxair_htonl(ctx->server_ip);
-    int ret = vxair_udp_send(&server_ip_net, VXAIR_DNS_PORT, buffer, offset);
+    int ret = vxair_udp_send(&ctx->server_ip, VXAIR_DNS_PORT, buffer, offset);
     
     if (ret != 0) return ret;
     return ctx->current_id;

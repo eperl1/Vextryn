@@ -1,0 +1,2 @@
+C:\Program Files\qemu\qemu-system-x86_64.exe: unsupported machine type: "pc-i440fx-3.1"
+Use -machine help to list supported machines

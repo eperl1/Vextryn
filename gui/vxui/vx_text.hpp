@@ -46,6 +46,26 @@ namespace vx_text {
         return 0xFF000000u | ((uint32_t)r << 16) | ((uint32_t)g << 8) | (uint32_t)b;
     }
 
+    inline int glyph_nib(const VxGm& gm, const uint8_t* d, int px, int py) {
+        if (px < 0 || py < 0 || px >= gm.w || py >= gm.h) return 0;
+        int stride = (gm.w + 1) >> 1;
+        uint8_t byte = d[py * stride + (px >> 1)];
+        return (px & 1) ? (byte & 0x0F) : (byte >> 4);
+    }
+
+    inline int aa_alpha(const VxGm& gm, const uint8_t* d, int px, int py) {
+        int c = glyph_nib(gm, d, px, py);
+        if (c == 0) return 0;
+        int l = glyph_nib(gm, d, px - 1, py);
+        int r = glyph_nib(gm, d, px + 1, py);
+        int u = glyph_nib(gm, d, px, py - 1);
+        int dn = glyph_nib(gm, d, px, py + 1);
+        int cov = c * 4 + l + r + u + dn;
+        if (cov < 0) cov = 0;
+        if (cov > 80) cov = 80;
+        return (cov * 255 + 40) / 80;
+    }
+
     // Draw text with baseline at (x, y).
     inline void draw(int x, int y, int size, const char* s, uint32_t color, uint32_t bg) {
         if (!s) return;
@@ -59,14 +79,11 @@ namespace vx_text {
             const uint8_t* d = f->data + gm.data_off;
             int left = x + (pen >> 6) + gm.xoff;
             int top  = y + gm.yoff;
-            int stride = (gm.w + 1) >> 1;
             for (int r = 0; r < gm.h; r++) {
                 int py = top + r;
                 for (int c2 = 0; c2 < gm.w; c2++) {
-                    uint8_t byte = d[r * stride + (c2 >> 1)];
-                    int nib = (c2 & 1) ? (byte & 0x0F) : (byte >> 4);
-                    if (nib == 0) continue;
-                    int a = nib * 17;
+                    int a = aa_alpha(gm, d, c2, r);
+                    if (a == 0) continue;
                     vxr_pixel(left + c2, py, blend_px(bg, color, a));
                 }
             }
@@ -74,8 +91,17 @@ namespace vx_text {
         }
     }
 
+    inline void draw_bold(int x, int y, int size, const char* s, uint32_t color, uint32_t bg) {
+        draw(x, y, size, s, color, bg);
+        draw(x + 1, y, size, s, color, bg);
+    }
+
     inline void draw_centered(int cx, int y, int size, const char* s, uint32_t color, uint32_t bg) {
         draw(cx - text_width(size, s) / 2, y, size, s, color, bg);
+    }
+
+    inline void draw_centered_bold(int cx, int y, int size, const char* s, uint32_t color, uint32_t bg) {
+        draw_bold(cx - text_width(size, s) / 2, y, size, s, color, bg);
     }
 
 }

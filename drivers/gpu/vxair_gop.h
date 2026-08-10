@@ -25,3 +25,5 @@ void vxair_font_draw_string(uint32_t x, uint32_t y,
                               uint32_t fg, uint32_t bg);
 uint32_t vxair_fb_get_width(void);
 uint32_t vxair_fb_get_height(void);
+uint32_t* vxair_fb_get_backbuffer(void);
+uint32_t vxair_fb_get_pitch(void);

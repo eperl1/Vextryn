@@ -12,6 +12,10 @@ void vxair_ip_init(void) {
     vxair_local_ip = 0x0F02000A; // 10.0.2.15 in network byte order
 }
 
+uint32_t vxair_ip_get_local(void) {
+    return vxair_local_ip;
+}
+
 // Compute RFC 1071 Internet checksum
 static uint16_t ip_checksum(const void *data, int len) {
     uint32_t sum = 0;
@@ -33,22 +37,25 @@ void vxair_ip_receive(void *packet, uint16_t len) {
     }
     vxair_ipv4_header_t *hdr = (vxair_ipv4_header_t *)packet;
     
-    if ((hdr->version & 0xF0) != 0x40) { // Version must be 4
+    if (hdr->version != 4) {
         return;
     }
     
     uint8_t ihl = hdr->ihl & 0x0F;
-    (void)ihl;
+    if (ihl < 5) return;
     
     // Payload starts after IP header
-    void *payload = (uint8_t *)packet + sizeof(vxair_ipv4_header_t);
-    uint16_t payload_len = len - sizeof(vxair_ipv4_header_t);
+    uint16_t header_len = (uint16_t)(ihl * 4);
+    if (len < header_len) return;
+    void *payload = (uint8_t *)packet + header_len;
+    uint16_t payload_len = len - header_len;
     
     // Demultiplex based on protocol
     if (hdr->protocol == 1) {
         // ICMP - not implemented for N1
     } else if (hdr->protocol == 6) {
-        // TCP - not implemented for N1
+        extern void vxair_socket_tcp_receive(void *packet, uint16_t len, uint32_t src_ip, uint32_t dst_ip);
+        vxair_socket_tcp_receive(payload, payload_len, hdr->source_ip, hdr->dest_ip);
     } else if (hdr->protocol == 17) {
         // UDP - forward to UDP layer
         extern void vxair_udp_receive(void *packet, uint16_t len);
@@ -59,11 +66,11 @@ void vxair_ip_receive(void *packet, uint16_t len) {
 int vxair_ip_send(const void *dest_ip, uint8_t protocol, const void *payload, uint16_t len) {
     if (!dest_ip || !payload) return -1;
     
-    uint8_t buf[512];
+    uint8_t buf[1600];
     vxair_ipv4_header_t *hdr = (vxair_ipv4_header_t *)buf;
     
     uint16_t total_len = sizeof(vxair_ipv4_header_t) + len;
-    if (total_len > 512) return -1;
+    if (total_len > sizeof(buf)) return -1;
     
     memset(hdr, 0, sizeof(vxair_ipv4_header_t));
     hdr->version = 4;                // IPv4
@@ -85,9 +92,13 @@ int vxair_ip_send(const void *dest_ip, uint8_t protocol, const void *payload, ui
     
     // Resolve destination MAC via ARP (use gateway for non-local IPs)
     uint32_t dest = *(const uint32_t *)dest_ip;
+    uint32_t next_hop = dest;
+    if ((dest & 0x00FFFFFFu) != (vxair_local_ip & 0x00FFFFFFu)) {
+        next_hop = 0x0202000A; // QEMU user-mode gateway: 10.0.2.2
+    }
     uint8_t dest_mac[6];
     
-    if (vxair_arp_lookup(dest, dest_mac) != 0) {
+    if (vxair_arp_lookup(next_hop, dest_mac) != 0) {
         // ARP not resolved yet — this is a simplified driver that assumes
         // the caller has resolved ARP first, OR we use broadcast
         // For DNS, we'll resolve ARP before calling IP send

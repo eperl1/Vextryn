@@ -94,7 +94,10 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
                 }
             }
         }
-        if (!arp_ok) {
+        if (arp_ok) {
+            extern void vxair_net_test(void);
+            vxair_net_test();
+        } else {
             vxair_log_info("NET: ARP probe timed out — no reply received in 2s");
         }
     }

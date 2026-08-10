@@ -36,6 +36,7 @@ void vxair_ip_init(void);
  * @param len Length of the packet.
  */
 void vxair_ip_receive(void *packet, uint16_t len);
+uint32_t vxair_ip_get_local(void);
 
 /**
  * @brief Send an IP packet.

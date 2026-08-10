@@ -18,6 +18,8 @@ extern void vxair_fb_fill_rect(int32_t x, int32_t y, int32_t w, int32_t h, uint3
 extern void vxair_fb_blit(const uint32_t* src, int32_t dst_x, int32_t dst_y, int32_t w, int32_t h);
 extern uint32_t vxair_fb_get_width(void);
 extern uint32_t vxair_fb_get_height(void);
+extern uint32_t* vxair_fb_get_backbuffer(void);
+extern uint32_t vxair_fb_get_pitch(void);
 
 // ===== Color utilities =====
 namespace VxColor {
@@ -242,15 +244,32 @@ inline void vxr_rounded_border(int x, int y, int w, int h, int radius, uint32_t 
 }
 
 // ===== Shadow (layered, soft diffusion) =====
-inline void vxr_shadow(int x, int y, int w, int h, int depth) {
-    for (int s = 0; s < depth; s++) {
-        uint32_t a = (depth - s) * 3;
-        if (a > 80) a = 80;
-        uint32_t c = VxColor::with_alpha(0x000000, (uint8_t)a);
-        vxr_fill_rect(x - s, y + h + s, w + s * 2, 1, c);    // bottom
-        vxr_fill_rect(x + w + s, y - s, 1, h + s * 2, c);     // right
-        vxr_fill_rect(x - s, y - s, 1, h + s * 2, c);         // left
+// Uses progressively larger rounded rects to emulate a blur-like falloff.
+inline void vxr_soft_shadow(int x, int y, int w, int h, int depth, int radius = 8) {
+    if (depth <= 0) return;
+    for (int s = depth; s >= 1; s--) {
+        uint32_t alpha = 8u + (uint32_t)((depth - s + 1) * 7);
+        if (alpha > 56) alpha = 56;
+        uint32_t c = VxColor::with_alpha(0x000000, (uint8_t)alpha);
+        int ox = x + (depth - s) / 3;
+        int oy = y + (depth - s);
+        int ow = w + (s * 2);
+        int oh = h + (s * 2);
+        int oradius = radius + (depth - s);
+        vxr_rounded_rect(ox - s, oy - s, ow, oh, oradius, c);
     }
+}
+
+inline void vxr_shadow(int x, int y, int w, int h, int depth) {
+    vxr_soft_shadow(x, y, w, h, depth, 8);
+}
+
+// ===== Dual-layer bevel frame =====
+inline void vxr_bevel_frame(int x, int y, int w, int h, int radius, uint32_t light, uint32_t dark) {
+    if (w <= 0 || h <= 0) return;
+    vxr_rounded_border(x, y, w, h, radius, dark);
+    vxr_fill_rect(x + 1, y + 1, w - 2, 1, light);
+    vxr_fill_rect(x + 1, y + 1, 1, h - 2, light);
 }
 
 // ===== Vertical gradient fill =====

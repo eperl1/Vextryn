@@ -3,7 +3,10 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <sys/types.h>
+
+#if !defined(_SSIZE_T_DEFINED) && !defined(__ssize_t_defined) && !defined(_SSIZE_T_)
+typedef long ssize_t;
+#endif
 
 #ifdef __cplusplus
 extern "C" {
