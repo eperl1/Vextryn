@@ -1,0 +1,14 @@
+Teams Computer Error: Not enough arguments
+
+teams.exe
+	api_host
+	team_computer_key
+	team_id
+	team_app_rule_id
+	guest_access
+	user_id
+	team_group_id
+	user_email
+	user_bin_path
+
+Use -1 for optional integers, empty quotes ("") for optional strings.

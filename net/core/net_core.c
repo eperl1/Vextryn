@@ -11,6 +11,10 @@
 extern void vxair_log_info(const char *fmt, ...);
 extern void vxair_hpet_sleep_ms(uint32_t ms);
 
+#ifndef NET_VERBOSE
+#define NET_VERBOSE 0
+#endif
+
 
 // DNS response callback
 static vxair_dns_context_t g_dns_ctx;
@@ -35,7 +39,7 @@ static int resolve_dns_server_arp(void) {
     // Send ARP request
     vxair_arp_request(dns_ip);
     
-    vxair_log_info("DNS: Polling for ARP reply...");
+    if (NET_VERBOSE) vxair_log_info("DNS: Polling for ARP reply...");
     // Poll for ARP reply (up to ~2 seconds)
     for (int i = 0; i < 100; i++) {
         vxair_hpet_sleep_ms(20);
@@ -44,7 +48,7 @@ static int resolve_dns_server_arp(void) {
         uint8_t frame_buf[2048];
         uint16_t frame_len = vxair_rtl8139_receive(frame_buf, sizeof(frame_buf));
         if (frame_len > 0) {
-            vxair_log_info("DNS: Got frame len=%u iteration=%d", frame_len, i);
+            if (NET_VERBOSE) vxair_log_info("DNS: Got frame len=%u iteration=%d", frame_len, i);
             vxair_eth_receive(frame_buf, frame_len);
             if (vxair_arp_lookup(dns_ip, dns_server_mac) == 0) {
                 dns_mac_resolved = 1;
@@ -64,7 +68,7 @@ static int do_dns_query(const char *hostname) {
             vxair_log_info("DNS: ARP resolution failed");
             return -1;
         }
-        vxair_log_info("DNS: DNS server MAC resolved via ARP");
+        if (NET_VERBOSE) vxair_log_info("DNS: DNS server MAC resolved via ARP");
     }
     
     // Initialize DNS context with QEMU's built-in DNS proxy (10.0.2.3)
@@ -74,13 +78,13 @@ static int do_dns_query(const char *hostname) {
     vxair_dns_init(&g_dns_ctx, dns_server);
     
     // Send DNS query
-    vxair_log_info("DNS: Querying %s via QEMU DNS proxy", hostname);
+    if (NET_VERBOSE) vxair_log_info("DNS: Querying %s via QEMU DNS proxy", hostname);
     int qid = vxair_dns_query_ipv4(&g_dns_ctx, hostname);
     if (qid < 0) {
         vxair_log_info("DNS: Query failed with error %d", qid);
         return -1;
     }
-    vxair_log_info("DNS: Query sent (ID %d)", qid);
+    if (NET_VERBOSE) vxair_log_info("DNS: Query sent (ID %d)", qid);
     
     // Poll for response (up to ~5000ms = 5 seconds)
     for (int i = 0; i < 250; i++) {
@@ -165,7 +169,7 @@ void vxair_net_test(void) {
     
     if (g_resolved_ip == 0) {
         // Try alternative hostname
-        vxair_log_info("NET: Retrying with alternative hostname...");
+        if (NET_VERBOSE) vxair_log_info("NET: Retrying with alternative hostname...");
         do_dns_query("example.com");
     }
     

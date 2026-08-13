@@ -53,6 +53,10 @@ static uint16_t next_ephemeral_port = 49152;
 extern void vxair_hpet_sleep_ms(uint32_t ms);
 extern void vxair_log_info(const char *fmt, ...);
 
+#ifndef TCP_VERBOSE
+#define TCP_VERBOSE 0
+#endif
+
 static uint16_t htons16(uint16_t v) { return __builtin_bswap16(v); }
 static uint32_t htonl32(uint32_t v) { return __builtin_bswap32(v); }
 static uint16_t ntohs16(uint16_t v) { return __builtin_bswap16(v); }
@@ -149,7 +153,9 @@ void vxair_socket_tcp_receive(void *packet, uint16_t len, uint32_t src_ip, uint3
             s->seq = ack;
             s->tcp_state = TCP_ESTABLISHED;
             tcp_send_segment(s, TCP_ACK, 0, 0);
-            vxair_log_info("TCP: connected local=%u remote=%u", s->local_port, s->remote_addr.sin_port);
+            if (TCP_VERBOSE) {
+                vxair_log_info("TCP: connected local=%u remote=%u", s->local_port, s->remote_addr.sin_port);
+            }
             return;
         }
 
@@ -165,7 +171,9 @@ void vxair_socket_tcp_receive(void *packet, uint16_t len, uint32_t src_ip, uint3
             s->ack = seq + data_len;
             if (ack > s->seq) s->seq = ack;
             tcp_send_segment(s, TCP_ACK, 0, 0);
-            vxair_log_info("TCP: received %u bytes (buffer=%d)", data_len, s->rx_len);
+            if (TCP_VERBOSE) {
+                vxair_log_info("TCP: received %u bytes (buffer=%d)", data_len, s->rx_len);
+            }
         }
 
         if (flags & TCP_FIN) {

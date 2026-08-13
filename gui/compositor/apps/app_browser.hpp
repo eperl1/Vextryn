@@ -36,8 +36,161 @@ static int active_browser_tab = 0;
 static uint64_t last_click_frame = 1000000;
 static bool url_focused = false;
 static bool search_focused = false;
+static bool browser_dom_proof_done = false;
+
+extern void vxair_log_info(const char* fmt, ...);
 
 static void browser_fetch_url(BrowserTab& tab, const char* url);
+static inline char browser_lower_char(char c);
+static const char* browser_html_entity(const char* start, const char* end, char& out);
+static bool browser_tag_attr_value(const char* tag, const char* attr, char* out, int out_cap);
+static void browser_dom_dump_sample_once();
+
+static bool browser_starts_with(const char* s, const char* prefix) {
+    if (!s || !prefix) return false;
+    int i = 0;
+    while (prefix[i]) {
+        if (s[i] != prefix[i]) return false;
+        i++;
+    }
+    return true;
+}
+
+static bool browser_parse_ipv4_literal(const char* text, uint32_t* out_ip) {
+    if (!text || !out_ip) return false;
+    uint32_t parts[4] = {0, 0, 0, 0};
+    int part_idx = 0;
+    int value = 0;
+    bool has_digit = false;
+    for (int i = 0;; i++) {
+        char c = text[i];
+        if (c >= '0' && c <= '9') {
+            has_digit = true;
+            value = value * 10 + (c - '0');
+            if (value > 255) return false;
+            continue;
+        }
+        if (c == '.' || c == 0) {
+            if (!has_digit || part_idx >= 4) return false;
+            parts[part_idx++] = (uint32_t)value;
+            value = 0;
+            has_digit = false;
+            if (c == 0) break;
+            continue;
+        }
+        return false;
+    }
+    if (part_idx != 4) return false;
+    *out_ip = (parts[0]) | (parts[1] << 8) | (parts[2] << 16) | (parts[3] << 24);
+    return true;
+}
+
+static void browser_set_html(BrowserTab& tab, const char* html) {
+    int i = 0;
+    if (!html) {
+        tab.html_content[0] = 0;
+        return;
+    }
+    while (html[i] && i < 4095) {
+        tab.html_content[i] = html[i];
+        i++;
+    }
+    tab.html_content[i] = 0;
+}
+
+static void browser_append_html(char* dst, int& len, int cap, const char* text) {
+    if (!dst || !text || len >= cap - 1) return;
+    for (int i = 0; text[i] && len < cap - 1; i++) dst[len++] = text[i];
+    dst[len] = 0;
+}
+
+static void browser_url_encode_component(const char* src, char* dst, int cap) {
+    static const char* hex = "0123456789ABCDEF";
+    int di = 0;
+    if (!src || !dst || cap <= 0) return;
+    for (int i = 0; src[i] && di < cap - 1; i++) {
+        unsigned char c = (unsigned char)src[i];
+        bool safe = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') ||
+                    c == '-' || c == '_' || c == '.' || c == '~';
+        if (safe) {
+            dst[di++] = (char)c;
+        } else if (di < cap - 3) {
+            dst[di++] = '%';
+            dst[di++] = hex[(c >> 4) & 0xF];
+            dst[di++] = hex[c & 0xF];
+        } else {
+            break;
+        }
+    }
+    dst[di] = 0;
+}
+
+static bool browser_fetch_http_into(BrowserTab& tab, uint32_t ip, uint16_t port, const char* host_header, const char* path) {
+    int sock = vxair_socket(VXAIR_AF_INET, VXAIR_SOCK_STREAM, VXAIR_IPPROTO_TCP);
+    if (sock < 0) return false;
+
+    struct vxair_sockaddr_in addr;
+    addr.sin_family = VXAIR_AF_INET;
+    addr.sin_port = port;
+    addr.sin_addr = ip;
+
+    if (vxair_connect(sock, &addr, sizeof(addr)) != 0) {
+        vxair_close(sock);
+        return false;
+    }
+
+    static char req[1024];
+    int ri = 0;
+    const char* p1 = "GET ";
+    for (int i = 0; p1[i] && ri < (int)sizeof(req) - 1; i++) req[ri++] = p1[i];
+    for (int i = 0; path && path[i] && ri < (int)sizeof(req) - 1; i++) req[ri++] = path[i];
+    const char* p2 = " HTTP/1.0\r\nHost: ";
+    for (int i = 0; p2[i] && ri < (int)sizeof(req) - 1; i++) req[ri++] = p2[i];
+    for (int i = 0; host_header && host_header[i] && ri < (int)sizeof(req) - 1; i++) req[ri++] = host_header[i];
+    const char* p3 = "\r\nConnection: close\r\nUser-Agent: VextrynAir/0.2\r\n\r\n";
+    for (int i = 0; p3[i] && ri < (int)sizeof(req) - 1; i++) req[ri++] = p3[i];
+    req[ri] = 0;
+
+    vxair_send(sock, req, ri, 0);
+
+    static char resp[4096];
+    int len = 0;
+    while (len < 4095) {
+        int got = vxair_recv(sock, resp + len, 4095 - len, 0);
+        if (got <= 0) break;
+        len += got;
+    }
+    vxair_close(sock);
+    if (len <= 0) return false;
+
+    resp[len] = 0;
+    char* body = resp;
+    for (int i = 0; i < len - 3; i++) {
+        if (resp[i] == '\r' && resp[i + 1] == '\n' && resp[i + 2] == '\r' && resp[i + 3] == '\n') {
+            body = resp + i + 4;
+            break;
+        }
+    }
+    browser_set_html(tab, body);
+    return true;
+}
+
+static bool browser_fetch_via_chromium_bridge(BrowserTab& tab, const char* url) {
+    uint32_t bridge_ip = 0;
+    if (!browser_parse_ipv4_literal("10.0.2.2", &bridge_ip)) return false;
+
+    static char encoded[384];
+    browser_url_encode_component(url, encoded, sizeof(encoded));
+
+    static char path[512];
+    int pi = 0;
+    const char* prefix = "/render?url=";
+    for (int i = 0; prefix[i] && pi < (int)sizeof(path) - 1; i++) path[pi++] = prefix[i];
+    for (int i = 0; encoded[i] && pi < (int)sizeof(path) - 1; i++) path[pi++] = encoded[i];
+    path[pi] = 0;
+
+    return browser_fetch_http_into(tab, bridge_ip, 8081, "10.0.2.2:8081", path);
+}
 
 static void create_browser_tab() {
     if (num_browser_tabs >= MAX_BROWSER_TABS) return;
@@ -64,6 +217,7 @@ static void create_browser_tab() {
     active_browser_tab = idx;
     url_focused = false;
     search_focused = false;
+    browser_dom_dump_sample_once();
     browser_fetch_url(tab, tab.url_buffer);
 }
 
@@ -91,6 +245,305 @@ static bool browser_tag_eq(const char* tag, const char* name) {
     return tail == 0 || tail == ' ' || tail == '\t' || tail == '\r' || tail == '\n' || tail == '>' || tail == '/';
 }
 
+enum BrowserDomNodeKind {
+    BROWSER_DOM_ELEMENT = 1,
+    BROWSER_DOM_TEXT = 2
+};
+
+struct BrowserDomNode {
+    int kind;
+    char tag[16];
+    char text[256];
+    char href[128];
+    char src[128];
+    char alt[128];
+    int parent;
+    int first_child;
+    int last_child;
+    int next_sibling;
+};
+
+struct BrowserDomTree {
+    BrowserDomNode nodes[512];
+    int count;
+    int root;
+    int body;
+};
+
+static void browser_dom_node_reset(BrowserDomNode& n) {
+    n.kind = 0;
+    n.tag[0] = 0;
+    n.text[0] = 0;
+    n.href[0] = 0;
+    n.src[0] = 0;
+    n.alt[0] = 0;
+    n.parent = -1;
+    n.first_child = -1;
+    n.last_child = -1;
+    n.next_sibling = -1;
+}
+
+static void browser_dom_tree_reset(BrowserDomTree& tree) {
+    tree.count = 0;
+    tree.root = -1;
+    tree.body = -1;
+    for (int i = 0; i < 512; i++) browser_dom_node_reset(tree.nodes[i]);
+}
+
+static int browser_dom_add_node(BrowserDomTree& tree, int kind, int parent) {
+    if (tree.count >= 512) return -1;
+    int idx = tree.count++;
+    browser_dom_node_reset(tree.nodes[idx]);
+    tree.nodes[idx].kind = kind;
+    tree.nodes[idx].parent = parent;
+    if (parent >= 0) {
+        BrowserDomNode& p = tree.nodes[parent];
+        if (p.first_child < 0) p.first_child = idx;
+        else tree.nodes[p.last_child].next_sibling = idx;
+        p.last_child = idx;
+    }
+    return idx;
+}
+
+static void browser_dom_copy_lower_tag(char* dst, int dst_cap, const char* src, int src_len) {
+    int di = 0;
+    for (int i = 0; i < src_len && di < dst_cap - 1; i++) {
+        char c = browser_lower_char(src[i]);
+        if (c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '/') break;
+        dst[di++] = c;
+    }
+    dst[di] = 0;
+}
+
+static void browser_dom_copy_attr_value(const char* raw_tag, const char* attr, char* dst, int dst_cap) {
+    dst[0] = 0;
+    if (!raw_tag) return;
+    browser_tag_attr_value(raw_tag, attr, dst, dst_cap);
+}
+
+static void browser_dom_append_text(BrowserDomTree& tree, int parent, const char* start, const char* end) {
+    if (!start || !end || start >= end) return;
+    char buf[256];
+    int bi = 0;
+    bool pending_space = false;
+    bool seen_non_ws = false;
+    const char* p = start;
+    while (p < end && bi < 255) {
+        char c = 0;
+        const char* next = nullptr;
+        if (*p == '&') next = browser_html_entity(p, end, c);
+        if (!next) { c = *p; next = p + 1; }
+        if (c == '\r' || c == '\n' || c == '\t') c = ' ';
+        if (c == ' ') {
+            if (seen_non_ws) pending_space = true;
+        } else {
+            if (pending_space && bi < 255) {
+                buf[bi++] = ' ';
+                pending_space = false;
+            }
+            buf[bi++] = c;
+            seen_non_ws = true;
+        }
+        p = next;
+    }
+    while (bi > 0 && buf[bi - 1] == ' ') bi--;
+    if (bi <= 0) return;
+    int idx = browser_dom_add_node(tree, BROWSER_DOM_TEXT, parent);
+    if (idx < 0) return;
+    BrowserDomNode& n = tree.nodes[idx];
+    for (int i = 0; i < bi; i++) n.text[i] = buf[i];
+    n.text[bi] = 0;
+}
+
+static bool browser_dom_is_void_tag(const char* tag) {
+    return browser_tag_eq(tag, "br") || browser_tag_eq(tag, "img");
+}
+
+static bool browser_dom_is_block_tag(const char* tag) {
+    return browser_tag_eq(tag, "html") || browser_tag_eq(tag, "head") || browser_tag_eq(tag, "body") ||
+           browser_tag_eq(tag, "div") || browser_tag_eq(tag, "p") || browser_tag_eq(tag, "h1") ||
+           browser_tag_eq(tag, "h2") || browser_tag_eq(tag, "h3") || browser_tag_eq(tag, "h4") ||
+           browser_tag_eq(tag, "h5") || browser_tag_eq(tag, "h6") || browser_tag_eq(tag, "ul") ||
+           browser_tag_eq(tag, "li");
+}
+
+static bool browser_dom_is_inline_tag(const char* tag) {
+    return browser_tag_eq(tag, "span") || browser_tag_eq(tag, "a");
+}
+
+static int browser_dom_find_body(BrowserDomTree& tree) {
+    for (int i = 0; i < tree.count; i++) {
+        if (tree.nodes[i].kind == BROWSER_DOM_ELEMENT && browser_tag_eq(tree.nodes[i].tag, "body")) return i;
+    }
+    return tree.root;
+}
+
+static void browser_dom_parse(BrowserDomTree& tree, const char* html) {
+    browser_dom_tree_reset(tree);
+    tree.root = browser_dom_add_node(tree, BROWSER_DOM_ELEMENT, -1);
+    if (tree.root >= 0) {
+        BrowserDomNode& root = tree.nodes[tree.root];
+        root.tag[0] = 'h'; root.tag[1] = 't'; root.tag[2] = 'm'; root.tag[3] = 'l'; root.tag[4] = 0;
+    }
+
+    int stack[64];
+    int top = 0;
+    stack[top++] = tree.root;
+
+    const char* p = html ? html : "";
+    while (*p) {
+        if (*p != '<') {
+            const char* start = p;
+            while (*p && *p != '<') p++;
+            browser_dom_append_text(tree, stack[top - 1], start, p);
+            continue;
+        }
+
+        if (p[1] == '!' && p[2] == '-' && p[3] == '-') {
+            p += 4;
+            while (*p && !(p[0] == '-' && p[1] == '-' && p[2] == '>')) p++;
+            if (*p) p += 3;
+            continue;
+        }
+
+        const char* tag_begin = ++p;
+        bool closing = false;
+        if (*p == '/') { closing = true; tag_begin = ++p; }
+        while (*p && *p != '>') p++;
+        const char* tag_end = p;
+        if (*p == '>') p++;
+        if (tag_begin >= tag_end) continue;
+
+        while (tag_begin < tag_end && (*tag_begin == ' ' || *tag_begin == '\t' || *tag_begin == '\r' || *tag_begin == '\n')) tag_begin++;
+        while (tag_end > tag_begin && (tag_end[-1] == ' ' || tag_end[-1] == '\t' || tag_end[-1] == '\r' || tag_end[-1] == '\n')) tag_end--;
+        if (tag_begin >= tag_end) continue;
+
+        char raw[256];
+        int raw_len = 0;
+        bool self_close = false;
+        for (const char* q = tag_begin; q < tag_end && raw_len < 255; q++) raw[raw_len++] = *q;
+        raw[raw_len] = 0;
+        while (raw_len > 0 && (raw[raw_len - 1] == '/' || raw[raw_len - 1] == ' ' || raw[raw_len - 1] == '\t')) {
+            if (raw[raw_len - 1] == '/') self_close = true;
+            raw[--raw_len] = 0;
+        }
+
+        const char* name_start = raw;
+        while (*name_start == ' ' || *name_start == '\t' || *name_start == '\r' || *name_start == '\n') name_start++;
+        if (*name_start == 0) continue;
+
+        char tag[32];
+        int name_len = 0;
+        while (name_start[name_len] && name_start[name_len] != ' ' && name_start[name_len] != '\t' && name_start[name_len] != '\r' && name_start[name_len] != '\n' && name_start[name_len] != '/') {
+            name_len++;
+        }
+        if (name_len <= 0) continue;
+        browser_dom_copy_lower_tag(tag, 32, name_start, name_len);
+
+        const char* attrs = name_start + name_len;
+        while (*attrs == ' ' || *attrs == '\t' || *attrs == '\r' || *attrs == '\n') attrs++;
+
+        if (closing) {
+            for (int i = top - 1; i > 0; i--) {
+                int node_idx = stack[i];
+                if (tree.nodes[node_idx].kind == BROWSER_DOM_ELEMENT && browser_tag_eq(tree.nodes[node_idx].tag, tag)) {
+                    top = i;
+                    break;
+                }
+            }
+            continue;
+        }
+
+        int parent = stack[top - 1];
+        int node = browser_dom_add_node(tree, BROWSER_DOM_ELEMENT, parent);
+        if (node < 0) continue;
+        BrowserDomNode& n = tree.nodes[node];
+        int ti = 0;
+        while (tag[ti] && ti < 15) { n.tag[ti] = tag[ti]; ti++; }
+        n.tag[ti] = 0;
+        browser_dom_copy_attr_value(raw, "href", n.href, 128);
+        browser_dom_copy_attr_value(raw, "src", n.src, 128);
+        browser_dom_copy_attr_value(raw, "alt", n.alt, 128);
+
+        if (browser_tag_eq(tag, "body")) tree.body = node;
+
+        if (!self_close && !browser_dom_is_void_tag(tag)) {
+            if (top < 64) stack[top++] = node;
+        }
+    }
+}
+
+static void browser_dom_dump_indent(int depth) {
+    (void)depth;
+}
+
+static void browser_dom_dump_node(BrowserDomTree& tree, int idx, int depth) {
+    if (idx < 0 || idx >= tree.count) return;
+    BrowserDomNode& n = tree.nodes[idx];
+    char line[512];
+    int pos = 0;
+    int spaces = depth * 2;
+    if (spaces > 60) spaces = 60;
+    for (int i = 0; i < spaces && pos < 500; i++) line[pos++] = ' ';
+    if (n.kind == BROWSER_DOM_TEXT) {
+        const char* prefix = "TEXT \"";
+        for (int i = 0; prefix[i] && pos < 500; i++) line[pos++] = prefix[i];
+        for (int i = 0; n.text[i] && pos < 500; i++) line[pos++] = n.text[i];
+        if (pos < 500) line[pos++] = '"';
+        line[pos] = 0;
+        vxair_log_info("%s", line);
+        return;
+    }
+    line[pos++] = '<';
+    for (int i = 0; n.tag[i] && pos < 500; i++) line[pos++] = n.tag[i];
+    if (n.href[0] && pos < 500) {
+        const char* mid = " href=\"";
+        for (int i = 0; mid[i] && pos < 500; i++) line[pos++] = mid[i];
+        for (int i = 0; n.href[i] && pos < 500; i++) line[pos++] = n.href[i];
+        if (pos < 500) line[pos++] = '"';
+    }
+    if (n.src[0] && pos < 500) {
+        const char* mid = " src=\"";
+        for (int i = 0; mid[i] && pos < 500; i++) line[pos++] = mid[i];
+        for (int i = 0; n.src[i] && pos < 500; i++) line[pos++] = n.src[i];
+        if (pos < 500) line[pos++] = '"';
+    }
+    if (n.alt[0] && pos < 500) {
+        const char* mid = " alt=\"";
+        for (int i = 0; mid[i] && pos < 500; i++) line[pos++] = mid[i];
+        for (int i = 0; n.alt[i] && pos < 500; i++) line[pos++] = n.alt[i];
+        if (pos < 500) line[pos++] = '"';
+    }
+    if (pos < 500) line[pos++] = '>';
+    line[pos] = 0;
+    vxair_log_info("%s", line);
+    int child = n.first_child;
+    while (child >= 0) {
+        int next = tree.nodes[child].next_sibling;
+        browser_dom_dump_node(tree, child, depth + 1);
+        child = next;
+    }
+}
+
+static void browser_dom_dump_sample_once() {
+    if (browser_dom_proof_done) return;
+    browser_dom_proof_done = true;
+
+    const char* sample =
+        "<html><body><div class='outer'><div class='inner'><p>Alpha &amp; Beta "
+        "<span>unclosed span</p><p>Literal &lt;script&gt; text"
+        "<img src='photo.png' alt='Sunset'>"
+        "<ul><li>One<li>Two</ul>"
+        "</div></body></html>";
+
+    static BrowserDomTree tree;
+    browser_dom_parse(tree, sample);
+    int root = tree.body >= 0 ? tree.body : tree.root;
+    vxair_log_info("DOM PROOF: messy HTML sample parsed into DOM tree");
+    browser_dom_dump_node(tree, root, 0);
+    vxair_log_info("DOM PROOF: end");
+}
+
 struct BrowserRenderState {
     int left;
     int right;
@@ -102,11 +555,19 @@ struct BrowserRenderState {
     uint32_t fg;
     uint32_t muted;
     uint32_t accent;
-    bool bold;
-    bool link;
-    bool pre;
+    int bold_depth;
+    int italic_depth;
+    int link_depth;
+    int code_depth;
+    int pre_depth;
+    int quote_depth;
+    int skip_depth;
+    int heading_level;
     int indent;
     int list_depth;
+    int list_kind[8];
+    int list_index[8];
+    int list_top;
     int block_gap;
 };
 
@@ -120,7 +581,104 @@ static void browser_render_gap(BrowserRenderState& s, int gap) {
     s.y += gap;
 }
 
-static void browser_render_word(BrowserRenderState& s, const char* word, int size, uint32_t color, bool bold) {
+static int browser_render_effective_size(const BrowserRenderState& s) {
+    if (s.pre_depth > 0 || s.code_depth > 0) return 12;
+    switch (s.heading_level) {
+        case 1: return 20;
+        case 2: return 18;
+        case 3: return 16;
+        case 4: return 15;
+        case 5: return 14;
+        case 6: return 13;
+        default: return s.base_size;
+    }
+}
+
+static int browser_render_effective_line_h(const BrowserRenderState& s) {
+    if (s.pre_depth > 0 || s.code_depth > 0) return 17;
+    switch (s.heading_level) {
+        case 1: return 28;
+        case 2: return 25;
+        case 3: return 22;
+        case 4: return 21;
+        case 5: return 20;
+        case 6: return 19;
+        default: return 18;
+    }
+}
+
+static uint32_t browser_render_effective_color(const BrowserRenderState& s) {
+    if (s.link_depth > 0) return s.accent;
+    if (s.code_depth > 0) return 0xFFD5DDE8;
+    if (s.quote_depth > 0) return s.muted;
+    return s.fg;
+}
+
+static bool browser_render_effective_bold(const BrowserRenderState& s) {
+    return s.bold_depth > 0 || s.heading_level > 0;
+}
+
+static void browser_render_apply_style(BrowserRenderState& s) {
+    s.line_h = browser_render_effective_line_h(s);
+    s.base_size = browser_render_effective_size(s);
+    s.indent = s.quote_depth * 16 + s.list_depth * 18;
+}
+
+static const char* browser_html_entity(const char* start, const char* end, char& out) {
+    if (!start || start >= end || *start != '&') return nullptr;
+    const char* semi = start + 1;
+    while (semi < end && *semi && *semi != ';' && (semi - start) <= 10) semi++;
+    if (semi >= end || *semi != ';') return nullptr;
+    int len = (int)(semi - start - 1);
+    const char* ent = start + 1;
+    if (len == 2 && ent[0] == 'l' && ent[1] == 't') { out = '<'; return semi + 1; }
+    if (len == 2 && ent[0] == 'g' && ent[1] == 't') { out = '>'; return semi + 1; }
+    if (len == 3 && ent[0] == 'a' && ent[1] == 'm' && ent[2] == 'p') { out = '&'; return semi + 1; }
+    if (len == 4 && ent[0] == 'q' && ent[1] == 'u' && ent[2] == 'o' && ent[3] == 't') { out = '"'; return semi + 1; }
+    if (len == 4 && ent[0] == 'a' && ent[1] == 'p' && ent[2] == 'o' && ent[3] == 's') { out = '\''; return semi + 1; }
+    if (len == 5 && ent[0] == 'n' && ent[1] == 'b' && ent[2] == 's' && ent[3] == 'p') { out = ' '; return semi + 1; }
+    return nullptr;
+}
+
+static bool browser_tag_attr_value(const char* tag, const char* attr, char* out, int out_cap) {
+    out[0] = 0;
+    if (!tag || !attr) return false;
+    int attr_len = 0;
+    while (attr[attr_len]) attr_len++;
+    const char* p = tag;
+    while (*p) {
+        while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n' || *p == '/') p++;
+        if (!*p) break;
+        const char* key = p;
+        while (*p && *p != '=' && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n' && *p != '>') p++;
+        int key_len = (int)(p - key);
+        if (key_len == attr_len) {
+            bool match = true;
+            for (int i = 0; i < attr_len; i++) {
+                if (browser_lower_char(key[i]) != browser_lower_char(attr[i])) { match = false; break; }
+            }
+            if (match) {
+                while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
+                if (*p != '=') return false;
+                p++;
+                while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n') p++;
+                char quote = 0;
+                if (*p == '"' || *p == '\'') quote = *p++;
+                int oi = 0;
+                while (*p && ((quote && *p != quote) || (!quote && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n' && *p != '>'))) {
+                    if (oi < out_cap - 1) out[oi++] = *p;
+                    p++;
+                }
+                out[oi] = 0;
+                return true;
+            }
+        }
+        while (*p && *p != ' ' && *p != '\t' && *p != '\r' && *p != '\n' && *p != '>') p++;
+    }
+    return false;
+}
+
+static void browser_render_word(BrowserRenderState& s, const char* word, int size, uint32_t color, bool bold, bool underline) {
     if (!word || !word[0]) return;
     int word_w = vx_text::text_width(size, word);
     if (s.x > s.left + s.indent && s.x + word_w > s.right) {
@@ -131,31 +689,68 @@ static void browser_render_word(BrowserRenderState& s, const char* word, int siz
     }
     if (bold) vx_text::draw_bold(s.x, s.y, size, word, color, s.bg);
     else vx_text::draw(s.x, s.y, size, word, color, s.bg);
-    if (s.link) {
+    if (underline) {
         int underline_y = s.y + size + 1;
         vxr_fill_rect(s.x, underline_y, word_w, 1, color);
     }
     s.x += word_w + vx_text::text_width(size, " ");
 }
 
-static void browser_render_text_run(BrowserRenderState& s, const char* text, int size, uint32_t color, bool bold) {
-    if (!text || !text[0]) return;
-    char word[128];
+static void browser_render_text_run(BrowserRenderState& s, const char* start, const char* end, bool preserve_whitespace) {
+    if (!start || !end || start >= end) return;
+    char word[192];
     int wi = 0;
-    for (int i = 0; ; i++) {
-        char c = text[i];
-        bool end = (c == 0);
-        bool space = (!end && (c == ' ' || c == '\t' || c == '\r' || c == '\n'));
-        if (!end && !space) {
-            if (wi < 127) word[wi++] = c;
+    int size = browser_render_effective_size(s);
+    uint32_t color = browser_render_effective_color(s);
+    bool bold = browser_render_effective_bold(s);
+    bool underline = s.link_depth > 0;
+    const char* p = start;
+    while (p < end && *p) {
+        char c = 0;
+        const char* next = nullptr;
+        if (*p == '&') next = browser_html_entity(p, end, c);
+        if (!next) { c = *p; next = p + 1; }
+        if (c == '\r') c = '\n';
+
+        if (preserve_whitespace) {
+            if (c == '\n') {
+                if (wi > 0) {
+                    word[wi] = 0;
+                    browser_render_word(s, word, size, color, bold, underline);
+                    wi = 0;
+                }
+                browser_render_newline(s);
+                p = next;
+                continue;
+            }
+            if (c == ' ' || c == '\t') {
+                if (wi > 0) {
+                    word[wi] = 0;
+                    browser_render_word(s, word, size, color, bold, underline);
+                    wi = 0;
+                }
+                int sp = vx_text::text_width(size, " ");
+                if (s.x + sp > s.right) browser_render_newline(s);
+                else s.x += sp;
+                p = next;
+                continue;
+            }
+            if (wi < 191) word[wi++] = c;
+            p = next;
+            continue;
+        }
+
+        bool space = (c == ' ' || c == '\t' || c == '\r' || c == '\n');
+        if (!space) {
+            if (wi < 191) word[wi++] = c;
+            p = next;
             continue;
         }
         if (wi > 0) {
             word[wi] = 0;
-            browser_render_word(s, word, size, color, bold);
+            browser_render_word(s, word, size, color, bold, underline);
             wi = 0;
         }
-        if (end) break;
         if (c == '\n') {
             browser_render_newline(s);
         } else if (c == ' ' || c == '\t') {
@@ -165,16 +760,159 @@ static void browser_render_text_run(BrowserRenderState& s, const char* text, int
                 else s.x += sp;
             }
         }
+        p = next;
+    }
+    if (wi > 0) {
+        word[wi] = 0;
+        browser_render_word(s, word, size, color, bold, underline);
     }
 }
 
-static void browser_render_plain_segment(BrowserRenderState& s, const char* start, const char* end, int size, uint32_t color, bool bold) {
-    if (start >= end) return;
-    char buf[256];
-    int len = 0;
-    for (const char* p = start; p < end && len < 255; p++) buf[len++] = *p;
-    buf[len] = 0;
-    browser_render_text_run(s, buf, size, color, bold);
+static void browser_render_plain_segment(BrowserRenderState& s, const char* start, const char* end) {
+    browser_render_text_run(s, start, end, s.pre_depth > 0);
+}
+
+static void browser_render_block_break(BrowserRenderState& s, int before_gap, int after_gap) {
+    browser_render_gap(s, before_gap);
+    browser_render_gap(s, after_gap);
+}
+
+static int browser_heading_level_from_tag(const char* tag) {
+    if (browser_tag_eq(tag, "h1")) return 1;
+    if (browser_tag_eq(tag, "h2")) return 2;
+    if (browser_tag_eq(tag, "h3")) return 3;
+    if (browser_tag_eq(tag, "h4")) return 4;
+    if (browser_tag_eq(tag, "h5")) return 5;
+    if (browser_tag_eq(tag, "h6")) return 6;
+    return 0;
+}
+
+static bool browser_tag_is_block(const char* tag) {
+    return browser_tag_eq(tag, "p") || browser_tag_eq(tag, "div") || browser_tag_eq(tag, "section") || browser_tag_eq(tag, "article") ||
+           browser_tag_eq(tag, "main") || browser_tag_eq(tag, "header") || browser_tag_eq(tag, "footer") || browser_tag_eq(tag, "nav") ||
+           browser_tag_eq(tag, "aside") || browser_tag_eq(tag, "address") || browser_tag_eq(tag, "table") || browser_tag_eq(tag, "tr");
+}
+
+static int browser_heading_level_from_name(const char* tag) {
+    if (browser_tag_eq(tag, "h1")) return 1;
+    if (browser_tag_eq(tag, "h2")) return 2;
+    if (browser_tag_eq(tag, "h3")) return 3;
+    if (browser_tag_eq(tag, "h4")) return 4;
+    if (browser_tag_eq(tag, "h5")) return 5;
+    if (browser_tag_eq(tag, "h6")) return 6;
+    return 0;
+}
+
+static void browser_render_text_cstr(BrowserRenderState& s, const char* text) {
+    if (!text || !text[0]) return;
+    const char* end = text;
+    while (*end) end++;
+    browser_render_text_run(s, text, end, false);
+}
+
+static void browser_render_dom_children(BrowserDomTree& tree, int parent_idx, BrowserRenderState& s);
+
+static void browser_render_dom_node(BrowserDomTree& tree, int idx, BrowserRenderState& s) {
+    if (idx < 0 || idx >= tree.count) return;
+    BrowserDomNode& n = tree.nodes[idx];
+    if (n.kind == BROWSER_DOM_TEXT) {
+        browser_render_text_cstr(s, n.text);
+        return;
+    }
+
+    const char* tag = n.tag;
+    if (browser_tag_eq(tag, "html") || browser_tag_eq(tag, "body")) {
+        browser_render_dom_children(tree, idx, s);
+        return;
+    }
+    if (browser_tag_eq(tag, "head")) {
+        return;
+    }
+    if (browser_tag_eq(tag, "br")) {
+        browser_render_newline(s);
+        return;
+    }
+    if (browser_tag_eq(tag, "img")) {
+        if (n.alt[0]) {
+            browser_render_text_cstr(s, n.alt);
+        } else if (n.src[0]) {
+            browser_render_text_cstr(s, "[image]");
+        } else {
+            browser_render_text_cstr(s, "[image]");
+        }
+        return;
+    }
+
+    if (browser_heading_level_from_name(tag) > 0) {
+        int old_heading = s.heading_level;
+        int lvl = browser_heading_level_from_name(tag);
+        browser_render_block_break(s, lvl == 1 ? 10 : lvl == 2 ? 8 : 6, 0);
+        s.heading_level = lvl;
+        browser_render_apply_style(s);
+        browser_render_dom_children(tree, idx, s);
+        s.heading_level = old_heading;
+        browser_render_apply_style(s);
+        browser_render_block_break(s, 6, 10);
+        return;
+    }
+
+    if (browser_tag_eq(tag, "p") || browser_tag_eq(tag, "div")) {
+        browser_render_block_break(s, s.block_gap, 0);
+        browser_render_dom_children(tree, idx, s);
+        browser_render_block_break(s, 0, s.block_gap);
+        return;
+    }
+
+    if (browser_tag_eq(tag, "span")) {
+        browser_render_dom_children(tree, idx, s);
+        return;
+    }
+
+    if (browser_tag_eq(tag, "a")) {
+        s.link_depth++;
+        browser_render_apply_style(s);
+        browser_render_dom_children(tree, idx, s);
+        if (s.link_depth > 0) s.link_depth--;
+        browser_render_apply_style(s);
+        return;
+    }
+
+    if (browser_tag_eq(tag, "ul")) {
+        browser_render_block_break(s, 6, 2);
+        if (s.list_depth < 8) s.list_depth++;
+        browser_render_apply_style(s);
+        browser_render_dom_children(tree, idx, s);
+        if (s.list_depth > 0) s.list_depth--;
+        browser_render_apply_style(s);
+        browser_render_block_break(s, 2, 6);
+        return;
+    }
+
+    if (browser_tag_eq(tag, "li")) {
+        int depth = s.list_depth > 0 ? s.list_depth - 1 : 0;
+        int saved_indent = s.indent;
+        browser_render_newline(s, 2);
+        s.indent = 16 + depth * 18;
+        s.x = s.left + s.indent;
+        vxr_circle(s.left + 8 + depth * 18, s.y + 8, 2, s.accent);
+        browser_render_dom_children(tree, idx, s);
+        browser_render_newline(s, 2);
+        s.indent = saved_indent;
+        s.x = s.left + s.indent;
+        return;
+    }
+
+    browser_render_dom_children(tree, idx, s);
+}
+
+static void browser_render_dom_children(BrowserDomTree& tree, int parent_idx, BrowserRenderState& s) {
+    if (parent_idx < 0 || parent_idx >= tree.count) return;
+    int child = tree.nodes[parent_idx].first_child;
+    while (child >= 0) {
+        int next = tree.nodes[child].next_sibling;
+        browser_render_dom_node(tree, child, s);
+        child = next;
+    }
 }
 
 static void browser_render_html(BrowserTab& tab, int x, int y, int w, int h) {
@@ -190,12 +928,23 @@ static void browser_render_html(BrowserTab& tab, int x, int y, int w, int h) {
     s.fg = 0xFFE5E9F0;
     s.muted = 0xFFB0B8C4;
     s.accent = 0xFF0FE7FF;
-    s.bold = false;
-    s.link = false;
-    s.pre = false;
+    s.bold_depth = 0;
+    s.italic_depth = 0;
+    s.link_depth = 0;
+    s.code_depth = 0;
+    s.pre_depth = 0;
+    s.quote_depth = 0;
+    s.skip_depth = 0;
+    s.heading_level = 0;
     s.indent = 0;
     s.list_depth = 0;
+    s.list_top = 0;
     s.block_gap = 10;
+    for (int i = 0; i < 8; i++) {
+        s.list_kind[i] = 0;
+        s.list_index[i] = 0;
+    }
+    browser_render_apply_style(s);
 
     vxr_fill_rect(x, y, w, h, page_bg);
     vxr_circle(x + w - 90, y + 44, 180, 0x180A84FF);
@@ -205,112 +954,10 @@ static void browser_render_html(BrowserTab& tab, int x, int y, int w, int h) {
     vxr_fill_rect(x + 36, y + 58, w - 72, 1, 0x28D9DEE7);
 
     VxClipRect clip = g_vxr_ctx.push_clip(x + 24, y + 24, w - 48, h - 48);
-
-    const char* p = tab.html_content;
-    const char* text_start = p;
-    while (*p) {
-        if (*p == '<') {
-            browser_render_plain_segment(s, text_start, p, s.base_size, s.link ? s.accent : (s.bold ? s.fg : s.fg), s.bold);
-            const char* tag_start = ++p;
-            bool closing = false;
-            if (*p == '/') { closing = true; tag_start = ++p; }
-            char tag[48];
-            int ti = 0;
-            while (*p && *p != '>' && ti < 47) {
-                tag[ti++] = browser_lower_char(*p);
-                p++;
-            }
-            tag[ti] = 0;
-            if (*p == '>') p++;
-            text_start = p;
-
-            if (!closing) {
-                if (browser_tag_eq(tag, "br")) {
-                    browser_render_newline(s);
-                } else if (browser_tag_eq(tag, "p") || browser_tag_eq(tag, "div") || browser_tag_eq(tag, "section") || browser_tag_eq(tag, "article")) {
-                    browser_render_gap(s, s.block_gap);
-                    s.indent = 0;
-                    s.x = s.left;
-                } else if (browser_tag_eq(tag, "h1")) {
-                    browser_render_gap(s, 10);
-                    s.bold = true;
-                    s.base_size = 17;
-                    s.line_h = 24;
-                    s.indent = 0;
-                } else if (browser_tag_eq(tag, "h2")) {
-                    browser_render_gap(s, 8);
-                    s.bold = true;
-                    s.base_size = 15;
-                    s.line_h = 22;
-                    s.indent = 0;
-                } else if (browser_tag_eq(tag, "h3")) {
-                    browser_render_gap(s, 6);
-                    s.bold = true;
-                    s.base_size = 14;
-                    s.line_h = 20;
-                    s.indent = 0;
-                } else if (browser_tag_eq(tag, "li")) {
-                    browser_render_newline(s, 2);
-                    s.indent = 18 + s.list_depth * 14;
-                    s.x = s.left + s.indent;
-                    vxr_circle(s.left + 8 + s.list_depth * 6, s.y + 8, 2, s.accent);
-                } else if (browser_tag_eq(tag, "ul") || browser_tag_eq(tag, "ol")) {
-                    s.list_depth++;
-                    browser_render_gap(s, 2);
-                } else if (browser_tag_eq(tag, "pre")) {
-                    browser_render_gap(s, 8);
-                    s.pre = true;
-                    s.base_size = 12;
-                    s.line_h = 17;
-                    vxui_draw_rounded_rect(s.left - 4, s.y - 4, s.right - s.left + 8, 28, 8, 0xFF0B0F14);
-                } else if (browser_tag_eq(tag, "code")) {
-                    s.bold = false;
-                    s.base_size = 12;
-                    s.link = false;
-                } else if (browser_tag_eq(tag, "a")) {
-                    s.link = true;
-                } else if (browser_tag_eq(tag, "strong") || browser_tag_eq(tag, "b")) {
-                    s.bold = true;
-                } else if (browser_tag_eq(tag, "hr")) {
-                    browser_render_gap(s, 10);
-                    vxr_fill_rect(s.left, s.y + 6, s.right - s.left, 1, 0x28D9DEE7);
-                    browser_render_gap(s, 16);
-                }
-            } else {
-                if (browser_tag_eq(tag, "h1") || browser_tag_eq(tag, "h2") || browser_tag_eq(tag, "h3")) {
-                    s.bold = false;
-                    s.base_size = 13;
-                    s.line_h = 18;
-                    browser_render_gap(s, 10);
-                } else if (browser_tag_eq(tag, "p") || browser_tag_eq(tag, "div") || browser_tag_eq(tag, "section") || browser_tag_eq(tag, "article")) {
-                    browser_render_gap(s, s.block_gap);
-                    s.x = s.left;
-                } else if (browser_tag_eq(tag, "li")) {
-                    s.indent = 0;
-                    browser_render_newline(s, 4);
-                } else if (browser_tag_eq(tag, "ul") || browser_tag_eq(tag, "ol")) {
-                    if (s.list_depth > 0) s.list_depth--;
-                    s.indent = 0;
-                    browser_render_gap(s, 2);
-                } else if (browser_tag_eq(tag, "pre")) {
-                    s.pre = false;
-                    s.base_size = 13;
-                    s.line_h = 18;
-                    browser_render_gap(s, 10);
-                } else if (browser_tag_eq(tag, "a")) {
-                    s.link = false;
-                } else if (browser_tag_eq(tag, "strong") || browser_tag_eq(tag, "b")) {
-                    s.bold = false;
-                } else if (browser_tag_eq(tag, "code")) {
-                    s.base_size = 13;
-                }
-            }
-        } else {
-            p++;
-        }
-    }
-    browser_render_plain_segment(s, text_start, p, s.base_size, s.link ? s.accent : s.fg, s.bold);
-
+    static BrowserDomTree tree;
+    browser_dom_parse(tree, tab.html_content);
+    int render_root = tree.body >= 0 ? tree.body : tree.root;
+    if (render_root >= 0) browser_render_dom_children(tree, render_root, s);
     g_vxr_ctx.pop_clip(clip);
 }
 
@@ -379,10 +1026,24 @@ static void browser_render_home(BrowserTab& tab, int x, int y, int w, int h, int
 static void browser_fetch_url(BrowserTab& tab, const char* url) {
     uint32_t ip;
     const char* host = url;
-    if (host[0] == 'h' && host[1] == 't' && host[2] == 't' && host[3] == 'p') {
-        while (*host && *host != '/') host++;
-        if (host[0] == '/' && host[1] == '/') host += 2;
+    const char* path = "/";
+    if (!host || !host[0]) {
+        browser_set_html(tab, "<html><body><h1>Empty URL</h1><p>Enter an address to browse.</p></body></html>");
+        return;
     }
+
+    if (browser_starts_with(host, "http://")) {
+        host += 7;
+        const char* slash = host;
+        while (*slash && *slash != '/') slash++;
+        if (*slash == '/') path = slash;
+    } else if (browser_starts_with(host, "https://")) {
+        host += 8;
+        const char* slash = host;
+        while (*slash && *slash != '/') slash++;
+        if (*slash == '/') path = slash;
+    }
+
     char hostname[96];
     int hi = 0;
     while (host[hi] && host[hi] != '/' && host[hi] != ':' && hi < 95) {
@@ -393,7 +1054,7 @@ static void browser_fetch_url(BrowserTab& tab, const char* url) {
     if (hostname[0] == 0) {
         const char* fallback = "example.com";
         hi = 0;
-        while (fallback[hi]) { hostname[hi] = fallback[hi]; hi++; }
+        while (fallback[hi] && hi < 95) { hostname[hi] = fallback[hi]; hi++; }
         hostname[hi] = 0;
     }
 
@@ -405,17 +1066,20 @@ static void browser_fetch_url(BrowserTab& tab, const char* url) {
             addr.sin_port = 80;
             addr.sin_addr = ip;
             if (vxair_connect(sock, &addr, sizeof(addr)) == 0) {
-                char req[256];
+                static char req[256];
                 int ri = 0;
-                const char* p1 = "GET / HTTP/1.0\r\nHost: ";
+                const char* p1 = "GET ";
                 for (int i = 0; p1[i] && ri < 255; i++) req[ri++] = p1[i];
-                for (int i = 0; hostname[i] && ri < 255; i++) req[ri++] = hostname[i];
-                const char* p2 = "\r\nConnection: close\r\n\r\n";
+                for (int i = 0; path[i] && ri < 255; i++) req[ri++] = path[i];
+                const char* p2 = " HTTP/1.0\r\nHost: ";
                 for (int i = 0; p2[i] && ri < 255; i++) req[ri++] = p2[i];
+                for (int i = 0; hostname[i] && ri < 255; i++) req[ri++] = hostname[i];
+                const char* p3 = "\r\nConnection: close\r\nUser-Agent: VextrynAir/0.2\r\n\r\n";
+                for (int i = 0; p3[i] && ri < 255; i++) req[ri++] = p3[i];
                 req[ri] = 0;
                 vxair_send(sock, req, ri, 0);
 
-                char resp[4096];
+                static char resp[4096];
                 int len = 0;
                 while (len < 4095) {
                     int got = vxair_recv(sock, resp + len, 4095 - len, 0);
@@ -431,9 +1095,7 @@ static void browser_fetch_url(BrowserTab& tab, const char* url) {
                             break;
                         }
                     }
-                    int b_idx = 0;
-                    while(*body && b_idx < 4095) tab.html_content[b_idx++] = *body++;
-                    tab.html_content[b_idx] = 0;
+                    browser_set_html(tab, body);
                 }
             }
             vxair_close(sock);

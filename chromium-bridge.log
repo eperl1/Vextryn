@@ -1,0 +1,18 @@
+Chromium bridge listening on http://127.0.0.1:8081
+[02:25:46] "GET /health HTTP/1.1" 200 -
+[02:26:05] "GET /health HTTP/1.1" 200 -
+[02:26:23] "GET /health HTTP/1.1" 200 -
+[02:28:00] "GET /health HTTP/1.1" 200 -
+[02:34:43] "GET /health HTTP/1.1" 200 -
+[02:44:34] "GET /health HTTP/1.1" 200 -
+[02:45:48] "GET /health HTTP/1.1" 200 -
+[02:49:15] "GET /health HTTP/1.1" 200 -
+[02:51:57] "GET /health HTTP/1.1" 200 -
+[02:57:54] "GET /health HTTP/1.1" 200 -
+[02:59:11] "GET /health HTTP/1.1" 200 -
+[16:07:15] "GET /health HTTP/1.1" 200 -
+[16:10:14] "GET /health HTTP/1.1" 200 -
+[16:12:01] "GET /health HTTP/1.1" 200 -
+[16:18:52] "GET /health HTTP/1.1" 200 -
+[16:19:04] "GET /health HTTP/1.1" 200 -
+[16:20:19] "GET /health HTTP/1.1" 200 -

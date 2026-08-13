@@ -6,7 +6,7 @@
 [INFO] GOP: Framebuffer mapped successfully
 [INFO] GOP: Clearing front buffer...
 [INFO] GOP: Init complete
-[INFO] ACPI: initialized via memory scan RSDP at 0xf52c0
+[INFO] ACPI: initialized via memory scan RSDP at 0xf5280
 [INFO] IDT: Initializing...
 [INFO] APIC: Initializing...
 [INFO] APIC: initialized at base 0xfee00000
@@ -20,141 +20,35 @@
 [INFO] RTL8139: PCI CMD after = 0x0x107
 [INFO] RTL8139: Reset complete, CR=0x0x1
 [INFO] RTL8139: MAC=0x52:0x54:0x0:0x12:0x34:0x56
-[INFO] RTL8139: RX buffer phys=0x0x12ca000 size=32784
-[INFO] RTL8139: RBSTART = 0x0x12ca000 (readback=0x0x12ca000), CAPR init=0x0x0
+[INFO] RTL8139: RX buffer phys=0x0x1377000 size=32784
+[INFO] RTL8139: RBSTART = 0x0x1377000 (readback=0x0x1377000), CAPR init=0x0x0
 [INFO] RTL8139: RCR = 0x0x1a8e (readback=0x0x1a8e)
 [INFO] RTL8139: TCR = 0x0x3000701 (readback=0x0x74800000)
 [INFO] RTL8139: CR set to 0x0xc (readback=0x0xd) [RE=1 TE=1]
 [INFO] RTL8139: Init OK
 [INFO] NET: rtl8139 MAC 0x52:0x54:0x0:0x12:0x34:0x56
 [INFO] NET: Stack initialized successfully
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
 [INFO] NET: ARP probe sent for gateway 10.0.2.2, polling...
-[INFO] RTL8139: RX pkt_len=68 status=0x0x4001 off=0->72 cbr=72 capr_new=56
 [INFO] NET: ARP REPLY RECEIVED — RX PATH CONFIRMED WORKING (gateway MAC=0x52:0x55:0xa:0x0:0x2:0x2)
 [INFO] NET: Starting DNS test...
-[INFO] RTL8139: TX posted idx=1 len=60 phys=0x0x1af414
-[INFO] RTL8139: TX done idx=1 iterations=0
-[INFO] DNS: Polling for ARP reply...
-[INFO] RTL8139: RX pkt_len=68 status=0x0x4001 off=72->144 cbr=144 capr_new=128
-[INFO] DNS: Got frame len=68 iteration=0
-[INFO] DNS: DNS server MAC resolved via ARP
-[INFO] DNS: Querying google.com via QEMU DNS proxy
-[INFO] RTL8139: TX posted idx=2 len=70 phys=0x0x1afc18
-[INFO] RTL8139: TX done idx=2 iterations=0
-[INFO] DNS: Query sent (ID 1001)
-[INFO] RTL8139: RX empty #1 CR=0x0xd CAPR=0x0x80 CBR=0x0x90 our_off=144
-[INFO] RTL8139: RX empty #2 CR=0x0xd CAPR=0x0x80 CBR=0x0x90 our_off=144
-[INFO] RTL8139: RX empty #3 CR=0x0xd CAPR=0x0x80 CBR=0x0x90 our_off=144
-[INFO] RTL8139: RX empty #128 CR=0x0xd CAPR=0x0x80 CBR=0x0x90 our_off=144
 [INFO] DNS: TIMEOUT waiting for response
-[INFO] NET: Retrying with alternative hostname...
-[INFO] DNS: Querying example.com via QEMU DNS proxy
-[INFO] RTL8139: TX posted idx=3 len=71 phys=0x0x1b041c
-[INFO] RTL8139: TX done idx=3 iterations=0
-[INFO] DNS: Query sent (ID 1001)
-[INFO] RTL8139: RX empty #256 CR=0x0xd CAPR=0x0x80 CBR=0x0x90 our_off=144
-[INFO] RTL8139: RX pkt_len=170 status=0x0x4001 off=144->320 cbr=320 capr_new=304
-[INFO] DNS SUCCESS: example.com resolved to 142.251.163.102
+[INFO] DNS SUCCESS: example.com resolved to 104.20.23.154
 [INFO] NET: DNS test PASSED
 [INFO] VFS: root mounted
 [INFO] INITRD: loaded 3 files
 [INFO] INIT: PID 1 started
-[INFO] GUI: compositor started at 60fps
+[INFO] GUI: compositor started at 50fps
 [INFO] COMP MARK 1: compositor entry
 [INFO] VXRender: graphics context initialized (1024x768)
 [INFO] STORAGE: no persistent ATA disk; using session defaults
 [INFO] COMP MARK 2: after compositor state initialization
-[INFO] GUI: compositor started at 60fps
-[INFO] COMP MARK 3: immediately before first desktop render
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
-[INFO] RTL8139: RX pkt_len=107 status=0x0x4001 off=320->432 cbr=432 capr_new=416
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=432->500 cbr=500 capr_new=484
-[INFO] RTL8139: TX posted idx=1 len=60 phys=0x0x1af414
-[INFO] RTL8139: TX done idx=1 iterations=0
-[INFO] TCP: connected local=49152 remote=80
-[INFO] RTL8139: TX posted idx=2 len=110 phys=0x0x1afc18
-[INFO] RTL8139: TX done idx=2 iterations=0
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=500->568 cbr=568 capr_new=552
-[INFO] RTL8139: TX posted idx=3 len=60 phys=0x0x1b041c
-[INFO] RTL8139: TX done idx=3 iterations=0
-[INFO] TCP: received 10 bytes (buffer=10)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=568->636 cbr=636 capr_new=620
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
-[INFO] TCP: received 10 bytes (buffer=20)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=636->704 cbr=704 capr_new=688
-[INFO] RTL8139: TX posted idx=1 len=60 phys=0x0x1af414
-[INFO] RTL8139: TX done idx=1 iterations=0
-[INFO] TCP: received 10 bytes (buffer=30)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=704->772 cbr=772 capr_new=756
-[INFO] RTL8139: TX posted idx=2 len=60 phys=0x0x1afc18
-[INFO] RTL8139: TX done idx=2 iterations=0
-[INFO] TCP: received 10 bytes (buffer=40)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=772->840 cbr=840 capr_new=824
-[INFO] RTL8139: TX posted idx=3 len=60 phys=0x0x1b041c
-[INFO] RTL8139: TX done idx=3 iterations=0
-[INFO] TCP: received 10 bytes (buffer=50)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=840->908 cbr=908 capr_new=892
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
-[INFO] TCP: received 10 bytes (buffer=60)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=908->976 cbr=976 capr_new=960
-[INFO] RTL8139: TX posted idx=1 len=60 phys=0x0x1af414
-[INFO] RTL8139: TX done idx=1 iterations=0
-[INFO] TCP: received 10 bytes (buffer=70)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=976->1044 cbr=1044 capr_new=1028
-[INFO] RTL8139: TX posted idx=2 len=60 phys=0x0x1afc18
-[INFO] RTL8139: TX done idx=2 iterations=0
-[INFO] TCP: received 10 bytes (buffer=80)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1044->1112 cbr=1112 capr_new=1096
-[INFO] RTL8139: TX posted idx=3 len=60 phys=0x0x1b041c
-[INFO] RTL8139: TX done idx=3 iterations=0
-[INFO] TCP: received 10 bytes (buffer=90)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1112->1180 cbr=1180 capr_new=1164
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
-[INFO] TCP: received 10 bytes (buffer=100)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1180->1248 cbr=1248 capr_new=1232
-[INFO] RTL8139: TX posted idx=1 len=60 phys=0x0x1af414
-[INFO] RTL8139: TX done idx=1 iterations=0
-[INFO] TCP: received 10 bytes (buffer=110)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1248->1316 cbr=1316 capr_new=1300
-[INFO] RTL8139: TX posted idx=2 len=60 phys=0x0x1afc18
-[INFO] RTL8139: TX done idx=2 iterations=0
-[INFO] TCP: received 10 bytes (buffer=120)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1316->1384 cbr=1384 capr_new=1368
-[INFO] RTL8139: TX posted idx=3 len=60 phys=0x0x1b041c
-[INFO] RTL8139: TX done idx=3 iterations=0
-[INFO] TCP: received 10 bytes (buffer=130)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1384->1452 cbr=1452 capr_new=1436
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
-[INFO] TCP: received 10 bytes (buffer=140)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=1452->1520 cbr=1520 capr_new=1504
-[INFO] RTL8139: TX posted idx=1 len=60 phys=0x0x1af414
-[INFO] RTL8139: TX done idx=1 iterations=0
-[INFO] TCP: received 10 bytes (buffer=150)
-[INFO] RTL8139: RX pkt_len=886 status=0x0x4001 off=1520->2412 cbr=2480 capr_new=2396
-[INFO] RTL8139: TX posted idx=2 len=60 phys=0x0x1afc18
-[INFO] RTL8139: TX done idx=2 iterations=0
-[INFO] TCP: received 832 bytes (buffer=982)
-[INFO] RTL8139: RX pkt_len=64 status=0x0x4001 off=2412->2480 cbr=2548 capr_new=2464
-[INFO] RTL8139: TX posted idx=3 len=60 phys=0x0x1b041c
-[INFO] RTL8139: TX done idx=3 iterations=0
-[INFO] TCP: received 10 bytes (buffer=992)
-[INFO] RTL8139: TX posted idx=0 len=60 phys=0x0x1aec10
-[INFO] RTL8139: TX done idx=0 iterations=0
+[INFO] GUI: compositor started at ~50fps
+COMP MARK 3: immediately before first desktop render
+COMP MARK 3A: entering draw_polished_desktop
 [INFO] COMP MARK 4: immediately after first desktop render
 [INFO] COMP MARK 5: immediately after first framebuffer flip/present
+[INFO] VX: click (765,98) cc_open=0 launcher=0
 [INFO] COMPOSITOR RUNNING (one-time log; periodic logs disabled to avoid serial throttling)
-[INFO] VX: click (618,289) cc_open=0 launcher=0
-[INFO] VX: click (594,39) cc_open=0 launcher=0
-[INFO] VX: click (758,0) cc_open=0 launcher=0
-[INFO] VX: click (665,59) cc_open=0 launcher=0
-[INFO] VX: click (719,153) cc_open=0 launcher=0
-[INFO] VX: click (719,153) cc_open=0 launcher=0
-[INFO] VX: click (719,153) cc_open=0 launcher=0
-[INFO] VX: click (827,143) cc_open=0 launcher=0
+[INFO] VX: click (772,105) cc_open=0 launcher=0
+[INFO] VX: click (27,726) cc_open=0 launcher=0
+[INFO] VX: click (391,421) cc_open=0 launcher=1

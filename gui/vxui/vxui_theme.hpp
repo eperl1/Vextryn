@@ -8,8 +8,8 @@
 namespace VxTheme {
 
 // Vextryn Air "Open Design" Dark Palette (spec: vextryn-desktop-shell.html)
-constexpr uint32_t BG           = 0xFF0F1217;   // Shell base
-constexpr uint32_t SURFACE_0    = 0xFF151922;  // mix(#f7f8fa 3%, #111)
+constexpr uint32_t BG           = 0xFF0A101A;   // Shell base
+constexpr uint32_t SURFACE_0    = 0xFF101927;  // window underlay
 constexpr uint32_t SURFACE_1    = 0xFF191D26;  // mix(#f7f8fa 5%, #111) — window body
 constexpr uint32_t SURFACE_2    = 0xFF232833;  // mix(#f7f8fa 10%, #111) — hover / input
 constexpr uint32_t SURFACE_3    = 0xFF303642;  // mix(#f7f8fa 17%, #111) — raised
@@ -18,7 +18,7 @@ constexpr uint32_t FG_STRONG    = 0xFFFFFFFF;  // Strong foreground
 constexpr uint32_t FG_SOFT      = 0xFFE3E7EE;  // Soft foreground (fg-soft)
 constexpr uint32_t MUTED        = 0xFFABB1BB;  // Muted (secondary)
 constexpr uint32_t MUTED_DIM    = 0xFFC1C7D0;  // Dimmer caption
-constexpr uint32_t ACCENT       = 0xFF0A84FF;  // Primary accent
+constexpr uint32_t ACCENT       = 0xFF4FA3FF;  // Primary accent
 constexpr uint32_t ACCENT_HOVER = 0xFF4C9FFF;  // mix(accent 78%, #fff)
 constexpr uint32_t CYAN         = 0xFF7ACBFF;  // Soft highlight blue
 // Borders as translucent d9dee7 lines (alpha-blended by the GPU backend)
@@ -32,7 +32,7 @@ constexpr uint32_t BASE_MID      = 0xFF282828;  // Mid background
 constexpr uint32_t SURFACE       = 0xFF191D26;  // Card / Window body surface
 constexpr uint32_t SURFACE_HIGH  = 0xFF232833;  // Raised container / header surface
 constexpr uint32_t OVERLAY       = 0x2CFFFFFF;  // Subtle hover lift
-constexpr uint32_t GLASS_TINT    = 0xEA191D26;  // Translucent frosted glass tint
+constexpr uint32_t GLASS_TINT    = 0xF0162131;  // Translucent frosted glass tint
 
 // Accent Palette (Vivid Ice / Electric Blue)
 constexpr uint32_t ACCENT_DIM    = 0xFF0B61D0;  // Pressed / Active accent
@@ -81,9 +81,9 @@ constexpr int SHADOW_ELEVATED = 20;
 
 // Radii
 constexpr int RADIUS_NONE    = 0;
-constexpr int RADIUS_SM      = 6;
-constexpr int RADIUS_MD      = 10;
-constexpr int RADIUS_LG      = 14;
+constexpr int RADIUS_SM      = 8;
+constexpr int RADIUS_MD      = 12;
+constexpr int RADIUS_LG      = 16;
 constexpr int RADIUS_FULL    = 999;
 
 // Shell Component Dimensions

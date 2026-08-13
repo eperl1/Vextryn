@@ -3,6 +3,21 @@ extern "C" {
     extern void vxair_hpet_sleep_ms(uint32_t ms);
     extern void vxair_log_info(const char* fmt, ...);
 
+    static inline void vxair_debug_outb(uint16_t port, uint8_t val) {
+        __asm__ volatile ( "outb %0, %1" : : "a"(val), "Nd"(port) );
+    }
+
+    static inline void vxair_debug_serial_putc(char c) {
+        vxair_debug_outb(0x3F8, static_cast<uint8_t>(c));
+    }
+
+    static inline void vxair_debug_serial_write(const char* s) {
+        while (*s) {
+            vxair_debug_serial_putc(*s++);
+        }
+        vxair_debug_serial_putc('\n');
+    }
+
 #ifndef VXAIR_PERSISTENCE_TEST
 #define VXAIR_PERSISTENCE_TEST 0
 #endif
@@ -37,7 +52,7 @@ extern "C" {
     };
 
     enum {
-        VX_LAUNCHER_APP_COUNT = 21,
+        VX_LAUNCHER_APP_COUNT = 20,
         VX_WINDOW_COUNT = 24
     };
 
@@ -70,8 +85,8 @@ extern "C" {
         bool previous_left_down;
         int mouse_x;
         int mouse_y;
-        int exact_x_fp; // fixed point x256
-        int exact_y_fp; // fixed point x256
+        int exact_x_fp; // fixed point x1024
+        int exact_y_fp; // fixed point x1024
         int focused_window;
         VxWindow windows[VX_WINDOW_COUNT];
 
@@ -243,7 +258,6 @@ extern "C" {
     #include "apps/app_browser.hpp"
     #include "apps/app_notes.hpp"
     #include "apps/app_calculator.hpp"
-    #include "apps/app_sysmon.hpp"
     #include "apps/app_mail.hpp"
     #include "apps/app_gallery.hpp"
     #include "apps/app_media_player.hpp"
@@ -260,15 +274,15 @@ extern "C" {
     #include "apps/app_studio.hpp"
 
     const char* g_app_names[VX_LAUNCHER_APP_COUNT] = {
-        "Calculator", "Notes", "System Monitor", "Files",
-        "Settings", "Terminal", "Snake", "Browser",
+        "Calculator", "Notes", "Files", "Settings",
+        "Terminal", "Snake", "Browser",
         "Mail", "Photos", "Music", "Clock",
         "About", "Tasks", "Code", "Docs",
         "Archive", "Software", "Shot", "Dashboard",
         "Studio"
     };
     VxAppId g_app_ids[VX_LAUNCHER_APP_COUNT] = {
-        VX_APP_CALCULATOR, VX_APP_NOTES, VX_APP_SYSMON, VX_APP_FILES,
+        VX_APP_CALCULATOR, VX_APP_NOTES, VX_APP_FILES,
         VX_APP_SETTINGS, VX_APP_TERMINAL, VX_APP_SNAKE, VX_APP_BROWSER,
         VX_APP_MAIL, VX_APP_GALLERY, VX_APP_MEDIA_PLAYER,
         VX_APP_CLOCK, VX_APP_ABOUT, VX_APP_TASKS,
@@ -306,7 +320,7 @@ extern "C" {
         VxLauncherLayout L;
         L.item_count = 0;
         if (search_len == 0) {
-            const int curated[10] = {3, 5, 7, 14, 8, 10, 9, 4, 2, 1};
+            const int curated[10] = {2, 4, 6, 13, 7, 9, 8, 3, 1, 0};
             for (int i = 0; i < 10; i++) L.app_indices[L.item_count++] = curated[i];
         } else {
             for (int i = 0; i < VX_LAUNCHER_APP_COUNT; i++) {
@@ -384,7 +398,6 @@ extern "C" {
         outb(0x64, 0x60);
         mouse_wait(1);
         outb(0x60, status);
-        mouse_write(0xF6);
         mouse_write(0xF4);
     }
 
@@ -560,22 +573,23 @@ extern "C" {
                     
                     int32_t rdx = mbyte[1]; if (state & 0x10) rdx -= 256;
                     int32_t rdy = mbyte[2]; if (state & 0x20) rdy -= 256;
-                    
-                    // V2 Mouse: precision-tuned scaling with acceleration.
-                    // Low speed = precise, high speed = faster. No jitter.
-                    // Keep pointer movement 1:1 with PS/2 deltas so the visible
-                    // pointer stays aligned with hit targets in QEMU.
-                    (void)g_state.mouse_sensitivity_level;
-                    g_state.exact_x_fp += (rdx << 10);
-                    g_state.exact_y_fp -= (rdy << 10);
 
+                    int sens = g_state.mouse_sensitivity_level;
+                    if (sens < 1) sens = 1;
+                    if (sens > 100) sens = 100;
+
+                    // Use the user-controlled sensitivity as a movement scale.
+                    // 50 = 1.0x baseline, lower values slow the cursor down,
+                    // higher values make it more responsive.
+                    int32_t move_scale = (sens * 1024) / 50;
+                    g_state.exact_x_fp += rdx * move_scale;
+                    g_state.exact_y_fp -= rdy * move_scale;
                     g_state.mouse_x = (g_state.exact_x_fp + 512) >> 10;
                     g_state.mouse_y = (g_state.exact_y_fp + 512) >> 10;
-                    
                     if (g_state.mouse_x < 0) { g_state.mouse_x = 0; g_state.exact_x_fp = 0; }
                     if (g_state.mouse_y < 0) { g_state.mouse_y = 0; g_state.exact_y_fp = 0; }
-                    if (g_state.mouse_x > (int)W - 1) { g_state.mouse_x = W - 1; g_state.exact_x_fp = (W - 1) << 10; }
-                    if (g_state.mouse_y > (int)H - 1) { g_state.mouse_y = H - 1; g_state.exact_y_fp = (H - 1) << 10; }
+                    if (g_state.mouse_x > (int)W - 1) { g_state.mouse_x = W - 1; g_state.exact_x_fp = ((W - 1) << 10); }
+                    if (g_state.mouse_y > (int)H - 1) { g_state.mouse_y = H - 1; g_state.exact_y_fp = ((H - 1) << 10); }
 
                     bool clicked = (left_down && !g_state.previous_left_down);
                     bool released = (!left_down && g_state.previous_left_down);
@@ -844,6 +858,7 @@ extern "C" {
                 }
             }
         }
+
     }
 
     static void draw_segment(int x, int y, int length, bool horizontal, uint32_t color) {
@@ -1256,6 +1271,8 @@ extern "C" {
         draw_abstract_char(px + 71, footer_y + 16, 'S', 0xFFF7F8FA);
     }
 
+    // Kept out of the binary while the old reference-shell experiment remains archived.
+#if 0
     static void draw_reference_sysmon_card(int x, int y, int w, int h) {
         vxui_draw_dual_shadow(x, y, w, h, 8);
         vxui_draw_rounded_rect(x, y, w, h, 8, 0xFF222222);
@@ -1296,6 +1313,7 @@ extern "C" {
         vxr_rounded_border(x + 10, cy + 10, 92, 24, 7, 0x40FFFFFF);
         vx_text::draw(x + 20, cy + 26, 11, "End session...", 0xFFF7F8FA, 0xFF2B2B2B);
     }
+#endif
 
     static void draw_reference_dock(uint32_t W, uint32_t H) {
         int dock_x = 58;
@@ -1343,7 +1361,6 @@ extern "C" {
 
         draw_reference_terminal_window(58, 40, 530, 334);
         draw_reference_launcher_card((int)W / 2 - 250, 194, 500, 240);
-        draw_reference_sysmon_card((int)W - 224, 226, 198, 286);
         draw_reference_dock(W, H);
     }
 
@@ -1389,9 +1406,6 @@ extern "C" {
             if (w.app == VX_APP_TERMINAL) {
                 vx_text::draw(w.x + 36, w.y + 19, 12, "Terminal", title_col, VxTheme::GLASS_TINT);
                 vx_text::draw(w.x + 96, w.y + 19, 12, "zsh", VxTheme::MUTED, VxTheme::GLASS_TINT);
-            } else if (w.app == VX_APP_SYSMON) {
-                vx_text::draw(w.x + 36, w.y + 19, 12, "System Monitor", title_col, VxTheme::GLASS_TINT);
-                vx_text::draw(w.x + w.w - 54, w.y + 19, 11, "LIVE", VxTheme::CYAN, VxTheme::GLASS_TINT);
             } else {
                 int title_w = vx_text::text_width(14, tn);
                 int tx = w.x + (w.w - title_w) / 2;
@@ -1436,8 +1450,6 @@ extern "C" {
             draw_app_calculator(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         } else if (w.app == VX_APP_NOTES) {
             draw_app_notes(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
-        } else if (w.app == VX_APP_SYSMON) {
-            draw_app_sysmon(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         } else if (w.app == VX_APP_TERMINAL) {
             draw_app_terminal(w, g_frame, g_state.mouse_x, g_state.mouse_y, clicked);
         } else if (w.app == VX_APP_SNAKE) {
@@ -1523,9 +1535,9 @@ extern "C" {
 
     static void build_wallpaper_cache(uint32_t W, uint32_t H) {
         // Gradient (identical math to the runtime path in draw_polished_desktop)
-        const uint32_t wp_top = 0xFF121E30;
-        const uint32_t wp_mid = 0xFF111111;
-        const uint32_t wp_br  = 0xFF12243E;
+        const uint32_t wp_top = 0xFF142947;
+        const uint32_t wp_mid = 0xFF0A101A;
+        const uint32_t wp_br  = 0xFF172E4C;
         for (uint32_t y = 0; y < H; y++) {
             uint32_t t100 = 25u + (50u * y) / H;
             if (t100 > 100) t100 = 100;
@@ -1550,8 +1562,8 @@ extern "C" {
             wp_circle(ccx, ccy, cR * 5 / 10, VxColor::with_alpha(0xFF00F0FF, 9));
         }
         // Faint 56px grid
-        for (uint32_t gx = 0; gx < W; gx += 56) wp_row_fill((int)gx, 0, 1, 0x04D9DEE7);
-        for (uint32_t gy = 0; gy < H; gy += 56) wp_row_fill(0, (int)gy, (int)W, 0x04D9DEE7);
+        for (uint32_t gx = 0; gx < W; gx += 96) wp_row_fill((int)gx, 0, 1, 0x03D9DEE7);
+        for (uint32_t gy = 0; gy < H; gy += 96) wp_row_fill(0, (int)gy, (int)W, 0x03D9DEE7);
     }
 
     static void draw_polished_desktop(uint32_t W, uint32_t H) {
@@ -1570,9 +1582,9 @@ extern "C" {
         if (g_wp_cached) {
             vxair_fb_blit(g_wp_cache, 0, 0, (int)W, (int)H);
         } else {
-        const uint32_t wp_top = 0xFF121E30;  // mix(#1677ff 13%, #111111)
-        const uint32_t wp_mid = 0xFF111111;  // midpoint
-        const uint32_t wp_br  = 0xFF12243E;  // mix(#1677ff 19%, #111111)
+        const uint32_t wp_top = 0xFF142947;
+        const uint32_t wp_mid = 0xFF0A101A;
+        const uint32_t wp_br  = 0xFF172E4C;
         // Diagonal-ish: sample gradient at each row's midpoint along the 163deg axis
         for (uint32_t y = 0; y < H; y++) {
             uint32_t t100 = 25u + (50u * y) / H; // 0..100 along diagonal at row midpoint
@@ -1602,8 +1614,8 @@ extern "C" {
             vxr_circle(ccx, ccy, cR * 5 / 10, VxColor::with_alpha(0xFF00F0FF, 9));
         }
         // Faint 56px grid (mix #d9dee7 1.8%, transparent)
-        for (uint32_t gx = 0; gx < W; gx += 56) vxr_fill_rect(gx, 0, 1, H, 0x04D9DEE7);
-        for (uint32_t gy = 0; gy < H; gy += 56) vxr_fill_rect(0, gy, W, 1, 0x04D9DEE7);
+        for (uint32_t gx = 0; gx < W; gx += 96) vxr_fill_rect(gx, 0, 1, H, 0x03D9DEE7);
+        for (uint32_t gy = 0; gy < H; gy += 96) vxr_fill_rect(0, gy, W, 1, 0x03D9DEE7);
         } // else: fallback when wallpaper cache is unavailable
 
         if (g_reference_shell_scene) {
@@ -1634,7 +1646,7 @@ extern "C" {
         uint32_t dock_y = H - dock_h - 10;
         uint32_t dock_w = W - 20;
         vxr_soft_shadow(dock_x + 2, dock_y + 4, dock_w - 4, dock_h - 4, 10, 16);
-        vxui_draw_rounded_rect(dock_x, dock_y, dock_w, dock_h, 18, VxTheme::GLASS_TINT);
+        vxui_draw_rounded_rect(dock_x, dock_y, dock_w, dock_h, 20, VxTheme::GLASS_TINT);
         vxr_fill_rect(dock_x, dock_y, dock_w, 1, VxColor::with_alpha(VxTheme::FG, 18));
         vxr_rounded_border(dock_x, dock_y, dock_w, dock_h, 18, VxTheme::BORDER_ALPHA);
 
@@ -1781,12 +1793,11 @@ extern "C" {
         }
 
         // Cursor
-        int max_ptr_x = (int)W - 24;
-        int max_ptr_y = (int)H - 36;
-        if (max_ptr_x < 0) max_ptr_x = 0;
-        if (max_ptr_y < 0) max_ptr_y = 0;
-        uint32_t ptr_x = (g_state.mouse_x < 0) ? 0 : (g_state.mouse_x > max_ptr_x ? (uint32_t)max_ptr_x : (uint32_t)g_state.mouse_x);
-        uint32_t ptr_y = (g_state.mouse_y < 0) ? 0 : (g_state.mouse_y > max_ptr_y ? (uint32_t)max_ptr_y : (uint32_t)g_state.mouse_y);
+        // Draw the cursor from the logical mouse coordinate directly.
+        // Clipping on the primitive calls keeps the pointer visible at the edges
+        // instead of stopping early when the sprite would extend off-screen.
+        int ptr_x = g_state.mouse_x;
+        int ptr_y = g_state.mouse_y;
         if (g_state.large_cursor) {
             for (int i = 0; i < 18; i++) vxr_fill_rect(ptr_x + 2 + i, ptr_y + 3 + i, 2, 2, 0x88000000);
             vxr_fill_rect(ptr_x + 2, ptr_y + 4, 2, 30, 0x88000000);
@@ -1844,8 +1855,10 @@ extern "C" {
         g_state.accent_color = VxTheme::ACCENT;
         VxTheme::set_accent(g_state.accent_color);
         g_state.show_top_bar = true;
-        g_state.show_desktop_glow = true;
-        g_state.show_window_shadows = true;
+        // Keep the default shell lighter during interactive use; users can re-enable
+        // the heavier visual effects from Settings if they want the full premium look.
+        g_state.show_desktop_glow = false;
+        g_state.show_window_shadows = false;
         g_state.focus_dim = false;
         g_state.high_contrast = false;
         g_state.large_cursor = false;
@@ -1874,12 +1887,12 @@ extern "C" {
 
         g_state.windows[0]  = {false, VX_APP_CALCULATOR,   160, 130, 300, 390, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[1]  = {false, VX_APP_NOTES,        395, 110, 420, 420, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[2]  = {true,  VX_APP_SYSMON,       826, 186, 182, 318, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[2]  = {false, VX_APP_NONE,           0,   0,   0,   0, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[3]  = {false, VX_APP_FILES,         36,  96, 420, 560, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[4]  = {false, VX_APP_SETTINGS,     500,  96, 488, 560, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[5]  = {true,  VX_APP_TERMINAL,     58,  40,  530, 334, false, 0, 0, true, false, false, 0,0,0,0};
+        g_state.windows[5]  = {false, VX_APP_TERMINAL,     58,  40,  530, 334, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[6]  = {false, VX_APP_SNAKE,        200, 200, 400, 428, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[7]  = {true,  VX_APP_BROWSER,      322, 86,  520, 500, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[7]  = {false, VX_APP_BROWSER,      322, 86,  520, 500, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[8]  = {false, VX_APP_MAIL,         120, 90,  720, 480, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[9]  = {false, VX_APP_GALLERY,      300, 100, 480, 380, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[10] = {false, VX_APP_MEDIA_PLAYER, 180, 120, 400, 400, false, 0, 0, false, false, false, 0,0,0,0};
@@ -1891,14 +1904,14 @@ extern "C" {
         g_state.windows[16] = {false, VX_APP_ARCHIVE,      180, 120, 520, 380, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[17] = {false, VX_APP_STORE,        120, 90,  660, 480, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[18] = {false, VX_APP_SHOT,         220, 140, 420, 300, false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.windows[19] = {false, VX_APP_DASHBOARD,    260, 110, 560, 500, false, 0, 0, false, false, false, 0,0,0,0};
+        g_state.windows[19] = {true,  VX_APP_DASHBOARD,    232, 82,  610, 510, false, 0, 0, true, false, false, 0,0,0,0};
         g_state.windows[20] = {false, VX_APP_STUDIO,        180, 90,  720, 520, false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[21] = {false, VX_APP_NONE,          0,   0,   0,   0,   false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[22] = {false, VX_APP_NONE,          0,   0,   0,   0,   false, 0, 0, false, false, false, 0,0,0,0};
         g_state.windows[23] = {false, VX_APP_NONE,          0,   0,   0,   0,   false, 0, 0, false, false, false, 0,0,0,0};
-        g_state.focused_window = 7;
+        g_state.focused_window = 19;
         g_state.windows[5].focused = false;
-        g_state.windows[7].focused = true;
+        g_state.windows[19].focused = true;
         
         mouse_init();
 
@@ -1927,8 +1940,8 @@ extern "C" {
                 } else {
                     // Old v1 sector: apply sensible defaults for new options
                     g_state.show_top_bar = true;
-                    g_state.show_desktop_glow = true;
-                    g_state.show_window_shadows = true;
+                    g_state.show_desktop_glow = false;
+                    g_state.show_window_shadows = false;
                     g_state.focus_dim = false;
                     g_state.high_contrast = false;
                     g_state.large_cursor = false;
@@ -1977,7 +1990,7 @@ extern "C" {
         g_launcher_search_input.init(g_state.launcher_search, &g_state.launcher_search_len, 64);
         
         vxair_log_info("COMP MARK 2: after compositor state initialization");
-        vxair_log_info("GUI: compositor started at 60fps");
+        vxair_log_info("GUI: compositor started at ~50fps");
 
         g_frame = 0;
         VxDamageTracker damage_tracker;
@@ -1985,7 +1998,8 @@ extern "C" {
 
         while (1) {
             handle_input(W, H);
-            if (g_frame == 0) vxair_log_info("COMP MARK 3: immediately before first desktop render");
+            if (g_frame == 0) vxair_debug_serial_write("COMP MARK 3: immediately before first desktop render");
+            if (g_frame == 0) vxair_debug_serial_write("COMP MARK 3A: entering draw_polished_desktop");
             draw_polished_desktop(W, H);
             if (g_frame == 0) vxair_log_info("COMP MARK 4: immediately after first desktop render");
 
@@ -1998,6 +2012,8 @@ extern "C" {
             }
 
             if (g_frame == 0) vxair_log_info("COMP MARK 5: immediately after first framebuffer flip/present");
+            // Back off a bit so the VM has room to service input without the
+            // compositor monopolizing the host CPU.
             vxair_hpet_sleep_ms(3);
             g_frame++;
             if (g_frame == 60) vxair_log_info("COMPOSITOR RUNNING (one-time log; periodic logs disabled to avoid serial throttling)");

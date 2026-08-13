@@ -7,6 +7,10 @@
 
 extern void vxair_log_info(const char *fmt, ...);
 
+#ifndef RTL8139_VERBOSE
+#define RTL8139_VERBOSE 0
+#endif
+
 // Global driver state
 vxair_rtl8139_t g_rtl8139;
 
@@ -182,14 +186,18 @@ int vxair_rtl8139_send(const uint8_t *data, uint16_t len) {
     uint32_t tsd = RTL8139_TSD_SIZE(len);
     rtl_out32(io, RTL8139_TSD0 + idx * 4, tsd);
 
-    vxair_log_info("RTL8139: TX posted idx=%u len=%u phys=0x%x",
-                   idx, len, tx_phys);
+    if (RTL8139_VERBOSE) {
+        vxair_log_info("RTL8139: TX posted idx=%u len=%u phys=0x%x",
+                       idx, len, tx_phys);
+    }
 
     // Poll for completion — hardware clears OWN and sets TOK when done
     for (int p = 0; p < 5000; p++) {
         uint32_t status = rtl_in32(io, RTL8139_TSD0 + idx * 4);
         if (status & RTL8139_TSD_TOK) {
-            vxair_log_info("RTL8139: TX done idx=%u iterations=%d", idx, p);
+            if (RTL8139_VERBOSE) {
+                vxair_log_info("RTL8139: TX done idx=%u iterations=%d", idx, p);
+            }
             return 0;
         }
         if (!(status & RTL8139_TSD_OWN)) {
@@ -211,11 +219,13 @@ uint16_t vxair_rtl8139_receive(uint8_t *out_buf, uint16_t max_len) {
 
     uint8_t cr = rtl_in8(io, RTL8139_CR);
     if (cr & RTL8139_CR_BUFE) {
-        static int rx_empty_count = 0;
-        if (++rx_empty_count <= 3 || rx_empty_count % 128 == 0) {
-            vxair_log_info("RTL8139: RX empty #%d CR=0x%x CAPR=0x%x CBR=0x%x our_off=%u",
-                           rx_empty_count, cr, rtl_in16(io, RTL8139_CAPR),
-                           rtl_in16(io, RTL8139_CBR), g_rtl8139.rx_offset);
+        if (RTL8139_VERBOSE) {
+            static int rx_empty_count = 0;
+            if (++rx_empty_count <= 3 || rx_empty_count % 128 == 0) {
+                vxair_log_info("RTL8139: RX empty #%d CR=0x%x CAPR=0x%x CBR=0x%x our_off=%u",
+                               rx_empty_count, cr, rtl_in16(io, RTL8139_CAPR),
+                               rtl_in16(io, RTL8139_CBR), g_rtl8139.rx_offset);
+            }
         }
         return 0;
     }
@@ -272,8 +282,10 @@ uint16_t vxair_rtl8139_receive(uint8_t *out_buf, uint16_t max_len) {
 
     g_rtl8139.rx_offset = new_offset;
 
-    vxair_log_info("RTL8139: RX pkt_len=%u status=0x%x off=%u->%u cbr=%u capr_new=%u",
-                   pkt_len, status, rx_offset, new_offset, rtl_in16(io, RTL8139_CBR), new_capr);
+    if (RTL8139_VERBOSE) {
+        vxair_log_info("RTL8139: RX pkt_len=%u status=0x%x off=%u->%u cbr=%u capr_new=%u",
+                       pkt_len, status, rx_offset, new_offset, rtl_in16(io, RTL8139_CBR), new_capr);
+    }
 
     return copy_len;
 }

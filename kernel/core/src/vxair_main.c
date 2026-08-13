@@ -107,7 +107,7 @@ void vxair_kernel_main(struct vxair_boot_info* multiboot_info) {
     vxair_log_info("INITRD: loaded 3 files");
     vxair_log_info("INIT: PID 1 started");
     
-    vxair_log_info("GUI: compositor started at 60fps");
+    vxair_log_info("GUI: compositor started at 50fps");
 
     // Enable interrupts
     vxair_idt_enable_interrupts();
